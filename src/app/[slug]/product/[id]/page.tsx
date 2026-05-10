@@ -84,7 +84,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           <div className="bg-slate-50 p-4 rounded-2xl border border-border flex items-center gap-4">
              <img 
-               src={product.stores.logo_url || "/ondar icon.png"} 
+               src={product.stores.logo_url || "/icon.png"} 
                alt={product.stores.store_name} 
                className="w-10 h-10 rounded-full object-cover border border-border"
              />

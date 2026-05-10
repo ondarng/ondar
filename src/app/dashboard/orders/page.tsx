@@ -231,7 +231,7 @@ export default function DashboardOrdersPage() {
                   <img src={storeInfo.logo_url} style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', border: '2px solid #f1f5f9' }} alt="" />
                 ) : (
                   <div style={{ width: '48px', height: '48px', backgroundColor: '#f1f5f9', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img src="/ondar icon.png" style={{ width: '24px', height: '24px' }} alt="" />
+                    <img src="/icon.png" style={{ width: '24px', height: '24px' }} alt="" />
                   </div>
                 )}
               </div>
@@ -273,7 +273,7 @@ export default function DashboardOrdersPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
                 <span style={{ height: '1px', flex: 1, backgroundColor: '#f1f5f9' }}></span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <img src="/ondar icon.png" style={{ width: '12px', height: '12px', opacity: 0.3 }} alt="" />
+                  <img src="/icon.png" style={{ width: '12px', height: '12px', opacity: 0.3 }} alt="" />
                   <span style={{ fontSize: '0.625rem', fontWeight: 800, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Powered by Ondar</span>
                 </div>
                 <span style={{ height: '1px', flex: 1, backgroundColor: '#f1f5f9' }}></span>

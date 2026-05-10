@@ -157,7 +157,7 @@ export default function DashboardPage() {
       {/* Top Nav */}
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <img src="/ondar icon.png" alt="Ondar" className="w-8 h-8" />
+          <img src="/icon.png" alt="Ondar" className="w-8 h-8" />
           <div className="flex flex-col">
             <span className="font-display font-bold text-lg text-primary-900 leading-none">Ondar</span>
             <span className={`text-[10px] font-bold uppercase tracking-wider ${store?.subscription_status === 'PAID' ? 'text-green-600' : 'text-accent'}`}>

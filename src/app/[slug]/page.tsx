@@ -129,7 +129,7 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
         <footer className="py-12 flex flex-col items-center gap-4">
           <div className="h-px w-12 bg-slate-200"></div>
           <a href="https://ondar.ng" className="flex items-center gap-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all">
-            <img src="/ondar icon.png" alt="Ondar" className="w-4 h-4" />
+            <img src="/icon.png" alt="Ondar" className="w-4 h-4" />
             <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary-900">
               Powered by Ondar
             </span>

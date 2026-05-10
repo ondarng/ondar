@@ -58,7 +58,7 @@ export default function SignupPage() {
     <div className="flex flex-col min-h-screen bg-white px-6 py-12 justify-center">
       <div className="w-full max-w-md mx-auto space-y-8">
         <div className="space-y-2">
-          <img src="/ondar icon.png" alt="Ondar" className="w-12 h-12 mb-4" />
+          <img src="/icon.png" alt="Ondar" className="w-12 h-12 mb-4" />
           <h1 className="text-3xl font-display font-bold tracking-tight text-primary-900">
             Create your store
           </h1>

@@ -7,7 +7,7 @@ export default function Home() {
       
       {/* 1. HERO SECTION */}
       <header className="px-6 py-6 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <img src="/ondar logo.png" alt="Ondar" className="h-7 md:h-9" />
+        <img src="/logo.png" alt="Ondar" className="h-7 md:h-9" />
         <Link href="/login" className="text-sm font-bold hover:text-[#00A859] transition-colors px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
           Login
         </Link>
@@ -354,7 +354,7 @@ export default function Home() {
       <footer className="bg-slate-50 border-t border-slate-100 px-6 py-20">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 text-center md:text-left">
-            <img src="/ondar logo.png" alt="Ondar" className="h-8 mx-auto md:mx-0" />
+            <img src="/logo.png" alt="Ondar" className="h-8 mx-auto md:mx-0" />
             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
               Made with ❤️ for Nigerian Vendors
             </p>

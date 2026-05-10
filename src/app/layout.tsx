@@ -17,12 +17,19 @@ export const metadata: Metadata = {
   title: "Ondar | Sell faster, stress less",
   description: "The simplest storefront for Nigerian social media vendors.",
   manifest: "/manifest.json",
-  themeColor: "#00A859",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Ondar",
   },
+};
+
+export const viewport = {
+  themeColor: "#00A859",
 };
 
 import { PWARegistration } from "@/components/pwa-registration";

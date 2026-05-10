@@ -74,10 +74,10 @@ export default function DashboardPage() {
 
       // Subscription check
       const trialEnds = storeData.trial_ends_at ? new Date(storeData.trial_ends_at) : null;
-      const isExpired = trialEnds && trialEnds < new Date() && storeData.subscription_status !== 'PAID';
-      setIsExpired(isExpired);
+      const expiredStatus = !!(trialEnds && trialEnds < new Date() && storeData.subscription_status !== 'PAID');
+      setIsExpired(expiredStatus);
 
-      if (isExpired) {
+      if (expiredStatus) {
         posthog.capture('trial_expired_view', { store_id: storeData.id })
       }
 

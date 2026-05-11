@@ -35,7 +35,7 @@ export default function ShareStorePage() {
     getStore()
   }, [])
 
-  const storeUrl = slug ? `localhost:3000/${slug}` : ''
+  const storeUrl = slug ? `${typeof window !== 'undefined' ? window.location.host : ''}/${slug}` : ''
   const fullUrl = slug ? `${window.location.origin}/${slug}` : ''
 
   const handleCopy = () => {

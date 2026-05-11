@@ -205,7 +205,7 @@ export default function DashboardSettingsPage() {
               <label className="text-xs font-bold text-primary-900">Store Link (Slug)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-xs">
-                  localhost:3000/
+                    {typeof window !== 'undefined' ? window.location.host : ''}/
                 </span>
                 <input
                   type="text"

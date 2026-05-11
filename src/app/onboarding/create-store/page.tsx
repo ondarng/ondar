@@ -93,7 +93,7 @@ export default function CreateStorePage() {
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-xs">
-                localhost:3000/
+                {typeof window !== 'undefined' ? window.location.host : ''}/
               </span>
               <input
                 id="slug"

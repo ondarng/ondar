@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   // Form State
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [instagram, setInstagram] = useState('')
   const [quantity, setQuantity] = useState(1)
 
   const supabase = createClient()
@@ -51,6 +52,7 @@ export default function CheckoutPage() {
       product_id: product.id,
       customer_name: name,
       customer_phone: phone,
+      customer_instagram: instagram,
       quantity,
       total_price: totalPrice,
       status: 'PENDING'
@@ -127,7 +129,8 @@ export default function CheckoutPage() {
             onClick={() => {
               let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
               if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
-              window.open(`https://wa.me/${cleanPhone}?text=I just placed an order for ${product.name}. Here is my proof of payment.`, '_blank')
+              const message = `Hi ${product.stores.store_name}, I want to buy ${product.name} (Qty: ${quantity}). \n\nTotal: ₦${(product.price * quantity).toLocaleString()}\nName: ${name}\nPhone: ${phone}${instagram ? `\nIG: @${instagram.replace('@', '')}` : ''}\n\nHere is my proof of payment.`
+              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
             }}
             className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
@@ -190,6 +193,19 @@ export default function CheckoutPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-[#00A859] outline-none transition-all text-slate-900"
                 placeholder="e.g. 08012345678"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900 flex items-center gap-2">
+                <span className="text-[10px] font-black italic">IG</span> Instagram Handle (Optional)
+              </label>
+              <input
+                type="text"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-[#00A859] outline-none transition-all text-slate-900"
+                placeholder="@username"
               />
             </div>
 

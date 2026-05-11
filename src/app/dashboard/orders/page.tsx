@@ -101,7 +101,7 @@ export default function DashboardOrdersPage() {
     switch(status) {
       case 'PENDING': return <Clock className="w-4 h-4 text-orange-500" />
       case 'PAID': return <CheckCircle2 className="w-4 h-4 text-blue-500" />
-      case 'SHIPPED': return <Truck className="w-4 h-4 text-purple-500" />
+      case 'ASSIGNED': return <Truck className="w-4 h-4 text-purple-500" />
       case 'DELIVERED': return <CheckCircle2 className="w-4 h-4 text-green-500" />
       case 'CANCELLED': return <XCircle className="w-4 h-4 text-red-500" />
       default: return null
@@ -112,7 +112,7 @@ export default function DashboardOrdersPage() {
     switch(status) {
       case 'PENDING': return 'bg-orange-50 text-orange-700 border-orange-200'
       case 'PAID': return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'SHIPPED': return 'bg-purple-50 text-purple-700 border-purple-200'
+      case 'ASSIGNED': return 'bg-purple-50 text-purple-700 border-purple-200'
       case 'DELIVERED': return 'bg-green-50 text-green-700 border-green-200'
       case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200'
       default: return 'bg-slate-50 text-slate-700 border-slate-200'
@@ -178,11 +178,11 @@ export default function DashboardOrdersPage() {
                   </button>
                 )}
                 {order.status === 'PAID' && (
-                  <button onClick={() => handleStatusUpdate(order, 'SHIPPED')} className="flex-1 bg-purple-50 text-purple-700 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors">
-                    Mark Shipped
+                  <button onClick={() => handleStatusUpdate(order, 'ASSIGNED')} className="flex-1 bg-purple-50 text-purple-700 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors">
+                    Assign Delivery
                   </button>
                 )}
-                {order.status === 'SHIPPED' && (
+                {order.status === 'ASSIGNED' && (
                   <button onClick={() => handleStatusUpdate(order, 'DELIVERED')} className="flex-1 bg-green-50 text-green-700 py-2 rounded-lg text-sm font-bold hover:bg-green-100 transition-colors">
                     Mark Delivered
                   </button>
@@ -194,7 +194,7 @@ export default function DashboardOrdersPage() {
                 )}
                 
                 {/* Download Receipt Button for non-pending and non-cancelled orders */}
-                {(order.status === 'PAID' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
+                {(order.status === 'PAID' || order.status === 'ASSIGNED' || order.status === 'DELIVERED') && (
                   <button 
                     onClick={() => handleDownloadReceipt(order)} 
                     className="w-full bg-slate-100 text-slate-700 py-2 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors mt-2 flex items-center justify-center gap-2"

@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Clock,
   Users,
-  Share2
+  Share2,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 

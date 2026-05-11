@@ -171,6 +171,7 @@ export default function DashboardPage() {
         </button>
       </header>
 
+      <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
         {/* Setup Checklist */}
         {(!store.bank_name || !store.bank_account_number || !store.whatsapp_number || stats.products === 0) && (
           <div className="bg-white rounded-3xl border-2 border-primary-100 p-6 shadow-sm space-y-5">
@@ -234,6 +235,15 @@ export default function DashboardPage() {
             <p className="text-secondary text-sm font-medium">
               {typeof window !== 'undefined' ? window.location.host : ''}/{store.slug}
             </p>
+            {(!store.bank_name || !store.bank_account_number || !store.whatsapp_number || stats.products === 0) ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-amber-100">
+                <Clock className="w-3 h-3" /> Incomplete Setup
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                <Check className="w-3 h-3" /> Store Live
+              </span>
+            )}
           </div>
           
           <div className="flex w-full gap-3">

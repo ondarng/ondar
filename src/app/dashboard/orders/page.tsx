@@ -52,25 +52,31 @@ export default function DashboardOrdersPage() {
   const handleStatusUpdate = async (order: any, newStatus: string) => {
     const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', order.id)
     
-    if (!error) {
-      // If marking as PAID, decrement stock
-      if (newStatus === 'PAID') {
-        const { data: product } = await supabase
-          .from('products')
-          .select('stock_quantity')
-          .eq('id', order.product_id)
-          .single()
-        
-        if (product) {
-          await supabase
-            .from('products')
-            .update({ stock_quantity: Math.max(0, product.stock_quantity - order.quantity) })
-            .eq('id', order.product_id)
-        }
+    if (error) {
+      alert("Error updating status: " + error.message)
+      return
+    }
+
+    // Stock logic: Only change stock when moving TO or FROM CANCELLED status
+    // Since stock is now decremented instantly upon order placement
+    
+    // Moving TO Cancelled from a non-cancelled state: Restore stock
+    if (newStatus === 'CANCELLED' && order.status !== 'CANCELLED') {
+      const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', order.product_id).single()
+      if (product) {
+        await supabase.from('products').update({ stock_quantity: product.stock_quantity + order.quantity }).eq('id', order.product_id)
       }
+    }
+    
+    // Moving FROM Cancelled back to an active state: Re-decrement stock
+    if (order.status === 'CANCELLED' && newStatus !== 'CANCELLED') {
+      const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', order.product_id).single()
+      if (product) {
+        await supabase.from('products').update({ stock_quantity: Math.max(0, product.stock_quantity - order.quantity) }).eq('id', order.product_id)
+      }
+    }
 
       setOrders(orders.map(o => o.id === order.id ? { ...o, status: newStatus } : o))
-    }
   }
 
   const handleDownloadReceipt = (order: any) => {
@@ -101,7 +107,7 @@ export default function DashboardOrdersPage() {
     switch(status) {
       case 'PENDING': return <Clock className="w-4 h-4 text-orange-500" />
       case 'PAID': return <CheckCircle2 className="w-4 h-4 text-blue-500" />
-      case 'ASSIGNED': return <Truck className="w-4 h-4 text-purple-500" />
+      case 'SHIPPED': return <Truck className="w-4 h-4 text-purple-500" />
       case 'DELIVERED': return <CheckCircle2 className="w-4 h-4 text-green-500" />
       case 'CANCELLED': return <XCircle className="w-4 h-4 text-red-500" />
       default: return null
@@ -112,7 +118,7 @@ export default function DashboardOrdersPage() {
     switch(status) {
       case 'PENDING': return 'bg-orange-50 text-orange-700 border-orange-200'
       case 'PAID': return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'ASSIGNED': return 'bg-purple-50 text-purple-700 border-purple-200'
+      case 'SHIPPED': return 'bg-purple-50 text-purple-700 border-purple-200'
       case 'DELIVERED': return 'bg-green-50 text-green-700 border-green-200'
       case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200'
       default: return 'bg-slate-50 text-slate-700 border-slate-200'
@@ -149,7 +155,7 @@ export default function DashboardOrdersPage() {
                 </div>
                 <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${getStatusColor(order.status)}`}>
                   {getStatusIcon(order.status)}
-                  {order.status}
+                  {order.status === 'SHIPPED' ? 'ASSIGNED' : order.status}
                 </div>
               </div>
 
@@ -167,6 +173,11 @@ export default function DashboardOrdersPage() {
                   <span className="font-medium text-primary-900 text-right">
                     {order.customer_name}<br/>
                     <span className="text-xs">{order.customer_phone}</span>
+                    {order.customer_instagram && (
+                      <span className="block text-[#E1306C] font-bold text-[10px]">
+                        @{order.customer_instagram.replace('@', '')}
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
@@ -178,13 +189,18 @@ export default function DashboardOrdersPage() {
                   </button>
                 )}
                 {order.status === 'PAID' && (
-                  <button onClick={() => handleStatusUpdate(order, 'ASSIGNED')} className="flex-1 bg-purple-50 text-purple-700 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors">
+                  <button onClick={() => handleStatusUpdate(order, 'SHIPPED')} className="flex-1 bg-purple-50 text-purple-700 py-2 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors">
                     Assign Delivery
                   </button>
                 )}
-                {order.status === 'ASSIGNED' && (
+                {order.status === 'SHIPPED' && (
                   <button onClick={() => handleStatusUpdate(order, 'DELIVERED')} className="flex-1 bg-green-50 text-green-700 py-2 rounded-lg text-sm font-bold hover:bg-green-100 transition-colors">
                     Mark Delivered
+                  </button>
+                )}
+                {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
+                  <button onClick={() => handleStatusUpdate(order, 'PENDING')} className="flex-1 bg-slate-50 text-slate-600 py-2 rounded-lg text-sm font-bold hover:bg-slate-100 transition-colors">
+                    Reset
                   </button>
                 )}
                 {(order.status !== 'DELIVERED' && order.status !== 'CANCELLED') && (
@@ -194,7 +210,7 @@ export default function DashboardOrdersPage() {
                 )}
                 
                 {/* Download Receipt Button for non-pending and non-cancelled orders */}
-                {(order.status === 'PAID' || order.status === 'ASSIGNED' || order.status === 'DELIVERED') && (
+                {(order.status === 'PAID' || order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
                   <button 
                     onClick={() => handleDownloadReceipt(order)} 
                     className="w-full bg-slate-100 text-slate-700 py-2 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors mt-2 flex items-center justify-center gap-2"
@@ -269,7 +285,12 @@ export default function DashboardOrdersPage() {
             </div>
 
             <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '2rem' }}>Thank you for your business!</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Thank you for your business!</p>
+              {storeInfo?.instagram_handle && (
+                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#db2777', marginBottom: '2rem' }}>
+                  @{storeInfo.instagram_handle.replace('@', '')}
+                </p>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
                 <span style={{ height: '1px', flex: 1, backgroundColor: '#f1f5f9' }}></span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>

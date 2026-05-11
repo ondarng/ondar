@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { Plus, Pencil, Trash2, Package, ArrowLeft, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Package, ArrowLeft, Loader2, Minus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardProductsPage() {
@@ -52,6 +52,15 @@ export default function DashboardProductsPage() {
     setProducts(products.filter(p => p.id !== productId))
   }
 
+  const updateStock = async (productId: string, currentStock: number, delta: number) => {
+    const newStock = Math.max(0, currentStock + delta)
+    const { error } = await supabase.from('products').update({ stock_quantity: newStock }).eq('id', productId)
+    
+    if (!error) {
+      setProducts(products.map(p => p.id === productId ? { ...p, stock_quantity: newStock } : p))
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -87,7 +96,22 @@ export default function DashboardProductsPage() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-primary-900 truncate">{product.name}</h3>
                 <p className="font-display font-extrabold text-primary-600 text-sm">₦{product.price.toLocaleString()}</p>
-                <p className="text-xs text-secondary mt-1">Stock: {product.stock_quantity}</p>
+                
+                <div className="flex items-center gap-3 mt-2">
+                  <button 
+                    onClick={() => updateStock(product.id, product.stock_quantity, -1)}
+                    className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="font-bold text-primary-900 text-sm w-4 text-center">{product.stock_quantity}</span>
+                  <button 
+                    onClick={() => updateStock(product.id, product.stock_quantity, 1)}
+                    className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <div className="flex flex-col gap-2 shrink-0">
                 <Link 

@@ -13,7 +13,9 @@ import {
   ExternalLink,
   ChevronRight,
   TrendingUp,
-  Clock
+  Clock,
+  Users,
+  Share2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -51,12 +53,11 @@ export default function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('store_id', storeData.id)
 
-      // Fetch Revenue (Paid only)
       const { data: paidOrders } = await supabase
         .from('orders')
         .select('total_price')
         .eq('store_id', storeData.id)
-        .eq('status', 'PAID')
+        .in('status', ['PAID', 'SHIPPED', 'DELIVERED'])
 
       const revenue = paidOrders?.reduce((acc, curr) => acc + Number(curr.total_price), 0) || 0
 
@@ -262,6 +263,19 @@ export default function DashboardPage() {
               <div>
                 <p className="font-bold text-primary-900">Manage Orders</p>
                 <p className="text-xs text-secondary">Check payments & shipping</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-600 transition-colors" />
+          </Link>
+
+          <Link href="/dashboard/customers" className="group flex items-center justify-between bg-white p-4 rounded-2xl border border-border shadow-sm active:bg-slate-50 transition-all">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-bold text-primary-900">Customer Memory</p>
+                <p className="text-xs text-secondary">Your basic CRM & history</p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-600 transition-colors" />

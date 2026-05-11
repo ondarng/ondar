@@ -171,7 +171,53 @@ export default function DashboardPage() {
         </button>
       </header>
 
-      <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
+        {/* Setup Checklist */}
+        {(!store.bank_name || !store.bank_account_number || !store.whatsapp_number || stats.products === 0) && (
+          <div className="bg-white rounded-3xl border-2 border-primary-100 p-6 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="font-display font-bold text-lg text-primary-900">Finish Your Setup</h3>
+                <p className="text-xs text-secondary font-medium">Your store is hidden until these are done</p>
+              </div>
+              <div className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                Action Required
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Link 
+                href="/dashboard/settings"
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${(!store.bank_name || !store.bank_account_number) ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${(!store.bank_name || !store.bank_account_number) ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
+                  {(!store.bank_name || !store.bank_account_number) ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                </div>
+                <span className="text-sm font-bold text-primary-900">Add Bank Transfer Details</span>
+              </Link>
+
+              <Link 
+                href="/dashboard/settings"
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${!store.whatsapp_number ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!store.whatsapp_number ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
+                  {!store.whatsapp_number ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                </div>
+                <span className="text-sm font-bold text-primary-900">Connect WhatsApp Number</span>
+              </Link>
+
+              <Link 
+                href="/dashboard/products/add"
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${stats.products === 0 ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${stats.products === 0 ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
+                  {stats.products === 0 ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                </div>
+                <span className="text-sm font-bold text-primary-900">Add your first product</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Store Header */}
         <div className="bg-white p-6 rounded-2xl border border-border shadow-sm flex flex-col items-center text-center space-y-4">
           <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-primary-100">

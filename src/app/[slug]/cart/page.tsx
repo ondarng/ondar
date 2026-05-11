@@ -254,14 +254,21 @@ function CartPageContent() {
                   <span>{items.length} item{items.length !== 1 ? 's' : ''}</span>
                   <span className="text-white text-xl font-display font-black">₦{totalPrice.toLocaleString()}</span>
                 </div>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{ backgroundColor: accent, color: getContrastColor(accent) }}
-                  className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
-                >
-                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place Order'}
-                </button>
+                
+                {(!store.bank_name || !store.bank_account_number) ? (
+                  <div className="bg-amber-900/20 border border-amber-900/30 p-4 rounded-xl text-center">
+                    <p className="text-xs font-bold text-amber-200">This store is not accepting orders yet.</p>
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    style={{ backgroundColor: accent, color: getContrastColor(accent) }}
+                    className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
+                  >
+                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place Order'}
+                  </button>
+                )}
               </div>
             </form>
           </>

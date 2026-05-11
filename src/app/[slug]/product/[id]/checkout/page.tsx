@@ -311,17 +311,23 @@ export default function CheckoutPage() {
               <span className="text-white text-xl font-display font-black">₦{(product.price * quantity).toLocaleString()}</span>
             </div>
             
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{ 
-                backgroundColor: product.stores.accent_color || '#00A859',
-                color: getContrastColor(product.stores.accent_color || '#00A859')
-              }}
-              className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
-            >
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
-            </button>
+            {(!product.stores.bank_name || !product.stores.bank_account_number) ? (
+              <div className="bg-amber-900/20 border border-amber-900/30 p-4 rounded-xl text-center">
+                <p className="text-xs font-bold text-amber-200">This store is not accepting orders yet.</p>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{ 
+                  backgroundColor: product.stores.accent_color || '#00A859',
+                  color: getContrastColor(product.stores.accent_color || '#00A859')
+                }}
+                className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
+              >
+                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+              </button>
+            )}
           </div>
         </form>
       </main>

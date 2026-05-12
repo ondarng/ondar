@@ -356,10 +356,32 @@ export default function Home() {
               Made with ❤️ for Nigerian Vendors
             </p>
           </div>
-          <div className="flex flex-col md:flex-row items-center justify-center md:justify-end gap-6 md:gap-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-            <a href="mailto:support@ondar.ng" className="hover:text-[#00A859] transition-colors">Support</a>
-            <a href="#" className="hover:text-[#00A859] transition-colors">Twitter</a>
-            <a href="#" className="hover:text-[#00A859] transition-colors">Instagram</a>
+          <div className="flex items-center justify-center md:justify-end gap-6 text-slate-400">
+            <a href="mailto:support@ondar.ng" className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-[#00A859] transition-colors">Support</a>
+            <a 
+              href="https://x.com/ondarng" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-[#00A859] transition-colors"
+              aria-label="X (formerly Twitter)"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298l13.312 17.404z" />
+              </svg>
+            </a>
+            <a 
+              href="https://www.instagram.com/ondar.ng/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-[#00A859] transition-colors"
+              aria-label="Instagram"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+              </svg>
+            </a>
           </div>
         </div>
         <div className="mt-12 md:mt-20 text-center text-[10px] uppercase tracking-[0.4em] text-slate-300 font-black">

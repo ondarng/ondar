@@ -385,7 +385,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-12 md:mt-20 text-center text-[10px] uppercase tracking-[0.4em] text-slate-300 font-black">
-          © 2026 Ondar Tech • Lagos, Nigeria
+          Ondar built by Asiegbu Caleb
         </div>
       </footer>
 

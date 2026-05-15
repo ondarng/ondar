@@ -29,10 +29,14 @@ export async function GET(request: Request) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Create a safe absolute URL for the redirect
+      const redirectUrl = new URL(next, origin)
+      return NextResponse.redirect(redirectUrl.toString())
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=Could not authenticate`)
+  // If there's an error, send them back to login with a message
+  const errorUrl = new URL('/login', origin)
+  errorUrl.searchParams.set('error', 'Could not authenticate')
+  return NextResponse.redirect(errorUrl.toString())
 }

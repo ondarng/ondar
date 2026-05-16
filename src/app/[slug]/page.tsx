@@ -118,18 +118,7 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
           </header>
 
           <main className="flex-1 max-w-md mx-auto w-full px-5 py-8 space-y-8">
-            {/* Setup Warning for Customers */}
-            {(!store.bank_name || !store.bank_account_number) && (
-              <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
-                <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-sm font-bold text-amber-900 leading-tight">Setup in Progress</p>
-                  <p className="text-[11px] text-amber-700 font-medium">This store is still configuring its payment details and isn&apos;t accepting orders just yet.</p>
-                </div>
-              </div>
-            )}
+
 
             {products && products.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">

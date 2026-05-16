@@ -4,9 +4,6 @@ import Link from 'next/link'
 import { Store, PackageX, Clock } from 'lucide-react'
 import { getContrastColor } from '@/lib/utils'
 import StoreCartWrapper from '@/components/store-cart-wrapper'
-import { AddToCartButton } from '@/components/add-to-cart-button'
-import { FloatingCartBadge } from '@/components/floating-cart-badge'
-import { CartHeaderIcon } from '@/components/cart-header-icon'
 
 const WhatsAppIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
@@ -116,7 +113,6 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
                 >
                   <WhatsAppIcon className="w-5 h-5" style={{ color: '#25D366' }} />
                 </a>
-                <CartHeaderIcon slug={slug} accent={accent} />
               </div>
             </div>
           </header>
@@ -174,17 +170,17 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
                             ₦{product.price.toLocaleString()}
                           </span>
                         </div>
-                        <AddToCartButton
-                          product={{
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            image_url: product.image_url,
-                            quantity: 1,
-                            stock_quantity: product.stock_quantity,
+                        <Link
+                          href={`/${slug}/product/${product.id}`}
+                          className="w-full py-2.5 px-2 rounded-xl font-black text-[11px] uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 whitespace-nowrap"
+                          style={{ 
+                            backgroundColor: accent, 
+                            color: getContrastColor(accent),
+                            boxShadow: `0 4px 14px ${accent}40`
                           }}
-                          accent={accent}
-                        />
+                        >
+                          <span>Order Now</span>
+                        </Link>
                       </div>
                     </div>
 
@@ -215,9 +211,6 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
               </span>
             </a>
           </footer>
-
-          {/* Floating Cart Badge */}
-          <FloatingCartBadge slug={slug} accent={accent} />
         </div>
       </StoreCartWrapper>
     )

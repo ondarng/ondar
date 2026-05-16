@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Truck } from 'lucide-react'
 import { getContrastColor } from '@/lib/utils'
 import StoreCartWrapper from '@/components/store-cart-wrapper'
-import { ProductAddToCart } from '@/components/product-add-to-cart'
+import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const { slug, id } = await params
@@ -111,30 +111,21 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         {/* Sticky Bottom CTA */}
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-border max-w-md mx-auto w-full z-20 flex gap-3">
           {product.stock_quantity > 0 ? (
-            <>
-              <ProductAddToCart 
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image_url: product.image_url,
-                  quantity: 1,
-                  stock_quantity: product.stock_quantity
-                }}
-                accent={accent}
-              />
-              <Link 
-                href={`/${slug}/product/${id}/checkout`}
-                style={{ 
-                  backgroundColor: accent,
-                  color: getContrastColor(accent)
-                }}
-                className="flex-1 font-bold py-5 rounded-2xl shadow-xl shadow-primary-600/10 flex items-center justify-center gap-3 hover:opacity-95 active:scale-95 transition-all text-lg tracking-tight"
-              >
-                Buy Now
-                <ArrowRight className="w-5 h-5 opacity-70" />
-              </Link>
-            </>
+            <WhatsappOrderCTA 
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image_url: product.image_url,
+                store_id: product.stores.id
+              }}
+              store={{
+                id: product.stores.id,
+                whatsapp_number: product.stores.whatsapp_number,
+                store_name: product.stores.store_name,
+                accent_color: product.stores.accent_color
+              }}
+            />
           ) : (
             <button 
               disabled

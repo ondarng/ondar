@@ -9,6 +9,7 @@ import { ArrowRight, Loader2, Plus, Upload, Package } from 'lucide-react'
 export default function AddProductPage() {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
+  const [description, setDescription] = useState('')
   const [stock, setStock] = useState('10')
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -92,6 +93,7 @@ export default function AddProductPage() {
       store_id: storeId,
       name,
       price: parseFloat(price),
+      description,
       stock_quantity: parseInt(stock),
       image_url: publicUrl,
     })
@@ -115,6 +117,7 @@ export default function AddProductPage() {
       // Clear form for next product
       setName('')
       setPrice('')
+      setDescription('')
       setImage(null)
       setImagePreview(null)
       setLoading(false)
@@ -180,6 +183,21 @@ export default function AddProductPage() {
               className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
               placeholder="e.g. Vintage Denim Jacket"
             />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-primary-900" htmlFor="description">
+              Product Details (Optional)
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all resize-none"
+              placeholder="e.g. 128GB Storage, Excellent condition, Comes with charger..."
+            />
+            <p className="text-xs text-slate-400">Add details like size, color, condition, or storage capacity.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

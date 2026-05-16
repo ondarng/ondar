@@ -179,7 +179,8 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
                             boxShadow: `0 4px 14px ${accent}40`
                           }}
                         >
-                          <span>Order Now</span>
+                          <WhatsAppIcon className="w-3.5 h-3.5 shrink-0" />
+                          <span>Order on WhatsApp</span>
                         </Link>
                       </div>
                     </div>

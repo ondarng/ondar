@@ -119,3 +119,20 @@ CREATE POLICY "Allow vendors to update orders" ON public.orders
 FOR UPDATE TO authenticated USING (
   store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid())
 );
+
+-- 6. VENTS TABLE (Vendor Feedback / Stress Log)
+CREATE TABLE IF NOT EXISTS vents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vendor_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    route TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- VENTS POLICIES: Vendors can insert and view their own vents
+ALTER TABLE vents ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Vendors can insert vents" ON vents
+    FOR INSERT TO authenticated WITH CHECK (auth.uid() = vendor_id);
+CREATE POLICY "Vendors can view their own vents" ON vents
+    FOR SELECT TO authenticated USING (auth.uid() = vendor_id);

@@ -174,7 +174,7 @@ export default function DashboardPage() {
 
       <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
         {/* Setup Checklist */}
-        {(!store.bank_name || !store.bank_account_number || !store.whatsapp_number || stats.products === 0) && (
+        {(!store.whatsapp_number || stats.products === 0) && (
           <div className="bg-white rounded-3xl border-2 border-primary-100 p-6 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -187,16 +187,6 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-3">
-              <Link 
-                href="/dashboard/settings"
-                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${(!store.bank_name || !store.bank_account_number) ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
-              >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${(!store.bank_name || !store.bank_account_number) ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
-                  {(!store.bank_name || !store.bank_account_number) ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                </div>
-                <span className="text-sm font-bold text-primary-900">Add Bank Transfer Details</span>
-              </Link>
-
               <Link 
                 href="/dashboard/settings"
                 className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${!store.whatsapp_number ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
@@ -236,7 +226,7 @@ export default function DashboardPage() {
             <p className="text-secondary text-sm font-medium">
               {typeof window !== 'undefined' ? window.location.host : ''}/{store.slug}
             </p>
-            {(!store.bank_name || !store.bank_account_number || !store.whatsapp_number || stats.products === 0) ? (
+            {(!store.whatsapp_number || stats.products === 0) ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-amber-100">
                 <Clock className="w-3 h-3" /> Incomplete Setup
               </span>
@@ -319,7 +309,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="font-bold text-primary-900">Manage Orders</p>
-                <p className="text-xs text-secondary">Check payments & shipping</p>
+                <p className="text-xs text-secondary">Check WhatsApp order inquiries</p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-600 transition-colors" />
@@ -345,7 +335,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="font-bold text-primary-900">Store Settings</p>
-                <p className="text-xs text-secondary">Bank info & branding</p>
+                <p className="text-xs text-secondary">Store branding & WhatsApp</p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-600 transition-colors" />

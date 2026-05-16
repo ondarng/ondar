@@ -93,17 +93,7 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
               </div>
 
               <div className="flex items-center gap-2">
-                {store.instagram_handle && (
-                  <a 
-                    href={`https://instagram.com/${store.instagram_handle.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl flex items-center justify-center border border-border shadow-sm transition-all hover:scale-105 active:scale-95"
-                    style={{ backgroundColor: '#fce7f3' }}
-                  >
-                    <InstagramIcon className="w-5 h-5" style={{ color: '#E1306C' }} />
-                  </a>
-                )}
+
                 <a 
                   href={`https://wa.me/${store.whatsapp_number.replace(/\D/g, '')}`}
                   target="_blank"

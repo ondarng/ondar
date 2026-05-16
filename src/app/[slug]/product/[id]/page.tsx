@@ -78,11 +78,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                  <p className="text-xs text-secondary">Sold by</p>
                  <div className="flex items-center gap-2">
                    <p className="font-bold text-primary-900">{product.stores.store_name}</p>
-                   {product.stores.instagram_handle && (
-                     <span className="text-[10px] bg-pink-50 text-pink-600 px-1.5 py-0.5 rounded font-bold border border-pink-100">
-                       @{product.stores.instagram_handle.replace('@', '')}
-                     </span>
-                   )}
                  </div>
                </div>
             </div>

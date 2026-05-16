@@ -16,14 +16,8 @@ export default function DashboardSettingsPage() {
   const [storeName, setStoreName] = useState('')
   const [slug, setSlug] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
-  const [bankName, setBankName] = useState('')
-  const [bankAccountName, setBankAccountName] = useState('')
-  const [bankAccountNumber, setBankAccountNumber] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [accentColor, setAccentColor] = useState('#00A859')
-  const [instagramHandle, setInstagramHandle] = useState('')
-  const [acceptWhatsapp, setAcceptWhatsapp] = useState(true)
-  const [acceptInstagram, setAcceptInstagram] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -52,15 +46,8 @@ export default function DashboardSettingsPage() {
       setStoreName(storeData.store_name || '')
       setSlug(storeData.slug || '')
       setWhatsapp(storeData.whatsapp_number || '')
-      setBankName(storeData.bank_name || '')
-      setBankAccountName(storeData.bank_account_name || '')
-      setBankAccountNumber(storeData.bank_account_number || '')
       setLogoUrl(storeData.logo_url || '')
       setAccentColor(storeData.accent_color || '#00A859')
-      setInstagramHandle(storeData.instagram_handle || '')
-      // Set defaults if columns don't exist yet (will handle with fallback later)
-      setAcceptWhatsapp(storeData.accept_whatsapp ?? true)
-      setAcceptInstagram(storeData.accept_instagram ?? false)
       
       setLoading(false)
     }
@@ -78,14 +65,8 @@ export default function DashboardSettingsPage() {
         store_name: storeName,
         slug,
         whatsapp_number: whatsapp,
-        bank_name: bankName,
-        bank_account_name: bankAccountName,
-        bank_account_number: bankAccountNumber,
         logo_url: logoUrl,
-        accent_color: accentColor,
-        instagram_handle: instagramHandle,
-        accept_whatsapp: acceptWhatsapp,
-        accept_instagram: acceptInstagram
+        accent_color: accentColor
       })
       .eq('id', store.id)
 
@@ -237,74 +218,6 @@ export default function DashboardSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               />
             </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900">Instagram Handle (Optional)</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-xs">@</span>
-                <input
-                  type="text"
-                  value={instagramHandle}
-                  onChange={(e) => setInstagramHandle(e.target.value.replace('@', ''))}
-                  placeholder="username"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                />
-              </div>
-            </div>
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-primary-900 mb-1">Sales Channels</h3>
-                <p className="text-xs text-secondary mb-4">Choose where customers can send their orders.</p>
-              </div>
-
-              <label className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366]">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.446 4.432-9.877 9.888-9.877 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.446-4.435 9.877-9.888 9.877m8.415-18.3c-2.251-2.25-5.244-3.487-8.427-3.487-6.559 0-11.9 5.341-11.9 11.9 0 2.09.544 4.132 1.577 5.942L0 24l6.302-1.654a11.852 11.852 0 005.591 1.41h.005c6.56 0 11.9-5.341 11.9-11.9 0-3.184-1.24-6.179-3.492-8.432" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="block text-sm font-bold text-primary-900">WhatsApp</span>
-                    <span className="block text-[10px] text-secondary">Receive orders via WhatsApp</span>
-                  </div>
-                </div>
-                <div className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors ${acceptWhatsapp ? 'bg-[#00A859]' : 'bg-slate-300'}`}>
-                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${acceptWhatsapp ? 'translate-x-4' : 'translate-x-0'}`} />
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={acceptWhatsapp} 
-                  onChange={(e) => setAcceptWhatsapp(e.target.checked)} 
-                  className="hidden" 
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
-                  </div>
-                  <div>
-                    <span className="block text-sm font-bold text-primary-900">Instagram</span>
-                    <span className="block text-[10px] text-secondary">Receive orders via Instagram DM</span>
-                  </div>
-                </div>
-                <div className={`w-10 h-6 flex items-center rounded-full p-1 transition-colors ${acceptInstagram ? 'bg-[#00A859]' : 'bg-slate-300'}`}>
-                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${acceptInstagram ? 'translate-x-4' : 'translate-x-0'}`} />
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={acceptInstagram} 
-                  onChange={(e) => setAcceptInstagram(e.target.checked)} 
-                  className="hidden" 
-                />
-              </label>
-            </div>
           </div>
 
           {/* Branding */}
@@ -355,49 +268,8 @@ export default function DashboardSettingsPage() {
                   className="flex-1 px-4 py-2 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none uppercase font-mono text-sm"
                   pattern="^#[0-9A-Fa-f]{6}$"
                 />
-              </div>
-              <p className="text-[10px] text-secondary">This color will be used for buttons on your public store.</p>
-            </div>
-          </div>
-
-          {/* Payment Details */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-border space-y-4">
-            <div className="space-y-1 mb-2">
-              <h2 className="text-sm uppercase tracking-widest text-secondary font-bold">Payment Details</h2>
-              <p className="text-xs text-secondary">Customers will transfer money to this account.</p>
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900">Bank Name</label>
-              <input
-                type="text"
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                placeholder="e.g. GTBank"
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900">Account Name</label>
-              <input
-                type="text"
-                value={bankAccountName}
-                onChange={(e) => setBankAccountName(e.target.value)}
-                placeholder="e.g. John Doe"
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900">Account Number</label>
-              <input
-                type="text"
-                value={bankAccountNumber}
-                onChange={(e) => setBankAccountNumber(e.target.value)}
-                placeholder="e.g. 0123456789"
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-              />
+               </div>
+               <p className="text-[10px] text-secondary">This color will be used for buttons on your public store.</p>
             </div>
           </div>
 

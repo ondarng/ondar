@@ -197,6 +197,43 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
+        {/* Venting Card: What's stressing you? */}
+        <div className="bg-white p-6 rounded-2xl border-2 border-primary-100 shadow-md space-y-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-primary-600" />
+          <div className="space-y-1">
+            <h3 className="font-display font-bold text-lg text-primary-900">What’s stressing you?</h3>
+            <p className="text-xs text-secondary leading-relaxed">
+              We want to build exactly what you need. No corporate forms, no tickets. Talk to us honestly.
+            </p>
+          </div>
+
+          {ventSubmitted ? (
+            <div className="bg-green-50 border border-green-100 p-4 rounded-xl text-green-800 text-xs font-medium leading-relaxed animate-fade-in">
+              Thanks for the honesty. Ondar is improving from real vendor experiences.
+            </div>
+          ) : (
+            <form onSubmit={handleVentSubmit} className="space-y-3">
+              <textarea
+                rows={3}
+                required
+                value={ventText}
+                onChange={(e) => setVentText(e.target.value)}
+                placeholder="Vent freely. What feels frustrating, stressful or confusing while using Ondar?"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none resize-none text-xs text-slate-900 placeholder:text-slate-400"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={ventSubmitting}
+                  className="bg-primary-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-2 hover:bg-primary-700 active:scale-95 transition-all shadow-md shadow-primary-600/10"
+                >
+                  {ventSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Tell Ondar"}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
         {/* Setup Checklist */}
         {(!store.whatsapp_number || stats.products === 0) && (
           <div className="bg-white rounded-3xl border-2 border-primary-100 p-6 shadow-sm space-y-5">
@@ -307,42 +344,6 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Venting Card: What's stressing you? */}
-        <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
-          <div className="space-y-1">
-            <h3 className="font-display font-bold text-lg text-primary-900">What’s stressing you?</h3>
-            <p className="text-xs text-secondary leading-relaxed">
-              We want to build exactly what you need. No corporate forms, no tickets. Talk to us honestly.
-            </p>
-          </div>
-
-          {ventSubmitted ? (
-            <div className="bg-green-50 border border-green-100 p-4 rounded-xl text-green-800 text-xs font-medium leading-relaxed animate-fade-in">
-              Thanks for the honesty. Ondar is improving from real vendor experiences.
-            </div>
-          ) : (
-            <form onSubmit={handleVentSubmit} className="space-y-3">
-              <textarea
-                rows={3}
-                required
-                value={ventText}
-                onChange={(e) => setVentText(e.target.value)}
-                placeholder="Vent freely. What feels frustrating, stressful or confusing while using Ondar?"
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none resize-none text-xs text-slate-900 placeholder:text-slate-400"
-              />
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={ventSubmitting}
-                  className="bg-primary-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-2 hover:bg-primary-700 active:scale-95 transition-all shadow-md shadow-primary-600/10"
-                >
-                  {ventSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Tell Ondar"}
-                </button>
-              </div>
-            </form>
-          )}
         </div>
 
         {/* Main Actions */}

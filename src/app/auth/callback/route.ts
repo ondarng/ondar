@@ -3,10 +3,15 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/dashboard'
+
+  // Netlify / Cloud CDN forwards the true client host in x-forwarded-host
+  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host')
+  const protocol = request.headers.get('x-forwarded-proto') || 'https'
+  const trueOrigin = forwardedHost ? `${protocol}://${forwardedHost}` : new URL(request.url).origin
 
   if (code) {
     const cookieStore = await cookies()
@@ -29,14 +34,14 @@ export async function GET(request: Request) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Create a safe absolute URL for the redirect
-      const redirectUrl = new URL(next, origin)
+      // Create a safe absolute URL for the redirect using the true origin
+      const redirectUrl = new URL(next, trueOrigin)
       return NextResponse.redirect(redirectUrl.toString())
     }
   }
 
   // If there's an error, send them back to login with a message
-  const errorUrl = new URL('/login', origin)
+  const errorUrl = new URL('/login', trueOrigin)
   errorUrl.searchParams.set('error', 'Could not authenticate')
   return NextResponse.redirect(errorUrl.toString())
 }

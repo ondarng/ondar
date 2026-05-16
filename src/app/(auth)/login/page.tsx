@@ -4,14 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ArrowRight, Loader2, Mail, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [magicLoading, setMagicLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -51,30 +50,6 @@ export default function LoginPage() {
     }
 
     router.push('/dashboard')
-  }
-
-  const handleMagicLink = async () => {
-    if (!email) {
-      setError('Please enter your email first')
-      return
-    }
-    setMagicLoading(true)
-    setError(null)
-    setMessage(null)
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    })
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setMessage('Check your email for the magic link!')
-    }
-    setMagicLoading(false)
   }
 
   return (
@@ -154,7 +129,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading || magicLoading}
+              disabled={loading}
               className="w-full bg-primary-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {loading ? (
@@ -176,7 +151,7 @@ export default function LoginPage() {
 
           <button
             onClick={handleGoogleLogin}
-            disabled={loading || googleLoading || magicLoading}
+            disabled={loading || googleLoading}
             className="w-full bg-white border-2 border-slate-200 text-primary-900 font-bold py-3.5 rounded-xl hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
           >
             {googleLoading ? (
@@ -190,21 +165,6 @@ export default function LoginPage() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
                 Continue with Google
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={handleMagicLink}
-            disabled={loading || googleLoading || magicLoading}
-            className="w-full bg-white border-2 border-slate-200 text-primary-900 font-bold py-3.5 rounded-xl hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
-          >
-            {magicLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Mail className="w-5 h-5" />
-                Sign in with Magic Link
               </>
             )}
           </button>

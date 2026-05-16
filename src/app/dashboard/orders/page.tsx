@@ -168,6 +168,12 @@ export default function DashboardOrdersPage() {
                   <span className="text-secondary">Total Price</span>
                   <span className="font-bold text-primary-900">₦{order.total_price.toLocaleString()}</span>
                 </div>
+                {order.specification && (
+                  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+                    <span className="text-secondary">Specification</span>
+                    <span className="font-bold text-primary-900 text-right text-xs max-w-[200px]">{order.specification}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
                   <span className="text-secondary">Customer</span>
                   <span className="font-medium text-primary-900 text-right">

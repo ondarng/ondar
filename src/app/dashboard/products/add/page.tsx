@@ -11,6 +11,7 @@ export default function DashboardAddProductPage() {
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('10')
   const [description, setDescription] = useState('')
+  const [variants, setVariants] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -87,6 +88,7 @@ export default function DashboardAddProductPage() {
       description,
       stock_quantity: parseInt(stock),
       image_url: publicUrl,
+      variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
     })
 
     if (insertError) {
@@ -167,6 +169,18 @@ export default function DashboardAddProductPage() {
                 className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               />
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-primary-900">Variants / Options (Optional)</label>
+            <input
+              type="text"
+              value={variants}
+              onChange={(e) => setVariants(e.target.value)}
+              placeholder="e.g. Size 40, Size 42, Black, Red, 128GB"
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
+            />
+            <p className="text-[10px] text-secondary mt-1">Comma-separated list of choices for buyers to select.</p>
           </div>
 
           <div className="space-y-1">

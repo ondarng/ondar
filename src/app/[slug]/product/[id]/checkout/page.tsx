@@ -37,6 +37,8 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState('')
   const [instagram, setInstagram] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
+  const [note, setNote] = useState('')
 
   const supabase = createClient()
   const router = useRouter()
@@ -50,6 +52,10 @@ export default function CheckoutPage() {
         .single()
       
       setProduct(data)
+      if (data?.variants) {
+        const parts = data.variants.split(',').map((v: string) => v.trim()).filter(Boolean)
+        if (parts.length > 0) setSelectedVariant(parts[0])
+      }
       setLoading(false)
     }
     fetchProduct()
@@ -60,6 +66,7 @@ export default function CheckoutPage() {
     setSubmitting(true)
 
     const totalPrice = product.price * quantity
+    const finalSpec = [selectedVariant, note].filter(Boolean).join(' - ')
 
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       store_id: product.stores.id,
@@ -69,6 +76,7 @@ export default function CheckoutPage() {
       customer_instagram: instagram,
       quantity,
       total_price: totalPrice,
+      specification: finalSpec || null,
       status: 'PENDING'
     }).select().single()
 
@@ -131,85 +139,87 @@ export default function CheckoutPage() {
   const acceptIG = (product?.stores?.accept_instagram !== false) && !!product?.stores?.instagram_handle;
 
   if (orderComplete) {
+    const finalSpec = [selectedVariant, note].filter(Boolean).join(' - ')
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center space-y-8">
-        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center" style={{ color: product.stores.accent_color || '#00A859' }}>
-          <Check className="w-10 h-10" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12 text-center space-y-6 font-sans">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-sm mx-auto">
+          <Check className="w-8 h-8" />
         </div>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-display font-bold text-primary-900">Order #{orderId} Placed!</h1>
-          <p className="text-secondary font-medium">Your order has been reserved pending payment confirmation.</p>
+        
+        <div className="space-y-1 max-w-sm">
+          <h1 className="text-2xl font-display font-black text-primary-900">Order Reserved!</h1>
+          <p className="text-xs text-secondary font-medium px-4">
+            Your order has been structured and saved. The vendor will contact you on WhatsApp shortly to finalize.
+          </p>
         </div>
 
-        <div className="w-full max-w-sm bg-slate-50 p-6 rounded-3xl border border-border space-y-6 text-left">
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Bank Transfer Details
-            </h3>
-            <div className="space-y-1">
-              <p className="text-sm text-secondary">Bank Name</p>
-              <p className="font-bold text-primary-900">{product.stores.bank_name}</p>
+        {/* Digital Order Slip */}
+        <div className="w-full max-w-sm bg-white p-6 rounded-3xl border border-border shadow-md space-y-6 text-left relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: product.stores.accent_color || '#00A859' }} />
+          
+          <div className="flex justify-between items-start border-b border-slate-100 pb-4 pt-2">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Official Order Slip</p>
+              <h3 className="font-display font-bold text-primary-900 text-lg truncate">{product.stores.store_name}</h3>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-secondary">Account Number</p>
-              <p className="text-xl font-display font-black tracking-wider" style={{ color: product.stores.accent_color || '#00A859' }}>
-                {product.stores.bank_account_number}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-secondary">Account Name</p>
-              <p className="font-bold text-primary-900">{product.stores.bank_account_name}</p>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400">Order Ref</p>
+              <p className="font-mono font-bold text-primary-900 text-sm">#{orderId}</p>
             </div>
           </div>
 
-          <button 
-            onClick={copyBankDetails}
-            className="w-full py-3 bg-white border border-border rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition-all"
-          >
-            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-            {copied ? "Copied!" : "Copy Details"}
-          </button>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between items-center py-1 border-b border-slate-50">
+              <span className="text-secondary text-xs">Customer</span>
+              <span className="font-bold text-primary-900 text-xs">{name} ({phone})</span>
+            </div>
+            <div className="flex justify-between items-center py-1 border-b border-slate-50">
+              <span className="text-secondary text-xs">Item</span>
+              <span className="font-bold text-primary-900 text-xs truncate max-w-[180px]">{product.name}</span>
+            </div>
+            <div className="flex justify-between items-center py-1 border-b border-slate-50">
+              <span className="text-secondary text-xs">Quantity</span>
+              <span className="font-bold text-primary-900 text-xs">{quantity}</span>
+            </div>
+            {finalSpec && (
+              <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                <span className="text-secondary text-xs">Specification</span>
+                <span className="font-bold text-primary-900 text-xs truncate max-w-[180px]">{finalSpec}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-2xl flex justify-between items-center border border-slate-100">
+            <span className="text-xs font-bold uppercase tracking-wider text-secondary">Total Amount</span>
+            <span className="text-xl font-display font-black" style={{ color: product.stores.accent_color || '#00A859' }}>
+              ₦{(product.price * quantity).toLocaleString()}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-center text-slate-400 italic">
+            Continue conversation on WhatsApp for payment and delivery details.
+          </p>
         </div>
 
-        <div className="space-y-4 w-full max-w-sm">
-          {acceptWA && (
-            <button 
-              onClick={async () => {
-                if (fullOrderId) {
-                  await supabase.from('orders').update({ checkout_channel: 'WA' }).eq('id', fullOrderId);
-                }
-                let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
-                if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
-                const message = `Hi, I just placed Order #${orderId} for ${product.name} (Qty: ${quantity}). I've made payment and will send proof shortly.\n\nName: ${name}\nTotal: ₦${(product.price * quantity).toLocaleString()}`
-                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
-              }}
-              style={{ backgroundColor: '#25D366' }}
-              className="w-full text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
-            >
-              <WhatsAppIcon className="w-5 h-5" />
-              Send Proof via WhatsApp
-            </button>
-          )}
+        <div className="space-y-3 w-full max-w-sm px-2">
+          <button 
+            onClick={async () => {
+              if (fullOrderId) {
+                await supabase.from('orders').update({ checkout_channel: 'WA' }).eq('id', fullOrderId);
+              }
+              let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
+              if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
+              const message = `Hi ${product.stores.store_name}, I have reserved an order on your Ondar store!\n\n🧾 *ORDER #${orderId}*\n👤 Customer: ${name} (${phone})\n📦 Item: ${product.name} (Qty: ${quantity})\n${finalSpec ? `🏷️ Spec/Request: ${finalSpec}\n` : ''}💰 Total: ₦${(product.price * quantity).toLocaleString()}\n\nPlease let me know how to arrange payment and delivery!`
+              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
+            }}
+            style={{ backgroundColor: '#25D366' }}
+            className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90 text-base tracking-tight"
+          >
+            <WhatsAppIcon className="w-5 h-5" />
+            Send Order Slip to WhatsApp
+          </button>
 
-          {acceptIG && (
-            <button 
-              onClick={async () => {
-                  if (fullOrderId) {
-                    await supabase.from('orders').update({ checkout_channel: 'IG' }).eq('id', fullOrderId);
-                  }
-                  const message = `Hi, I just placed Order #${orderId} for ${product.name} (Qty: ${quantity}). I've made payment and will send proof shortly.\n\nName: ${name}\nTotal: ₦${(product.price * quantity).toLocaleString()}`
-                  window.open(`https://ig.me/m/${product.stores.instagram_handle.replace('@', '')}`, '_blank')
-                }}
-                style={{ background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}
-                className="w-full text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
-              >
-                <InstagramIcon className="w-5 h-5" />
-                Send Proof via Instagram
-              </button>
-            )}
-
-          <Link href={`/${slug}`} className="block text-sm text-secondary font-medium hover:text-primary-600">
+          <Link href={`/${slug}`} className="block text-xs text-secondary font-medium hover:text-primary-600 pt-2">
             Return to Store
           </Link>
         </div>
@@ -303,6 +313,44 @@ export default function CheckoutPage() {
                 </button>
               </div>
             </div>
+
+            {product?.variants && (
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <label className="text-xs font-bold text-primary-900 block">
+                  Select Option / Variant
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.split(',').map((v: string) => v.trim()).filter(Boolean).map((variant: string) => (
+                    <button
+                      key={variant}
+                      type="button"
+                      onClick={() => setSelectedVariant(variant)}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                        selectedVariant === variant 
+                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm' 
+                          : 'bg-slate-50 text-slate-700 border-border hover:bg-slate-100'
+                      }`}
+                      style={selectedVariant === variant ? { backgroundColor: product.stores.accent_color || '#00A859', borderColor: product.stores.accent_color || '#00A859', color: getContrastColor(product.stores.accent_color || '#00A859') } : {}}
+                    >
+                      {variant}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 pt-3 border-t border-slate-100">
+              <label className="text-xs font-bold text-primary-900 block">
+                Specification / Custom Request (Optional)
+              </label>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-[#00A859] outline-none transition-all text-slate-900 text-xs"
+                placeholder="e.g. Please ensure it is brand new / delivery timing"
+              />
+            </div>
           </div>
 
           <div className="bg-[#1A1A1A] p-6 rounded-2xl text-white space-y-4">
@@ -311,23 +359,17 @@ export default function CheckoutPage() {
               <span className="text-white text-xl font-display font-black">₦{(product.price * quantity).toLocaleString()}</span>
             </div>
             
-            {(!product.stores.bank_name || !product.stores.bank_account_number) ? (
-              <div className="bg-amber-900/20 border border-amber-900/30 p-4 rounded-xl text-center">
-                <p className="text-xs font-bold text-amber-200">This store is not accepting orders yet.</p>
-              </div>
-            ) : (
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{ 
-                  backgroundColor: product.stores.accent_color || '#00A859',
-                  color: getContrastColor(product.stores.accent_color || '#00A859')
-                }}
-                className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
-              >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
-              </button>
-            )}
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{ 
+                backgroundColor: product.stores.accent_color || '#00A859',
+                color: getContrastColor(product.stores.accent_color || '#00A859')
+              }}
+              className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
+            >
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reserve Order & Continue"}
+            </button>
           </div>
         </form>
       </main>

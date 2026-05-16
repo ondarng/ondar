@@ -17,6 +17,7 @@ export default function EditProductPage() {
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
   const [stock, setStock] = useState('0')
+  const [variants, setVariants] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
 
@@ -39,6 +40,7 @@ export default function EditProductPage() {
       setName(data.name)
       setPrice(data.price.toString())
       setDescription(data.description || '')
+      setVariants(data.variants || '')
       setStock(data.stock_quantity.toString())
       setImageUrl(data.image_url)
       setLoading(false)
@@ -86,7 +88,8 @@ export default function EditProductPage() {
         price: parseFloat(price),
         description,
         stock_quantity: parseInt(stock),
-        image_url: imageUrl
+        image_url: imageUrl,
+        variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
       })
       .eq('id', id)
 
@@ -199,6 +202,18 @@ export default function EditProductPage() {
                 onChange={(e) => setStock(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Variants / Options (Optional)</label>
+              <input
+                type="text"
+                value={variants}
+                onChange={(e) => setVariants(e.target.value)}
+                placeholder="e.g. Size 40, Size 42, Black, Red, 128GB"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+              />
+              <p className="text-[10px] text-secondary mt-1">Comma-separated list of choices for buyers to select.</p>
             </div>
 
             <div className="space-y-1">

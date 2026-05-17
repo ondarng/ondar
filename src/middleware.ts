@@ -58,12 +58,22 @@ export async function middleware(request: NextRequest) {
 
   // If user is logged in and trying to access auth pages, redirect to dashboard
   if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup'))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+    // CRITICAL: Preserve refreshed cookies from the supabase client operations
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    return redirectResponse
   }
 
-  // If user is NOT logged in and trying to access dashboard, redirect to login
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // If user is NOT logged in and trying to access protected routes (dashboard or onboarding), redirect to login
+  if (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/onboarding'))) {
+    const redirectResponse = NextResponse.redirect(new URL('/login', request.url))
+    // CRITICAL: Preserve cookies from the supabase client operations
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    return redirectResponse
   }
 
   return response

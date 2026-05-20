@@ -66,6 +66,19 @@ export default function SignupPage() {
       return
     }
 
+    // Because of the DB trigger, the user is instantly confirmed.
+    // We manually log them in right away to give them an active session.
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    if (signInError) {
+      setError("Account created, but automatic login failed. Please log in manually.")
+      setLoading(false)
+      return
+    }
+
     posthog.capture('signup_completed', { email: email.trim() })
     router.push('/onboarding/create-store')
   }

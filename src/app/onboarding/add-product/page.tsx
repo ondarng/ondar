@@ -29,13 +29,16 @@ export default function AddProductPage() {
         return
       }
 
-      const { data: store } = await supabase
+      const { data: store, error } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', user.id)
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-      if (!store) {
+      if (!store || error) {
+        console.error('Error fetching store:', error)
         router.push('/onboarding/create-store')
         return
       }

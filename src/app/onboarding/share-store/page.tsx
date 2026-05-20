@@ -20,11 +20,13 @@ export default function ShareStorePage() {
         return
       }
 
-      const { data: store } = await supabase
+      const { data: store, error } = await supabase
         .from('stores')
-        .select('slug')
+        .select('slug, store_name')
         .eq('vendor_id', user.id)
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
       if (!store) {
         router.push('/onboarding/create-store')

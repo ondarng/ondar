@@ -203,7 +203,7 @@ export default function DashboardPage() {
           <div className="space-y-1">
             <h3 className="font-display font-bold text-lg text-primary-900">What’s stressing you?</h3>
             <p className="text-xs text-secondary leading-relaxed">
-              We want to build exactly what you need. No corporate forms, no tickets. Talk to us honestly.
+              Vent freely. Tell us what feels frustrating, stressful, confusing, or annoying while selling online or using Ondar.
             </p>
           </div>
 
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                 required
                 value={ventText}
                 onChange={(e) => setVentText(e.target.value)}
-                placeholder="Vent freely. What feels frustrating, stressful or confusing while using Ondar?"
+                placeholder="What annoyed you today?"
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none resize-none text-xs text-slate-900 placeholder:text-slate-400"
               />
               <div className="flex justify-end">

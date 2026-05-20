@@ -25,7 +25,7 @@ export default function Home() {
             <span className="text-[#00A859]">in chats.</span>
           </h1>
           <p className="text-base md:text-xl text-slate-500 max-w-lg mx-auto md:mx-0 leading-relaxed font-medium">
-            Ondar helps WhatsApp and Instagram vendors organize products, orders, and customers without changing how they sell.
+            Ondar helps WhatsApp vendors organize products, orders, and customers without changing how they sell.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center md:justify-start">
             <Link 
@@ -185,7 +185,7 @@ export default function Home() {
             </div>
             <h3 className="text-xl md:text-2xl font-display font-black text-slate-900">Built for social selling</h3>
             <p className="text-slate-500 font-medium leading-relaxed">
-              Not a complicated marketplace. Not a heavy ecommerce tool. Built strictly for Nigerian WhatsApp and Instagram vendors who just want to organize their chaos.
+              Not a complicated marketplace. Not a heavy ecommerce tool. Built strictly for Nigerian WhatsApp vendors who just want to organize their chaos.
             </p>
           </div>
           

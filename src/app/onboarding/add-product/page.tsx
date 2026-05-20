@@ -37,9 +37,13 @@ export default function AddProductPage() {
         .limit(1)
         .maybeSingle()
 
-      if (!store || error) {
-        console.error('Error fetching store:', error)
-        router.push('/onboarding/create-store')
+      if (error) {
+        setError(`Database error: ${error.message}`)
+        return
+      }
+      
+      if (!store) {
+        setError(`We couldn't find your store. Please go back and try creating it again.`)
         return
       }
       setStoreId(store.id)

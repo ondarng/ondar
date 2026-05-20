@@ -25,7 +25,6 @@ export default function DashboardPage() {
   const [store, setStore] = useState<any>(null)
   const [stats, setStats] = useState({ orders: 0, products: 0, revenue: 0 })
   const [loading, setLoading] = useState(true)
-  const [isExpired, setIsExpired] = useState(false)
   const [ventText, setVentText] = useState('')
   const [ventSubmitting, setVentSubmitting] = useState(false)
   const [ventSubmitted, setVentSubmitted] = useState(false)
@@ -77,15 +76,6 @@ export default function DashboardPage() {
         orders: orderCount || 0,
         revenue
       })
-
-      // Subscription check
-      const trialEnds = storeData.trial_ends_at ? new Date(storeData.trial_ends_at) : null;
-      const expiredStatus = !!(trialEnds && trialEnds < new Date() && storeData.subscription_status !== 'PAID');
-      setIsExpired(expiredStatus);
-
-      if (expiredStatus) {
-        posthog.capture('trial_expired_view', { store_id: storeData.id })
-      }
 
       setLoading(false)
 
@@ -152,42 +142,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative">
-      {/* Trial Expired Overlay */}
-      {isExpired && (
-        <div className="fixed inset-0 z-50 bg-[#1A1A1A]/95 backdrop-blur-md flex items-center justify-center p-6 text-center">
-          <div className="max-w-xs w-full bg-white rounded-[2.5rem] p-8 shadow-2xl space-y-6">
-            <div className="w-20 h-20 bg-accent/10 text-accent rounded-full flex items-center justify-center mx-auto">
-              <Clock className="w-10 h-10" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-display font-bold text-primary-900">Trial Expired</h2>
-              <p className="text-sm text-secondary leading-relaxed">
-                Your 7-day free trial has ended. To continue managing your store and receiving orders, please subscribe for <b>₦1,500 / month</b>.
-              </p>
-            </div>
-            <a 
-              href={`https://wa.me/2348058424520?text=Hi Ondar Team, I want to pay for my subscription for ${store.store_name} (ID: ${store.id})`}
-              className="block w-full bg-primary-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-primary-600/20 active:scale-95 transition-all"
-            >
-              Pay Now via WhatsApp
-            </a>
-            <button 
-              onClick={handleLogout}
-              className="block w-full text-secondary text-sm font-bold hover:text-primary-900 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
       {/* Top Nav */}
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <img src="/icon.png" alt="Ondar" className="w-8 h-8" />
           <div className="flex flex-col">
             <span className="font-display font-bold text-lg text-primary-900 leading-none">Ondar</span>
-            <span className={`text-[10px] font-bold uppercase tracking-wider ${store?.subscription_status === 'PAID' ? 'text-green-600' : 'text-accent'}`}>
-              {store?.subscription_status === 'PAID' ? '• Pro Account' : '• 7-Day Free Trial'}
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#00A859]">
+              • Early Access Beta
             </span>
           </div>
         </div>

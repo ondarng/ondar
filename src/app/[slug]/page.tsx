@@ -159,7 +159,7 @@ export default async function PublicStorePage({ params }: { params: Promise<{ sl
                           }}
                         >
                           <WhatsAppIcon className="w-3.5 h-3.5 shrink-0" />
-                          <span>Order on WhatsApp</span>
+                          <span>Reserve Order</span>
                         </Link>
                       </div>
                     </div>

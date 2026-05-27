@@ -35,7 +35,6 @@ export default function CheckoutPage() {
   // Form State
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [instagram, setInstagram] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
   const [note, setNote] = useState('')
@@ -73,11 +72,12 @@ export default function CheckoutPage() {
       product_id: product.id,
       customer_name: name,
       customer_phone: phone,
-      customer_instagram: instagram,
+      customer_instagram: null,
       quantity,
       total_price: totalPrice,
       specification: finalSpec || null,
-      status: 'PENDING'
+      status: 'PENDING',
+      checkout_channel: 'WA'
     }).select().single()
 
     if (!orderError) {
@@ -107,12 +107,18 @@ export default function CheckoutPage() {
         store_id: product.stores.id,
         phone: phone,
         name: name,
-        instagram_handle: instagram || existingCustomer?.instagram_handle || null,
+        instagram_handle: existingCustomer?.instagram_handle || null,
         last_order_at: new Date().toISOString()
       }, { onConflict: 'store_id,phone' })
 
-      setOrderId(orderData.id.slice(0, 6).toUpperCase())
-      setFullOrderId(orderData.id)
+      // 3. Instant WhatsApp Redirect
+      let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
+      if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
+      const orderRef = orderData.id.slice(0, 6).toUpperCase()
+      const message = `Hi ${product.stores.store_name}, I'm reserving an order!\n\n🧾 *ORDER #${orderRef}*\n👤 Customer: ${name} (${phone})\n📦 Item: ${product.name} (Qty: ${quantity})\n${finalSpec ? `🏷️ Spec: ${finalSpec}\n` : ''}💰 Total: ₦${totalPrice.toLocaleString()}\n\nLet me know how to arrange payment/delivery!`
+      
+      window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+
       setOrderComplete(true)
     } else {
       alert("Error placing order: " + orderError.message)
@@ -139,89 +145,14 @@ export default function CheckoutPage() {
   const acceptIG = (product?.stores?.accept_instagram !== false) && !!product?.stores?.instagram_handle;
 
   if (orderComplete) {
-    const finalSpec = [selectedVariant, note].filter(Boolean).join(' - ')
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12 text-center space-y-6 font-sans">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-sm mx-auto">
-          <Check className="w-8 h-8" />
-        </div>
-        
-        <div className="space-y-1 max-w-sm">
-          <h1 className="text-2xl font-display font-black text-primary-900">Order Reserved!</h1>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12 text-center space-y-4 font-sans">
+        <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#25D366' }} />
+        <div className="space-y-1">
+          <h1 className="text-xl font-display font-black text-primary-900">Taking you to WhatsApp...</h1>
           <p className="text-xs text-secondary font-medium px-4">
-            Your order has been structured and saved. The vendor will contact you on WhatsApp shortly to finalize.
+            If nothing happens, <a href="#" onClick={() => window.location.reload()} className="underline text-primary-600">click here to try again</a>.
           </p>
-        </div>
-
-        {/* Digital Order Slip */}
-        <div className="w-full max-w-sm bg-white p-6 rounded-3xl border border-border shadow-md space-y-6 text-left relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: product.stores.accent_color || '#00A859' }} />
-          
-          <div className="flex justify-between items-start border-b border-slate-100 pb-4 pt-2">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Official Order Slip</p>
-              <h3 className="font-display font-bold text-primary-900 text-lg truncate">{product.stores.store_name}</h3>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-400">Order Ref</p>
-              <p className="font-mono font-bold text-primary-900 text-sm">#{orderId}</p>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center py-1 border-b border-slate-50">
-              <span className="text-secondary text-xs">Customer</span>
-              <span className="font-bold text-primary-900 text-xs">{name} ({phone})</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-50">
-              <span className="text-secondary text-xs">Item</span>
-              <span className="font-bold text-primary-900 text-xs truncate max-w-[180px]">{product.name}</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-50">
-              <span className="text-secondary text-xs">Quantity</span>
-              <span className="font-bold text-primary-900 text-xs">{quantity}</span>
-            </div>
-            {finalSpec && (
-              <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                <span className="text-secondary text-xs">Specification</span>
-                <span className="font-bold text-primary-900 text-xs truncate max-w-[180px]">{finalSpec}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-slate-50 p-4 rounded-2xl flex justify-between items-center border border-slate-100">
-            <span className="text-xs font-bold uppercase tracking-wider text-secondary">Total Amount</span>
-            <span className="text-xl font-display font-black" style={{ color: product.stores.accent_color || '#00A859' }}>
-              ₦{(product.price * quantity).toLocaleString()}
-            </span>
-          </div>
-
-          <p className="text-[11px] text-center text-slate-400 italic">
-            Continue conversation on WhatsApp for payment and delivery details.
-          </p>
-        </div>
-
-        <div className="space-y-3 w-full max-w-sm px-2">
-          <button 
-            onClick={async () => {
-              if (fullOrderId) {
-                await supabase.from('orders').update({ checkout_channel: 'WA' }).eq('id', fullOrderId);
-              }
-              let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
-              if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
-              const message = `Hi ${product.stores.store_name}, I have reserved an order on your Ondar store!\n\n🧾 *ORDER #${orderId}*\n👤 Customer: ${name} (${phone})\n📦 Item: ${product.name} (Qty: ${quantity})\n${finalSpec ? `🏷️ Spec/Request: ${finalSpec}\n` : ''}💰 Total: ₦${(product.price * quantity).toLocaleString()}\n\nPlease let me know how to arrange payment and delivery!`
-              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
-            }}
-            style={{ backgroundColor: '#25D366' }}
-            className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90 text-base tracking-tight"
-          >
-            <WhatsAppIcon className="w-5 h-5" />
-            Send Order Slip to WhatsApp
-          </button>
-
-          <Link href={`/${slug}`} className="block text-xs text-secondary font-medium hover:text-primary-600 pt-2">
-            Return to Store
-          </Link>
         </div>
       </div>
     )
@@ -233,7 +164,7 @@ export default function CheckoutPage() {
         <Link href={`/${slug}/product/${productId}`} className="p-2 -ml-2 rounded-full hover:bg-slate-100 transition-colors" style={{ color: product.stores.accent_color || '#002212' }}>
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <span className="font-bold" style={{ color: product.stores.accent_color || '#002212' }}>Checkout</span>
+        <span className="font-bold" style={{ color: product.stores.accent_color || '#002212' }}>Reserve Order</span>
       </header>
 
       <main className="flex-1 max-w-md mx-auto w-full p-6 space-y-6">
@@ -248,11 +179,14 @@ export default function CheckoutPage() {
 
         <form onSubmit={handlePlaceOrder} className="space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-secondary mb-4">Customer Info</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-secondary">Quick Reservation</h3>
+              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">~ 10 secs</span>
+            </div>
             
             <div className="space-y-1">
               <label className="text-xs font-bold text-primary-900 flex items-center gap-2">
-                <User className="w-3 h-3" /> Full Name
+                <User className="w-3 h-3" /> Your Name
               </label>
               <input
                 type="text"
@@ -266,7 +200,7 @@ export default function CheckoutPage() {
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-primary-900 flex items-center gap-2">
-                <Phone className="w-3 h-3" /> Phone Number
+                <Phone className="w-3 h-3" /> WhatsApp Number
               </label>
               <input
                 type="tel"
@@ -278,18 +212,7 @@ export default function CheckoutPage() {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900 flex items-center gap-2">
-                <span className="text-[10px] font-black italic">IG</span> Instagram Handle (Required if confirming via IG)
-              </label>
-              <input
-                type="text"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-[#00A859] outline-none transition-all text-slate-900"
-                placeholder="@username"
-              />
-            </div>
+
 
             <div className="space-y-1 pt-2">
               <label className="text-xs font-bold text-primary-900 flex items-center gap-2">
@@ -368,7 +291,12 @@ export default function CheckoutPage() {
               }}
               className="w-full font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:opacity-90"
             >
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reserve Order & Continue"}
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  <WhatsAppIcon className="w-5 h-5" />
+                  Reserve Order & Send to WhatsApp
+                </>
+              )}
             </button>
           </div>
         </form>

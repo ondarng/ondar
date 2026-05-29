@@ -35,7 +35,9 @@ export default function DashboardSettingsPage() {
         .from('stores')
         .select('*')
         .eq('vendor_id', user.id)
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
       if (!storeData) {
         router.push('/onboarding/create-store')

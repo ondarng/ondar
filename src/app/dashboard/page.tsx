@@ -214,22 +214,26 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <Link 
                 href="/dashboard/settings"
-                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${!store.whatsapp_number ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${!store.whatsapp_number ? 'border-primary-100 bg-primary-50/30' : 'border-green-100 bg-green-50'}`}
               >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!store.whatsapp_number ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
-                  {!store.whatsapp_number ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                  {!store.whatsapp_number ? <Plus className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                 </div>
-                <span className="text-sm font-bold text-primary-900">Connect WhatsApp Number</span>
+                <span className={`text-sm font-bold ${!store.whatsapp_number ? 'text-primary-900' : 'text-green-800'}`}>
+                  {!store.whatsapp_number ? 'Connect WhatsApp Number' : 'WhatsApp Connected'}
+                </span>
               </Link>
 
               <Link 
                 href="/dashboard/products/add"
-                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${stats.products === 0 ? 'border-primary-100 bg-primary-50/30' : 'border-slate-50 bg-slate-50/50 opacity-60'}`}
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${stats.products === 0 ? 'border-primary-100 bg-primary-50/30' : 'border-green-100 bg-green-50'}`}
               >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${stats.products === 0 ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
-                  {stats.products === 0 ? <Plus className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                  {stats.products === 0 ? <Plus className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                 </div>
-                <span className="text-sm font-bold text-primary-900">Add your first product</span>
+                <span className={`text-sm font-bold ${stats.products === 0 ? 'text-primary-900' : 'text-green-800'}`}>
+                  {stats.products === 0 ? 'Add your first product' : 'First product added'}
+                </span>
               </Link>
             </div>
           </div>

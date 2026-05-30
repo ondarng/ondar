@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { posthog } from '@/lib/posthog'
@@ -11,9 +11,47 @@ export default function CreateStorePage() {
   const [slug, setSlug] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  // GUARD: If user already has a store, skip this page entirely
+  useEffect(() => {
+    async function checkExistingStore() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: existingStore } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('vendor_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (existingStore) {
+        // User already has a store — check if they have products
+        const { count } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true })
+          .eq('store_id', existingStore.id)
+
+        if ((count || 0) === 0) {
+          router.push('/onboarding/add-product')
+        } else {
+          router.push('/dashboard')
+        }
+        return
+      }
+
+      setPageLoading(false)
+    }
+    checkExistingStore()
+  }, [])
 
   // Auto-generate slug from store name
   const handleStoreNameChange = (name: string) => {
@@ -50,6 +88,14 @@ export default function CreateStorePage() {
 
     posthog.capture('store_created', { store_name: storeName, slug })
     router.push('/onboarding/add-product')
+  }
+
+  if (pageLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (

@@ -1,245 +1,356 @@
+'use client'
+
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, MessageCircle, Package, ArrowDown, Smartphone, Receipt, Users, Clock, AlertCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  Play,
+  ShieldCheck,
+  Package,
+  Share2,
+  ShoppingBag,
+  LayoutDashboard,
+  Clock,
+  HelpCircle,
+  ImageIcon,
+  CheckCircle2,
+  Users,
+  ListChecks,
+  Link2,
+  BarChart3,
+  Star,
+  MessageCircle,
+  ChevronDown,
+} from 'lucide-react'
+
+/* ── tiny reusable pieces ─────────────────────── */
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200/60 px-4 py-1.5 text-xs font-extrabold tracking-wide text-emerald-700 uppercase select-none">
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+      </span>
+      {children}
+    </span>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-600 mb-3">{children}</p>
+  )
+}
+
+/* ── phone mockup built in code ───────────────── */
+
+function PhoneMockup({ variant }: { variant: 'storefront' | 'dashboard' }) {
+  if (variant === 'storefront') {
+    return (
+      <div className="w-full h-full bg-black rounded-[1.8rem] overflow-hidden relative">
+        <img src="/real-storefront.jpeg" alt="Storefront" className="w-full h-full object-cover" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full h-full bg-black rounded-[1.8rem] overflow-hidden relative">
+      <img src="/real-dashboard.jpeg" alt="Dashboard" className="w-full h-full object-cover" />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════ */
+/*                    PAGE                         */
+/* ═══════════════════════════════════════════════ */
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white text-[#1A1A1A] font-sans selection:bg-[#00A859]/10">
-      
-      {/* HEADER */}
-      <header className="px-6 py-4 md:py-6 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <img src="/logo.png" alt="Ondar" className="h-7 md:h-9" />
-        <Link href="/login" className="text-sm font-bold hover:text-[#00A859] transition-colors px-4 py-2 bg-slate-50 rounded-full border border-slate-100">
-          Login
-        </Link>
+    <div className="flex flex-col min-h-screen bg-white text-gray-900 overflow-x-hidden antialiased">
+
+      {/* ─── NAV ──────────────────────────────── */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/80">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 h-16">
+          <img src="/logo.png" alt="Ondar" className="h-7" />
+          <Link
+            href="/signup"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold px-5 py-2.5 rounded-full transition-colors shadow-sm shadow-emerald-600/20"
+          >
+            Get Started Free
+          </Link>
+        </nav>
       </header>
 
-      {/* 1. HERO SECTION (EMOTIONAL CLARITY FAST) */}
-      <section className="px-6 pt-8 md:pt-20 pb-16 md:pb-32 max-w-6xl mx-auto w-full text-center md:text-left md:flex md:items-center md:gap-16">
-        <div className="md:flex-1 space-y-6 md:space-y-8 mb-16 md:mb-0 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#00A859]/10 rounded-full border border-[#00A859]/20 mb-2">
-            <span className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse" />
-            <span className="text-[10px] font-black text-[#00A859] uppercase tracking-widest">Early Access Phase</span>
+      {/* ─── HERO ─────────────────────────────── */}
+      <section className="relative px-5 pt-16 md:pt-28 pb-16 md:pb-20">
+        {/* subtle bg pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none" />
+
+        <div className="relative max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* left: copy */}
+          <div className="text-center lg:text-left space-y-6 max-w-xl mx-auto lg:mx-0">
+            <Badge>🚀 Early Access — Free During Beta</Badge>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight leading-[1.08]">
+              Stop losing orders in{' '}
+              <span className="text-emerald-600">WhatsApp&nbsp;chats.</span>
+            </h1>
+
+            <p className="text-lg text-gray-500 leading-relaxed max-w-md mx-auto lg:mx-0">
+              Ondar helps online vendors organize products, customers, and orders while continuing conversations on WhatsApp.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center lg:justify-start">
+              <Link
+                href="/signup"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-2 text-lg"
+              >
+                Join Early Access
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <button
+                onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold py-4 px-8 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg group"
+              >
+                <span className="w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Play className="w-4 h-4 fill-gray-800 text-gray-800 ml-0.5" />
+                </span>
+                Watch Demo
+              </button>
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight leading-[1.1] text-slate-900">
-            Stop losing orders <br className="hidden md:block" />
-            <span className="text-[#00A859]">in chats.</span>
-          </h1>
-          <p className="text-base md:text-xl text-slate-500 max-w-lg mx-auto md:mx-0 leading-relaxed font-medium">
-            Ondar helps WhatsApp vendors organize products, orders, and customers without changing how they sell.
+
+          {/* right: phone mockups */}
+          <div className="relative h-[480px] sm:h-[520px] flex items-center justify-center">
+            {/* Dashboard — back */}
+            <div className="absolute w-56 sm:w-64 h-[400px] sm:h-[440px] rounded-[2rem] overflow-hidden border-[6px] border-gray-900 shadow-2xl -rotate-6 -translate-x-10 translate-y-4 z-10 hover:rotate-0 hover:-translate-y-1 transition-all duration-700">
+              <PhoneMockup variant="dashboard" />
+            </div>
+            {/* Storefront — front */}
+            <div className="absolute w-56 sm:w-64 h-[400px] sm:h-[440px] rounded-[2rem] overflow-hidden border-[6px] border-gray-900 shadow-2xl translate-x-10 -translate-y-2 z-20 hover:rotate-2 hover:-translate-y-3 transition-all duration-700">
+              <PhoneMockup variant="storefront" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── DEMO ─────────────────────────────── */}
+      <section id="demo" className="py-20 px-5 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          <SectionLabel>See It In Action</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">See how Ondar works.</h2>
+
+          <div className="relative aspect-video bg-gray-900 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden group cursor-pointer border-4 border-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-gray-900/60 to-gray-900/80">
+              <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 fill-white text-white ml-1" />
+              </div>
+              <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-[0.15em]">
+                <span>Storefront</span><ArrowRight className="w-3 h-3" /><span>Reserve</span><ArrowRight className="w-3 h-3" /><span>WhatsApp</span><ArrowRight className="w-3 h-3" /><span>Dashboard</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-gray-500 text-lg">
+            Customers continue on WhatsApp. <strong className="text-gray-900">Ondar keeps everything organized.</strong>
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center md:justify-start">
-            <Link 
-              href="/signup"
-              className="bg-[#00A859] text-white font-bold py-4 md:py-5 px-8 md:px-10 rounded-2xl shadow-xl shadow-[#00A859]/20 active:scale-[0.97] transition-all flex items-center justify-center gap-3 text-lg md:text-xl w-full sm:w-auto"
-            >
-              Join Early Access
-              <ArrowRight className="w-5 h-5 md:w-6 md:h-6 opacity-70" />
-            </Link>
-          </div>
-        </div>
-        
-        <div className="md:flex-1 relative w-full max-w-md mx-auto md:max-w-none h-[400px] md:h-[500px]">
-          {/* Floating Chat Chaos Bubbles */}
-          <div className="absolute top-0 right-4 md:right-10 bg-white p-3 rounded-2xl rounded-tr-none shadow-lg border border-slate-100 animate-float-slow z-10">
-            <p className="text-sm font-bold text-slate-700">How much is this? 🤔</p>
-          </div>
-          <div className="absolute top-20 left-0 bg-white p-3 rounded-2xl rounded-tl-none shadow-lg border border-slate-100 animate-float z-10 animation-delay-1000">
-            <p className="text-sm font-bold text-slate-700">Still available??</p>
-          </div>
-          <div className="absolute top-40 right-0 bg-white p-3 rounded-2xl rounded-tr-none shadow-lg border border-slate-100 animate-float-slow z-10 animation-delay-2000">
-            <p className="text-sm font-bold text-slate-700">Send account number pls</p>
-          </div>
-          <div className="absolute bottom-32 left-4 md:left-10 bg-white p-3 rounded-2xl rounded-tl-none shadow-lg border border-slate-100 animate-float z-10 animation-delay-3000">
-            <p className="text-sm font-bold text-red-500">I didn't get a receipt 😡</p>
-          </div>
-
-          {/* Clean Organized Centerpiece */}
-          <div className="absolute inset-0 flex items-center justify-center z-20">
-            <div className="bg-[#F8FAFC] p-4 rounded-[2rem] shadow-2xl border border-slate-100 w-64 md:w-80">
-               <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
-                  <div className="flex justify-between items-center border-b pb-3">
-                    <span className="text-[10px] font-black text-[#00A859] uppercase tracking-widest bg-[#00A859]/10 px-2 py-1 rounded">New Order</span>
-                    <span className="text-xs font-bold text-slate-400">#8291</span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-900">Black Summer Dress</p>
-                    <p className="text-xs text-slate-500">Size: M • Qty: 1</p>
-                  </div>
-                  <div className="pt-2 flex justify-between items-center">
-                    <span className="text-lg font-black text-slate-900">₦24,500</span>
-                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 text-[#00A859]" />
-                    </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-          {/* Background decoration */}
-          <div className="absolute inset-0 bg-[#00A859]/5 rounded-[3rem] -rotate-6 scale-105 blur-3xl -z-10" />
         </div>
       </section>
 
-      {/* 2. EARLY ACCESS SECTION (HUMAN TONE) */}
-      <section className="bg-slate-50 py-10 md:py-16 px-6 border-y border-slate-100">
-        <div className="max-w-3xl mx-auto text-center space-y-4">
-          <h2 className="text-lg md:text-2xl font-bold text-slate-900 leading-snug">
-            We’re building Ondar with real online vendors.
-          </h2>
-          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 text-sm font-medium text-slate-500">
-            <span className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#00A859]" /> Currently free for 28 days
-            </span>
-            <span className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#00A859]" /> Improving weekly
-            </span>
-            <span className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#00A859]" /> Vendor feedback shapes updates
-            </span>
+      {/* ─── HOW IT WORKS ─────────────────────── */}
+      <section className="py-20 md:py-28 px-5">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-14">
+            <SectionLabel>How It Works</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">Start selling in 2&nbsp;minutes</h2>
           </div>
-        </div>
-      </section>
 
-      {/* 3. THE PROBLEM (CHAT CHAOS) */}
-      <section className="py-16 md:py-24 px-6 max-w-4xl mx-auto w-full text-center space-y-10">
-        <h2 className="text-3xl md:text-5xl font-display font-black text-slate-900 tracking-tight">
-          Selling online shouldn’t feel chaotic.
-        </h2>
-        <div className="grid sm:grid-cols-3 gap-4 md:gap-6 text-left">
-          {[
-            { title: "Repeated Questions", desc: "Answering 'How much?' and 'Location?' 50 times a day.", icon: <MessageCircle className="w-5 h-5 text-red-400" /> },
-            { title: "Forgotten Orders", desc: "Losing track of who paid and who was just making inquiries.", icon: <AlertCircle className="w-5 h-5 text-red-400" /> },
-            { title: "Operational Stress", desc: "Scrolling through endless chats just to find a delivery address.", icon: <Clock className="w-5 h-5 text-red-400" /> }
-          ].map((item, i) => (
-            <div key={i} className="bg-red-50/50 border border-red-100 p-6 rounded-2xl space-y-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-red-100">{item.icon}</div>
-              <h3 className="font-bold text-slate-900">{item.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. HOW ONDAR HELPS (SIMPLE WORDING) */}
-      <section className="py-16 md:py-32 px-6 bg-[#00A859] text-white overflow-hidden">
-        <div className="max-w-5xl mx-auto w-full">
-          <h2 className="text-3xl md:text-6xl font-display font-black text-center mb-12 md:mb-20">
-            Organize your online selling <br className="hidden md:block"/> without chat stress.
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="space-y-0">
             {[
-              { text: "Put products in one place", icon: <Package /> },
-              { text: "Receive proper orders", icon: <CheckCircle2 /> },
-              { text: "Continue on WhatsApp", icon: <MessageCircle /> },
-              { text: "Send clean order slips", icon: <Receipt /> }
-            ].map((item, i) => (
-              <div key={i} className="bg-white/10 p-6 md:p-8 rounded-[1.5rem] border border-white/10 backdrop-blur-sm flex flex-col items-center text-center space-y-4">
-                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg">{item.icon}</div>
-                <p className="text-lg font-black leading-tight">{item.text}</p>
+              { icon: Package, title: 'Add your products', desc: 'Upload photos, prices, and descriptions in seconds. No tech skills needed.' },
+              { icon: Share2, title: 'Share your link', desc: 'Put your unique storefront link in your Instagram bio and WhatsApp status.' },
+              { icon: ShoppingBag, title: 'Customers place orders', desc: 'They browse your items and checkout. You get the order directly on WhatsApp.' },
+              { icon: LayoutDashboard, title: 'Manage everything', desc: 'Track payments, delivery status, and customer details all in one dashboard.' },
+            ].map((item, i, arr) => (
+              <div key={i} className="flex gap-5">
+                <div className="flex flex-col items-center">
+                  <div className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-600/30 z-10">
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  {i < arr.length - 1 && <div className="w-0.5 flex-1 bg-emerald-200 my-0.5" />}
+                </div>
+                <div className={`pt-2 ${i < arr.length - 1 ? 'pb-10' : 'pb-0'}`}>
+                  <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                  <p className="text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5. THE FLOW SECTION (CORE DIFFERENTIATOR) */}
-      <section className="py-16 md:py-32 px-6 max-w-5xl mx-auto w-full text-center">
-        <div className="space-y-4 mb-12 md:mb-20">
-          <h2 className="text-3xl md:text-5xl font-display font-black text-slate-900">
-            Organized social selling
-          </h2>
-          <p className="text-slate-500 text-lg md:text-xl font-medium">How the flow actually works.</p>
-        </div>
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 relative">
-          {/* Desktop connecting line */}
-          <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-100 -z-10 -translate-y-1/2" />
-          
-          {[
-            { step: "1", title: "Customer sees product", icon: <Package className="w-6 h-6" /> },
-            { step: "2", title: "Reserves order", icon: <CheckCircle2 className="w-6 h-6" /> },
-            { step: "3", title: "Continues on WhatsApp", icon: <MessageCircle className="w-6 h-6" /> },
-            { step: "4", title: "You receive organized order", icon: <Smartphone className="w-6 h-6" /> }
-          ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center relative w-full md:w-auto">
-              {/* Mobile connecting line indicator */}
-              {i !== 0 && <ArrowDown className="w-6 h-6 text-slate-200 md:hidden my-2" />}
-              
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white border-2 border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-[#00A859] relative z-10 mb-4">
-                {item.icon}
-                <div className="absolute -top-3 -right-3 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-[10px] font-black">
-                  {item.step}
+      {/* ─── THE PROBLEM ──────────────────────── */}
+      <section className="py-20 md:py-28 px-5 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-12">
+            <SectionLabel>The Problem</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">Tired of the WhatsApp chaos?</h2>
+            <p className="text-gray-500 mt-3 text-lg">We talked to dozens of vendors. We know the struggle is real.</p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { icon: Clock, title: 'Lost Orders', desc: 'Messages get buried. You miss a sale 3 days later because the customer bought elsewhere.' },
+              { icon: HelpCircle, title: 'Forgotten Customers', desc: '"What was that customer\'s address again?" Scrolling for hours just to find delivery details.' },
+              { icon: ImageIcon, title: 'Screenshots Everywhere', desc: 'Your gallery is full of payment receipts and order screenshots. Impossible to find anything.' },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-4 p-5 rounded-2xl bg-red-50/70 border border-red-100">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                  <item.icon className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900">{item.title}</h4>
+                  <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
-              <p className="text-sm md:text-base font-bold text-slate-900 max-w-[120px] leading-snug">{item.title}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 6 & 7. BUILT FOR SOCIAL SELLING + FEEDBACK SECTION */}
-      <section className="py-16 md:py-24 px-6 bg-slate-50 border-y border-slate-100">
-        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8 md:gap-16">
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 text-center md:text-left">
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto md:mx-0">
-              <Users className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-display font-black text-slate-900">Built for social selling</h3>
-            <p className="text-slate-500 font-medium leading-relaxed">
-              Not a complicated marketplace. Not a heavy ecommerce tool. Built strictly for Nigerian WhatsApp vendors who just want to organize their chaos.
-            </p>
+            ))}
           </div>
-          
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 text-center md:text-left">
-            <div className="w-12 h-12 bg-[#FFBF00]/10 text-[#FFBF00] rounded-xl flex items-center justify-center mx-auto md:mx-0">
-              <MessageCircle className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-display font-black text-slate-900">We actually listen</h3>
-            <p className="text-slate-500 font-medium leading-relaxed">
-              We push fast updates based directly on what you tell us. The platform is actively built and refined using real vendor feedback inside the app.
-            </p>
+
+          <div className="text-center mt-12 space-y-1">
+            <p className="text-xl text-gray-400 font-bold">You don&apos;t need more conversations.</p>
+            <p className="text-2xl font-display font-extrabold text-emerald-600">You need more structure.</p>
           </div>
         </div>
       </section>
 
-      {/* 8. FINAL CTA SECTION */}
-      <section className="py-20 md:py-32 px-6 text-center bg-white">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <h2 className="text-3xl md:text-6xl font-display font-black text-slate-900 tracking-tight leading-[1.1]">
-            Ready to organize your orders?
-          </h2>
-          <div className="flex flex-col items-center gap-4 pt-4">
-            <Link 
-              href="/signup"
-              className="bg-[#00A859] text-white font-bold py-5 px-10 rounded-2xl shadow-2xl shadow-[#00A859]/30 active:scale-[0.97] transition-all text-lg flex items-center gap-3 w-full sm:w-auto justify-center"
-            >
-              Join Ondar Early Access
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <p className="text-slate-400 font-bold text-sm">
-              Free while we improve Ondar with real vendor feedback.
-            </p>
+      {/* ─── FEATURES ─────────────────────────── */}
+      <section className="py-20 md:py-28 px-5">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <SectionLabel>Features</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">Built for how you sell</h2>
+            <p className="text-gray-500 mt-3 text-lg">Simple tools that work. No complex tech jargon.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              { icon: Users, title: 'Customers never disappear', desc: 'Automatically save every customer contact and delivery detail the first time they order.' },
+              { icon: ListChecks, title: 'Orders stay organized', desc: 'From pending to delivered. Track the status of every sale without checking your DM history.' },
+              { icon: Link2, title: 'Share one storefront link', desc: 'Stop sending individual photos. Send one link where they can see everything you sell.' },
+              { icon: BarChart3, title: 'Know your best customers', desc: 'See exactly what a customer bought before so you can offer them better deals.' },
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-50 hover:bg-emerald-50/50 border border-gray-100 hover:border-emerald-200/50 rounded-2xl p-6 transition-colors group">
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 group-hover:bg-emerald-200/70 flex items-center justify-center text-emerald-600 mb-4 transition-colors">
+                  <item.icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-500 mt-1 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-50 border-t border-slate-100 px-6 py-12 md:py-16">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-4 text-center md:text-left">
-            <img src="/logo.png" alt="Ondar" className="h-6 mx-auto md:mx-0 opacity-50" />
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-              Organized Social Selling
-            </p>
+      {/* ─── TESTIMONIALS ─────────────────────── */}
+      <section className="py-20 md:py-28 px-5 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-14">
+            <SectionLabel>Real Stories</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">Trusted by Instagram & WhatsApp sellers</h2>
           </div>
-          <div className="flex justify-center md:justify-end gap-6 text-slate-400">
-            <a href="mailto:support@ondar.ng" className="text-xs font-bold hover:text-[#00A859] transition-colors">Support</a>
-            <a href="https://x.com/ondarng" target="_blank" rel="noopener noreferrer" className="text-xs font-bold hover:text-[#00A859] transition-colors">Twitter</a>
-            <a href="https://www.instagram.com/ondar.ng/" target="_blank" rel="noopener noreferrer" className="text-xs font-bold hover:text-[#00A859] transition-colors">Instagram</a>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              { quote: 'Before Ondar, I searched through chats for every order. Now I know exactly what each customer bought. It saved me so much stress during my last restock.', name: 'Eze B.', role: 'Thrift Wear Vendor' },
+              { quote: "I used to lose track of repeat customers. Ondar keeps everything organized and professional. My students buy from me easier now — they just click the link in my IG bio.", name: 'John C.', role: 'Student Gadget Entrepreneur' },
+            ].map((t, i) => (
+              <div key={i} className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm flex flex-col justify-between gap-6">
+                <div>
+                  <div className="flex gap-0.5 mb-4">
+                    {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                </div>
+                <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-sm">
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{t.name}</p>
+                    <p className="text-xs text-gray-500">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="mt-12 text-center text-[10px] uppercase tracking-[0.2em] text-slate-300 font-black">
-          © {new Date().getFullYear()} Ondar
+      </section>
+
+      {/* ─── BETA INFO ────────────────────────── */}
+      <section className="py-20 md:py-28 px-5">
+        <div className="max-w-2xl mx-auto text-center space-y-8">
+          <SectionLabel>Beta Program</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">Free during beta.</h2>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">We&apos;re offering Ondar free during our early testing period so we can build the right product with real vendor feedback.</p>
+
+          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-8 text-left max-w-md mx-auto">
+            <p className="text-xs font-extrabold text-emerald-600 uppercase tracking-[0.15em] text-center mb-6">Our goal is simple</p>
+            {[
+              'Onboard real vendors',
+              'Observe how they use the product',
+              'Improve based on feedback',
+              'Build something people actually need',
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 py-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <span className="text-gray-800 font-semibold">{item}</span>
+              </div>
+            ))}
+            <p className="text-center text-gray-400 text-xs font-bold border-t border-emerald-200/50 pt-5 mt-5">No long-term commitment required.</p>
+          </div>
         </div>
+      </section>
+
+      {/* ─── FINAL CTA ────────────────────────── */}
+      <section className="py-20 px-5">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-[2rem] p-10 md:p-14 text-center relative overflow-hidden shadow-2xl shadow-emerald-900/30">
+            {/* ambient blobs */}
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-white/5 rounded-full blur-3xl" />
+
+            <div className="relative z-10 space-y-6">
+              <h2 className="text-3xl md:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
+                Ready to stop managing your business through screenshots?
+              </h2>
+              <p className="text-emerald-100 text-lg max-w-md mx-auto">
+                Professionalize your business today. Get your storefront link in 2 minutes.
+              </p>
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 bg-white text-emerald-700 font-extrabold text-lg py-4 px-10 rounded-2xl shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all w-full sm:w-auto"
+              >
+                Get Your Free Storefront Link
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FOOTER ───────────────────────────── */}
+      <footer className="bg-gray-950 px-5 py-12 mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <img src="/logo.png" alt="Ondar" className="h-6 brightness-0 invert opacity-40" />
+          <div className="flex gap-6 text-gray-500 text-sm font-bold">
+            <a href="mailto:support@ondar.ng" className="hover:text-white transition-colors">Support</a>
+            <a href="https://x.com/ondarng" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>
+            <a href="https://www.instagram.com/ondar.ng/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+          </div>
+        </div>
+        <p className="text-center text-[11px] text-gray-700 font-extrabold uppercase tracking-[0.15em] mt-8">
+          © {new Date().getFullYear()} Ondar · Built in Nigeria 🇳🇬
+        </p>
       </footer>
     </div>
   )

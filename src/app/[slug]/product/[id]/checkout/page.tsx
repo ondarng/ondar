@@ -67,7 +67,10 @@ export default function CheckoutPage() {
     const totalPrice = product.price * quantity
     const finalSpec = [selectedVariant, note].filter(Boolean).join(' - ')
 
-    const { data: orderData, error: orderError } = await supabase.from('orders').insert({
+    const orderId = crypto.randomUUID()
+    
+    const { error: orderError } = await supabase.from('orders').insert({
+      id: orderId,
       store_id: product.stores.id,
       product_id: product.id,
       customer_name: name,
@@ -78,7 +81,7 @@ export default function CheckoutPage() {
       specification: finalSpec || null,
       status: 'PENDING',
       checkout_channel: 'WA'
-    }).select().single()
+    })
 
     if (!orderError) {
       // 1. Instant Stock Sync: Decrement stock immediately
@@ -114,7 +117,7 @@ export default function CheckoutPage() {
       // 3. Instant WhatsApp Redirect
       let cleanPhone = product.stores.whatsapp_number.replace(/\D/g, '')
       if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.slice(1)
-      const orderRef = orderData.id.slice(0, 6).toUpperCase()
+      const orderRef = orderId.slice(0, 6).toUpperCase()
       const message = `Hi ${product.stores.store_name}, I'm reserving an order!\n\n🧾 *ORDER #${orderRef}*\n👤 Customer: ${name} (${phone})\n📦 Item: ${product.name} (Qty: ${quantity})\n${finalSpec ? `🏷️ Spec: ${finalSpec}\n` : ''}💰 Total: ₦${totalPrice.toLocaleString()}\n\nLet me know how to arrange payment/delivery!`
       
       window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`

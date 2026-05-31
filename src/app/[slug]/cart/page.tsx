@@ -48,7 +48,9 @@ function CartPageContent() {
     // Create one order per cart item
     const orderIds: string[] = []
     for (const item of items) {
-      const { data: orderData, error } = await supabase.from('orders').insert({
+      const orderId = crypto.randomUUID()
+      const { error } = await supabase.from('orders').insert({
+        id: orderId,
         store_id: store.id,
         product_id: item.id,
         customer_name: name,
@@ -57,10 +59,10 @@ function CartPageContent() {
         quantity: item.quantity,
         total_price: item.price * item.quantity,
         status: 'PENDING'
-      }).select().single()
+      })
 
-      if (!error && orderData) {
-        orderIds.push(orderData.id.slice(0, 6).toUpperCase())
+      if (!error) {
+        orderIds.push(orderId.slice(0, 6).toUpperCase())
 
         // Decrement stock
         const { data: productData } = await supabase

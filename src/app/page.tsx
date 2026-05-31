@@ -140,15 +140,18 @@ export default function Home() {
           <SectionLabel>See It In Action</SectionLabel>
           <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight">See how Ondar works.</h2>
 
-          <div className="relative aspect-video bg-gray-900 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden group cursor-pointer border-4 border-white">
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-gray-900/60 to-gray-900/80">
-              <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Play className="w-8 h-8 fill-white text-white ml-1" />
-              </div>
-              <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-[0.15em]">
-                <span>Storefront</span><ArrowRight className="w-3 h-3" /><span>Reserve</span><ArrowRight className="w-3 h-3" /><span>WhatsApp</span><ArrowRight className="w-3 h-3" /><span>Dashboard</span>
-              </div>
-            </div>
+          <div className="relative aspect-video bg-gray-900 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden border-4 border-white">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              controls
+              className="w-full h-full object-cover"
+            >
+              <source src="/demovid.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
 
           <p className="text-gray-500 text-lg">

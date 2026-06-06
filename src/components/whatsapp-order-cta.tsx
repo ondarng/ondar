@@ -32,19 +32,14 @@ export function WhatsappOrderCTA({ product, store }: WhatsappOrderCTAProps) {
     setLoading(true)
 
     try {
-      const orderId = crypto.randomUUID()
-      const orderRef = orderId.slice(0, 6).toUpperCase()
-
       // 1. Record the order in Supabase as PENDING
       await supabase.from('orders').insert({
-        id: orderId,
         store_id: store.id,
         product_id: product.id,
         quantity: 1,
         total_price: product.price,
         customer_name: 'WhatsApp Lead',
-        status: 'PENDING',
-        checkout_channel: 'WA'
+        status: 'PENDING'
       })
 
       // 2. Capture analytics event
@@ -64,18 +59,18 @@ export function WhatsappOrderCTA({ product, store }: WhatsappOrderCTAProps) {
         phone = '234' + phone
       }
 
-      const message = `Hi 👋\n\nI want to order:\n\nProduct: ${product.name}\nPrice: ₦${product.price.toLocaleString()}\nRef: OND-${orderRef}\n\nPlease confirm availability.`
+      const message = `Hi ${store.store_name}, I want to buy this product from your Ondar store:\n\n📦 *${product.name}*\n💰 ₦${product.price.toLocaleString()}\n\nIs it still available?`
       const encodedMessage = encodeURIComponent(message)
       const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`
 
       // 4. Open WhatsApp
-      window.location.href = whatsappUrl
+      window.open(whatsappUrl, '_blank')
     } catch (err) {
       console.error('Error initiating WhatsApp order:', err)
       let phone = store.whatsapp_number.replace(/[^0-9]/g, '')
       if (phone.startsWith('0')) phone = '234' + phone.slice(1)
-      const message = `Hi 👋\n\nI want to order:\n\nProduct: ${product.name}\nPrice: ₦${product.price.toLocaleString()}\n\nPlease confirm availability.`
-      window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      const message = `Hi ${store.store_name}, I want to buy: ${product.name} (₦${product.price})`
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
     } finally {
       setLoading(false)
     }

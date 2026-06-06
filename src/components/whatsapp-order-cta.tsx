@@ -84,7 +84,7 @@ export function WhatsappOrderCTA({ product, store }: WhatsappOrderCTAProps) {
         backgroundColor: accent,
         color: textColor
       }}
-      className="w-full font-bold py-5 rounded-2xl shadow-xl shadow-primary-600/10 flex items-center justify-center gap-3 hover:opacity-95 active:scale-95 transition-all text-lg tracking-tight disabled:opacity-70"
+      className="w-full font-medium py-4 rounded-none flex items-center justify-center gap-3 hover:opacity-90 active:bg-black/90 transition-all text-[15px] uppercase tracking-widest disabled:opacity-70"
     >
       {loading ? (
         <Loader2 className="w-6 h-6 animate-spin" />

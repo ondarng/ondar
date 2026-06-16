@@ -19,6 +19,7 @@ export default function EditProductPage() {
   const [stock, setStock] = useState('0')
   const [variants, setVariants] = useState('')
   const [category, setCategory] = useState('')
+  const [hasManuallyEditedCategory, setHasManuallyEditedCategory] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
 
@@ -51,6 +52,47 @@ export default function EditProductPage() {
     }
     fetchProduct()
   }, [id])
+
+  // Auto-Categorization Logic
+  useEffect(() => {
+    if (loading || hasManuallyEditedCategory || !name) return;
+
+    const lowerName = name.toLowerCase();
+    
+    // Comprehensive dictionary for diverse store types
+    const categoryRules: Record<string, string[]> = {
+      // Tech & Electronics
+      'Phones': ['iphone', 'samsung', 'pixel', 'tecno', 'infinix', 'redmi', 'smartphone', 'nokia', 'vivo', 'oppo'],
+      'Laptops': ['macbook', 'hp', 'dell', 'lenovo', 'asus', 'laptop', 'chromebook', 'thinkpad'],
+      'Audio': ['airpods', 'earpods', 'headset', 'headphone', 'speaker', 'jbl', 'sony', 'earbuds', 'boombox'],
+      'Wearables': ['watch', 'apple watch', 'smart watch', 'fitbit', 'band'],
+      'Accessories': ['charger', 'cable', 'case', 'screen protector', 'power bank', 'adapter', 'hub', 'dongle'],
+      
+      // Fashion & Apparel
+      'Clothing': ['shirt', 't-shirt', 'dress', 'jeans', 'trousers', 'skirt', 'jacket', 'hoodie', 'suit', 'gown'],
+      'Shoes': ['sneakers', 'shoes', 'boots', 'heels', 'sandals', 'slides', 'slippers'],
+      'Bags': ['bag', 'handbag', 'backpack', 'purse', 'wallet', 'tote'],
+      'Jewelry': ['necklace', 'ring', 'bracelet', 'earrings', 'jewelry', 'chain', 'watch'],
+      
+      // Beauty & Health
+      'Skincare': ['lotion', 'serum', 'cream', 'cleanser', 'sunscreen', 'moisturizer', 'toner'],
+      'Makeup': ['lipstick', 'foundation', 'concealer', 'mascara', 'palette', 'powder'],
+      'Fragrance': ['perfume', 'cologne', 'fragrance', 'body spray', 'mist'],
+      
+      // Home & Groceries
+      'Groceries': ['rice', 'beans', 'oil', 'pasta', 'milk', 'sugar', 'salt', 'spice', 'flour'],
+      'Home Appliances': ['blender', 'microwave', 'tv', 'television', 'fridge', 'refrigerator', 'iron', 'fan', 'ac', 'air conditioner'],
+      'Furniture': ['chair', 'table', 'sofa', 'bed', 'wardrobe', 'desk', 'cabinet']
+    };
+
+    for (const [cat, keywords] of Object.entries(categoryRules)) {
+      if (keywords.some(kw => lowerName.includes(kw))) {
+        // Only update if it's different to avoid re-renders or overwriting initial fetch if it was empty
+        if (category !== cat) setCategory(cat);
+        break;
+      }
+    }
+  }, [name, hasManuallyEditedCategory, loading]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -226,10 +268,14 @@ export default function EditProductPage() {
               <input
                 type="text"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Laptops, Phones, Wearables"
+                onChange={(e) => {
+                  setCategory(e.target.value)
+                  setHasManuallyEditedCategory(true)
+                }}
+                placeholder="e.g. Laptops, Shoes, Skincare"
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
               />
+              <p className="text-[10px] text-secondary mt-1">Auto-fills based on product name. You can freely edit this.</p>
             </div>
 
             <div className="space-y-1">

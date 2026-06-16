@@ -19,6 +19,9 @@ export default function DashboardSettingsPage() {
   const [logoUrl, setLogoUrl] = useState('')
   const [accentColor, setAccentColor] = useState('#00A859')
   const [trustBadges, setTrustBadges] = useState('Nationwide Delivery, 100% Original, Warranty')
+  const [instagram, setInstagram] = useState('')
+  const [facebook, setFacebook] = useState('')
+  const [twitter, setTwitter] = useState('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -51,6 +54,9 @@ export default function DashboardSettingsPage() {
       setWhatsapp(storeData.whatsapp_number || '')
       setLogoUrl(storeData.logo_url || '')
       setAccentColor(storeData.accent_color || '#00A859')
+      setInstagram(storeData.instagram_handle || '')
+      setFacebook(storeData.facebook_handle || '')
+      setTwitter(storeData.twitter_handle || '')
       if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
         setTrustBadges(storeData.trust_badges.join(', '))
       }
@@ -73,7 +79,10 @@ export default function DashboardSettingsPage() {
         whatsapp_number: whatsapp,
         logo_url: logoUrl,
         accent_color: accentColor,
-        trust_badges: trustBadges.split(',').map(b => b.trim()).filter(Boolean)
+        trust_badges: trustBadges.split(',').map(b => b.trim()).filter(Boolean),
+        instagram_handle: instagram,
+        facebook_handle: facebook,
+        twitter_handle: twitter
       })
       .eq('id', store.id)
 
@@ -222,6 +231,44 @@ export default function DashboardSettingsPage() {
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Social Media Profiles */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-border space-y-4">
+            <h2 className="text-sm uppercase tracking-widest text-secondary font-bold mb-2">Social Media Links</h2>
+            
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Instagram Handle / URL</label>
+              <input
+                type="text"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="e.g. https://instagram.com/yourstore or @yourstore"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Facebook URL</label>
+              <input
+                type="text"
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+                placeholder="e.g. https://facebook.com/yourstore"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Twitter (X) URL</label>
+              <input
+                type="text"
+                value={twitter}
+                onChange={(e) => setTwitter(e.target.value)}
+                placeholder="e.g. https://x.com/yourstore"
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               />
             </div>

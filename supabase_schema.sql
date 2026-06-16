@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS stores (
     slug TEXT UNIQUE NOT NULL,
     whatsapp_number TEXT NOT NULL,
     instagram_handle TEXT,
+    facebook_handle TEXT,
+    twitter_handle TEXT,
     bank_name TEXT,
     bank_account_number TEXT,
     bank_account_name TEXT,

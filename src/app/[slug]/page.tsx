@@ -19,12 +19,13 @@ function getBadgeIcon(badge: string) {
 
 export default async function PublicStorePage(props: { 
   params: Promise<{ slug: string }>,
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string, q?: string }>
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const { slug } = params;
   const activeCategory = searchParams.category || 'All';
+  const searchQuery = searchParams.q || '';
 
   if (RESERVED_SLUGS.includes(slug)) {
     notFound()
@@ -54,6 +55,10 @@ export default async function PublicStorePage(props: {
       
     if (activeCategory !== 'All') {
       query = query.eq('category', activeCategory)
+    }
+
+    if (searchQuery) {
+      query = query.ilike('name', `%${searchQuery}%`)
     }
 
     const { data: products, error: prodError } = await query
@@ -93,18 +98,32 @@ export default async function PublicStorePage(props: {
             <div className="hidden md:flex items-center gap-10">
               <nav className="flex items-center gap-8 text-[13px] font-bold tracking-wide uppercase text-neutral-500">
                 <Link href={`/${slug}`} className="text-[#004D29]">Catalog</Link>
-                <Link href="#" className="hover:text-neutral-900 transition-colors">Search</Link>
-                <Link href="#" className="hover:text-neutral-900 transition-colors">Orders</Link>
               </nav>
-              <button className="text-neutral-600 hover:text-black transition-colors">
-                <Search className="w-5 h-5" />
-              </button>
+              <form action={`/${slug}`} method="GET" className="relative flex items-center">
+                {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
+                <input 
+                  type="search" 
+                  name="q" 
+                  defaultValue={searchQuery}
+                  placeholder="Search products..." 
+                  className="pl-9 pr-4 py-2 bg-neutral-100 border border-neutral-200 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#004D29]/20 focus:border-[#004D29] transition-all w-[220px]"
+                />
+                <Search className="w-4 h-4 absolute left-3 text-neutral-400" />
+              </form>
             </div>
 
-            {/* Mobile Search Icon */}
-            <button className="md:hidden p-2 text-neutral-600">
-              <Search className="w-5 h-5" />
-            </button>
+            {/* Mobile Search Input */}
+            <form action={`/${slug}`} method="GET" className="md:hidden relative flex items-center">
+                {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
+                <input 
+                  type="search" 
+                  name="q" 
+                  defaultValue={searchQuery}
+                  placeholder="Search..." 
+                  className="pl-8 pr-3 py-2 bg-neutral-100 border border-neutral-200 rounded-full text-[13px] outline-none w-[130px]"
+                />
+                <Search className="w-4 h-4 absolute left-2.5 text-neutral-400" />
+            </form>
           </div>
         </header>
 
@@ -205,7 +224,12 @@ export default async function PublicStorePage(props: {
               </div>
             ) : (
               <div className="text-center py-20 px-4 flex flex-col items-center bg-white rounded-[20px] border border-neutral-200">
-                <p className="text-sm text-neutral-500 font-medium">No products found in this category.</p>
+                <p className="text-sm text-neutral-500 font-medium">No products found{searchQuery ? ` matching "${searchQuery}"` : ''}.</p>
+                {searchQuery && (
+                  <Link href={`/${slug}`} className="mt-4 text-[#004D29] text-sm font-bold underline">
+                    Clear Search
+                  </Link>
+                )}
               </div>
             )}
           </main>
@@ -216,11 +240,23 @@ export default async function PublicStorePage(props: {
           <h3 className="text-[#004D29] font-bold text-lg mb-2">{store.store_name}</h3>
           <p className="text-[13px] text-neutral-500 mb-6 font-medium">Powered by Ondar - Your conversation starts here</p>
           <div className="flex gap-6 text-neutral-400">
-            <a href="#" className="hover:text-black transition-colors"><Instagram className="w-5 h-5" /></a>
-            <a href="#" className="hover:text-black transition-colors"><Facebook className="w-5 h-5" /></a>
-            <a href="#" className="hover:text-black transition-colors"><Twitter className="w-5 h-5" /></a>
+            {store.instagram_handle && (
+              <a href={store.instagram_handle.startsWith('http') ? store.instagram_handle : `https://instagram.com/${store.instagram_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">
+                <Instagram className="w-5 h-5" />
+              </a>
+            )}
+            {store.facebook_handle && (
+              <a href={store.facebook_handle.startsWith('http') ? store.facebook_handle : `https://facebook.com/${store.facebook_handle}`} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">
+                <Facebook className="w-5 h-5" />
+              </a>
+            )}
+            {store.twitter_handle && (
+              <a href={store.twitter_handle.startsWith('http') ? store.twitter_handle : `https://x.com/${store.twitter_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">
+                <Twitter className="w-5 h-5" />
+              </a>
+            )}
           </div>
-          <p className="text-[11px] text-neutral-400 mt-6 font-medium">© 2026 {store.store_name}. All rights reserved.</p>
+          <p className="text-[11px] text-neutral-400 mt-6 font-medium">© {new Date().getFullYear()} {store.store_name}. All rights reserved.</p>
         </footer>
 
         {/* CSS to hide scrollbar for categories strip */}

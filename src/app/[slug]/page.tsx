@@ -284,8 +284,9 @@ export default async function PublicStorePage(props: {
         <footer className="border-t border-neutral-200 bg-white py-10 px-4">
           <div className="max-w-5xl mx-auto flex flex-col items-center gap-4 text-center">
             <p className="text-[13px] font-bold text-neutral-900">{store.store_name}</p>
-            <p className="text-[11px] text-neutral-400">Powered by Ondar</p>
-            {/* Social icons — only rendered if vendor has set them */}
+            <p className="text-[11px] text-neutral-400">
+              Powered by <a href="https://ondar.ng" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors underline underline-offset-2">Ondar.ng</a>
+            </p>
             {(store.instagram_handle || store.facebook_handle || store.twitter_handle) && (
               <div className="flex items-center gap-5 text-neutral-400 mt-1">
                 {store.instagram_handle && (

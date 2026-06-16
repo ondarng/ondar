@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BadgeCheck, Search, ShieldCheck, Truck, Zap } from 'lucide-react'
+import { BadgeCheck, Search, ShieldCheck, Truck, Zap, Instagram, Facebook, Twitter } from 'lucide-react'
 import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
@@ -215,9 +215,10 @@ export default async function PublicStorePage(props: {
         <footer className="bg-[#E5E7EB] py-16 px-4 flex flex-col items-center text-center mt-auto">
           <h3 className="text-[#004D29] font-bold text-lg mb-2">{store.store_name}</h3>
           <p className="text-[13px] text-neutral-500 mb-6 font-medium">Powered by Ondar - Your conversation starts here</p>
-          <div className="flex gap-6 text-[13px] font-bold text-neutral-600 uppercase tracking-wide">
-            <Link href="#" className="hover:text-black">Terms of Service</Link>
-            <Link href="#" className="hover:text-black">Privacy Policy</Link>
+          <div className="flex gap-6 text-neutral-400">
+            <a href="#" className="hover:text-black transition-colors"><Instagram className="w-5 h-5" /></a>
+            <a href="#" className="hover:text-black transition-colors"><Facebook className="w-5 h-5" /></a>
+            <a href="#" className="hover:text-black transition-colors"><Twitter className="w-5 h-5" /></a>
           </div>
           <p className="text-[11px] text-neutral-400 mt-6 font-medium">© 2026 {store.store_name}. All rights reserved.</p>
         </footer>

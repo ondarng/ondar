@@ -177,6 +177,21 @@ export default async function PublicStorePage(props: {
             </div>
           </div>
 
+          {/* ── SEARCH INDICATOR ── */}
+          {searchQuery && (
+            <div className="flex items-center justify-between bg-neutral-100/80 border border-neutral-200 rounded-xl px-4 py-3 mb-6">
+              <p className="text-[13px] text-neutral-700">
+                Search results for <span className="font-bold text-neutral-900">"{searchQuery}"</span>
+              </p>
+              <Link 
+                href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
+                className="text-[12px] font-bold text-neutral-500 hover:text-neutral-900 bg-white border border-neutral-200 px-3 py-1.5 rounded-lg shadow-sm transition-all"
+              >
+                Clear Search
+              </Link>
+            </div>
+          )}
+
           {/* ── PRODUCT GRID ── */}
           {/*
             Responsive grid:

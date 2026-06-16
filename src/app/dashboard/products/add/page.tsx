@@ -12,6 +12,7 @@ export default function DashboardAddProductPage() {
   const [stock, setStock] = useState('10')
   const [description, setDescription] = useState('')
   const [variants, setVariants] = useState('')
+  const [category, setCategory] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -90,6 +91,7 @@ export default function DashboardAddProductPage() {
       description,
       stock_quantity: parseInt(stock),
       image_url: publicUrl,
+      category: category ? category.trim() : null,
       variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
     })
 
@@ -183,6 +185,17 @@ export default function DashboardAddProductPage() {
               className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
             />
             <p className="text-[10px] text-secondary mt-1">Comma-separated list of choices for buyers to select.</p>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-primary-900">Category (Optional)</label>
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Laptops, Phones, Wearables"
+              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
+            />
           </div>
 
           <div className="space-y-1">

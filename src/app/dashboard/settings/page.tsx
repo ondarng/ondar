@@ -18,6 +18,7 @@ export default function DashboardSettingsPage() {
   const [whatsapp, setWhatsapp] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [accentColor, setAccentColor] = useState('#00A859')
+  const [trustBadges, setTrustBadges] = useState('Nationwide Delivery, 100% Original, Warranty')
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -50,6 +51,9 @@ export default function DashboardSettingsPage() {
       setWhatsapp(storeData.whatsapp_number || '')
       setLogoUrl(storeData.logo_url || '')
       setAccentColor(storeData.accent_color || '#00A859')
+      if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
+        setTrustBadges(storeData.trust_badges.join(', '))
+      }
       
       setLoading(false)
     }
@@ -68,7 +72,8 @@ export default function DashboardSettingsPage() {
         slug,
         whatsapp_number: whatsapp,
         logo_url: logoUrl,
-        accent_color: accentColor
+        accent_color: accentColor,
+        trust_badges: trustBadges.split(',').map(b => b.trim()).filter(Boolean)
       })
       .eq('id', store.id)
 
@@ -272,6 +277,18 @@ export default function DashboardSettingsPage() {
                 />
                </div>
                <p className="text-[10px] text-secondary">This color will be used for buttons on your public store.</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Trust Badges (Store Guarantees)</label>
+              <input
+                type="text"
+                value={trustBadges}
+                onChange={(e) => setTrustBadges(e.target.value)}
+                placeholder="e.g. Fast Delivery, 100% Original, Warranty"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+              <p className="text-[10px] text-secondary mt-1">Comma-separated list of badges displayed to customers.</p>
             </div>
           </div>
 

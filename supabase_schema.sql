@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS stores (
     accent_color TEXT DEFAULT '#00A859',
     subscription_status TEXT DEFAULT 'TRIAL',
     trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + interval '7 days'),
+    trust_badges TEXT[] DEFAULT ARRAY['Nationwide Delivery', '100% Original', 'Warranty']::TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS products (
     price DECIMAL(12, 2) NOT NULL,
     description TEXT,
     image_url TEXT NOT NULL,
+    category TEXT,
     stock_quantity INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

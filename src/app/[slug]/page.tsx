@@ -216,7 +216,7 @@ export default async function PublicStorePage(props: {
                         <img
                           src={product.image_url}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-in-out"
+                          className="w-full h-full object-contain group-hover:scale-[1.04] transition-transform duration-500 ease-in-out p-2"
                           loading="lazy"
                         />
                       </div>

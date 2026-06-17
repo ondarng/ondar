@@ -23,7 +23,7 @@ export function ProductGallery({ images }: { images: string[] }) {
             <img 
               src={url} 
               alt={`Product image ${idx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain p-4"
             />
           </div>
         ))}

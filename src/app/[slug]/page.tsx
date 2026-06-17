@@ -39,13 +39,13 @@ export default async function PublicStorePage(props: {
 
     // Fetch all categories for filter strip
     const { data: allProds } = await supabase
-      .from('products').select('category').eq('store_id', store.id).gt('stock_quantity', 0)
+      .from('products').select('category').eq('store_id', store.id)
     const categories = ['All', ...Array.from(new Set(allProds?.map(p => p.category).filter(Boolean)))]
 
     // Fetch products with filters
     let query = supabase
       .from('products').select('*').eq('store_id', store.id)
-      .gt('stock_quantity', 0).order('created_at', { ascending: false })
+      .order('created_at', { ascending: false })
     if (activeCategory !== 'All') query = query.eq('category', activeCategory)
     if (searchQuery) query = query.ilike('name', `%${searchQuery}%`)
     const { data: products, error: prodError } = await query
@@ -156,26 +156,28 @@ export default async function PublicStorePage(props: {
           <div className="border-t border-neutral-200 mb-5" />
 
           {/* ── CATEGORY FILTER ── */}
-          <div className="overflow-x-auto hide-scrollbar mb-6">
-            <div className="flex items-center gap-2 w-max">
-              {categories.map((cat: string) => {
-                const isActive = activeCategory === cat
-                return (
-                  <Link
-                    key={cat}
-                    href={`/${slug}${cat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(cat)}${searchQuery ? `&q=${searchQuery}` : ''}`}`}
-                    className={`px-4 py-1.5 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all ${
-                      isActive
-                        ? 'bg-neutral-900 text-white'
-                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                    }`}
-                  >
-                    {cat}
-                  </Link>
-                )
-              })}
+          {categories.length > 1 && (
+            <div className="overflow-x-auto hide-scrollbar mb-6">
+              <div className="flex items-center gap-2 w-max">
+                {categories.map((cat: string) => {
+                  const isActive = activeCategory === cat
+                  return (
+                    <Link
+                      key={cat}
+                      href={`/${slug}${cat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(cat)}${searchQuery ? `&q=${searchQuery}` : ''}`}`}
+                      className={`px-4 py-1.5 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all ${
+                        isActive
+                          ? 'bg-neutral-900 text-white'
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                      }`}
+                    >
+                      {cat}
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* ── SEARCH INDICATOR ── */}
           {searchQuery && (
@@ -224,6 +226,15 @@ export default async function PublicStorePage(props: {
                           {product.category}
                         </span>
                       )}
+                      
+                      {/* Sold out overlay */}
+                      {product.stock_quantity <= 0 && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                          <span className="bg-white/90 text-neutral-900 text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest rotate-[-12deg] shadow-lg">
+                            Sold Out
+                          </span>
+                        </div>
+                      )}
                     </Link>
 
                     {/* Card Info */}
@@ -239,21 +250,36 @@ export default async function PublicStorePage(props: {
 
                       {/* Single standardized CTA — identical on every card */}
                       <div className="mt-auto pt-1">
-                        <WhatsappOrderCTA
-                          product={product}
-                          store={store}
-                          label="Ask on WhatsApp"
-                          className="w-full text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 bg-[#00A859] text-white hover:bg-[#008f4a] active:scale-95 transition-all tracking-wide uppercase"
-                        />
+                        {product.stock_quantity > 0 ? (
+                          <WhatsappOrderCTA
+                            product={product}
+                            store={store}
+                            label="Ask on WhatsApp"
+                            className="w-full text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 bg-[#00A859] text-white hover:bg-[#008f4a] active:scale-95 transition-all tracking-wide uppercase"
+                          />
+                        ) : (
+                          <button
+                            disabled
+                            className="w-full text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 bg-neutral-100 text-neutral-400 cursor-not-allowed tracking-wide uppercase"
+                          >
+                            Out of Stock
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 border border-dashed border-neutral-200 rounded-2xl text-center gap-3">
-                <p className="text-[14px] text-neutral-500 font-medium">
-                  {searchQuery ? `No products found for "${searchQuery}"` : 'No products in this category yet.'}
+              <div className="flex flex-col items-center justify-center py-24 border border-dashed border-neutral-200 rounded-2xl text-center gap-3 bg-white">
+                <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100 shadow-inner mb-2">
+                  <Package className="w-8 h-8 text-neutral-300" />
+                </div>
+                <p className="text-[15px] text-neutral-900 font-bold">
+                  {allProds?.length === 0 ? "This store is getting ready." : (searchQuery ? `No products found for "${searchQuery}"` : 'No products in this category.')}
+                </p>
+                <p className="text-[13px] text-neutral-500 max-w-[250px]">
+                  {allProds?.length === 0 ? "The vendor hasn't added any products yet. Check back later!" : "Try adjusting your filters or search term."}
                 </p>
                 {searchQuery && (
                   <Link href={`/${slug}`} className="text-[13px] font-bold text-neutral-900 underline underline-offset-2">

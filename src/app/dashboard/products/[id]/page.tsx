@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ArrowLeft, Loader2, Save, Upload, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Upload, X } from 'lucide-react'
 import Link from 'next/link'
+
+type ImageAsset = 
+  | { type: 'url'; url: string }
+  | { type: 'file'; file: File; preview: string }
 
 export default function EditProductPage() {
   const { id } = useParams()
@@ -20,9 +24,9 @@ export default function EditProductPage() {
   const [variants, setVariants] = useState('')
   const [category, setCategory] = useState('')
   const [hasManuallyEditedCategory, setHasManuallyEditedCategory] = useState(false)
-  const [imageUrl, setImageUrl] = useState('')
-  const [uploading, setUploading] = useState(false)
-
+  
+  const [images, setImages] = useState<ImageAsset[]>([])
+  
   const router = useRouter()
   const supabase = createClient()
 
@@ -47,7 +51,14 @@ export default function EditProductPage() {
       setVariants(data.variants || '')
       setCategory(data.category || '')
       setStock(data.stock_quantity.toString())
-      setImageUrl(data.image_url)
+      
+      const loadedImages: ImageAsset[] = []
+      if (data.image_url) loadedImages.push({ type: 'url', url: data.image_url })
+      if (data.additional_images && Array.isArray(data.additional_images)) {
+        data.additional_images.forEach((url: string) => loadedImages.push({ type: 'url', url }))
+      }
+      setImages(loadedImages)
+      
       setLoading(false)
     }
     fetchProduct()
@@ -61,25 +72,18 @@ export default function EditProductPage() {
     
     // Comprehensive dictionary for diverse store types
     const categoryRules: Record<string, string[]> = {
-      // Tech & Electronics
       'Phones': ['iphone', 'samsung', 'pixel', 'tecno', 'infinix', 'redmi', 'smartphone', 'nokia', 'vivo', 'oppo'],
       'Laptops': ['macbook', 'hp', 'dell', 'lenovo', 'asus', 'laptop', 'chromebook', 'thinkpad'],
       'Audio': ['airpods', 'earpods', 'headset', 'headphone', 'speaker', 'jbl', 'sony', 'earbuds', 'boombox'],
       'Wearables': ['watch', 'apple watch', 'smart watch', 'fitbit', 'band'],
       'Accessories': ['charger', 'cable', 'case', 'screen protector', 'power bank', 'adapter', 'hub', 'dongle'],
-      
-      // Fashion & Apparel
       'Clothing': ['shirt', 't-shirt', 'dress', 'jeans', 'trousers', 'skirt', 'jacket', 'hoodie', 'suit', 'gown'],
       'Shoes': ['sneakers', 'shoes', 'boots', 'heels', 'sandals', 'slides', 'slippers'],
       'Bags': ['bag', 'handbag', 'backpack', 'purse', 'wallet', 'tote'],
       'Jewelry': ['necklace', 'ring', 'bracelet', 'earrings', 'jewelry', 'chain', 'watch'],
-      
-      // Beauty & Health
       'Skincare': ['lotion', 'serum', 'cream', 'cleanser', 'sunscreen', 'moisturizer', 'toner'],
       'Makeup': ['lipstick', 'foundation', 'concealer', 'mascara', 'palette', 'powder'],
       'Fragrance': ['perfume', 'cologne', 'fragrance', 'body spray', 'mist'],
-      
-      // Home & Groceries
       'Groceries': ['rice', 'beans', 'oil', 'pasta', 'milk', 'sugar', 'salt', 'spice', 'flour'],
       'Home Appliances': ['blender', 'microwave', 'tv', 'television', 'fridge', 'refrigerator', 'iron', 'fan', 'ac', 'air conditioner'],
       'Furniture': ['chair', 'table', 'sofa', 'bed', 'wardrobe', 'desk', 'cabinet']
@@ -87,66 +91,100 @@ export default function EditProductPage() {
 
     for (const [cat, keywords] of Object.entries(categoryRules)) {
       if (keywords.some(kw => lowerName.includes(kw))) {
-        // Only update if it's different to avoid re-renders or overwriting initial fetch if it was empty
         if (category !== cat) setCategory(cat);
         break;
       }
     }
   }, [name, hasManuallyEditedCategory, loading]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setUploading(true)
-      if (!e.target.files || e.target.files.length === 0) return
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
 
-      const file = e.target.files[0]
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random()}.${fileExt}`
-      const filePath = `${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file)
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath)
-
-      setImageUrl(publicUrl)
-    } catch (error: any) {
-      alert(error.message)
-    } finally {
-      setUploading(false)
+    const availableSlots = 4 - images.length
+    const filesToAdd = files.slice(0, availableSlots)
+    
+    if (files.length > availableSlots) {
+      alert(`You can only upload up to 4 images.`)
     }
+
+    const newAssets: ImageAsset[] = filesToAdd.map(f => ({
+      type: 'file',
+      file: f,
+      preview: URL.createObjectURL(f)
+    }))
+
+    setImages(prev => [...prev, ...newAssets])
+    e.target.value = ''
+  }
+
+  const removeImage = (index: number) => {
+    setImages(prev => {
+      const item = prev[index]
+      if (item.type === 'file') {
+        URL.revokeObjectURL(item.preview)
+      }
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (images.length === 0) {
+      setMessage({ type: 'error', text: 'Please upload at least one image.' })
+      return
+    }
+
     setSaving(true)
     setMessage(null)
 
-    const { error } = await supabase
-      .from('products')
-      .update({
-        name,
-        price: parseFloat(price),
-        description,
-        stock_quantity: parseInt(stock),
-        image_url: imageUrl,
-        category: category ? category.trim() : null,
-        variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
-      })
-      .eq('id', id)
+    try {
+      const finalUrls: string[] = []
+      
+      for (const img of images) {
+        if (img.type === 'url') {
+          finalUrls.push(img.url)
+        } else {
+          const fileExt = img.file.name.split('.').pop()
+          const fileName = `update-${Date.now()}-${Math.random()}.${fileExt}`
+          
+          const { error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(fileName, img.file)
 
-    if (error) {
-      setMessage({ type: 'error', text: error.message })
-    } else {
+          if (uploadError) throw uploadError
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName)
+            
+          finalUrls.push(publicUrl)
+        }
+      }
+
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name,
+          price: parseFloat(price),
+          description,
+          stock_quantity: parseInt(stock),
+          image_url: finalUrls[0],
+          additional_images: finalUrls.slice(1),
+          category: category ? category.trim() : null,
+          variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
       setMessage({ type: 'success', text: 'Product updated successfully!' })
       setTimeout(() => router.push('/dashboard/products'), 1500)
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message })
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   if (loading) {
@@ -168,7 +206,7 @@ export default function EditProductPage() {
         </div>
         <button 
           onClick={handleSave}
-          disabled={saving || uploading}
+          disabled={saving}
           className="bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary-700 transition-colors disabled:opacity-70"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -186,31 +224,47 @@ export default function EditProductPage() {
 
           {/* Image Upload */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-border space-y-4">
-            <label className="text-xs font-bold text-primary-900 uppercase tracking-widest">Product Image</label>
-            <div className="relative aspect-square w-full bg-slate-50 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden group">
-              {imageUrl ? (
-                <>
-                  <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p className="text-white text-xs font-bold">Change Image</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <ImageIcon className="w-12 h-12 text-slate-300 mb-2" />
-                  <p className="text-xs text-secondary font-medium text-center px-6">Tap to upload product photo</p>
-                </>
-              )}
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                disabled={uploading}
-              />
-              {uploading && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-primary-900">Product Images</label>
+              <span className="text-xs text-secondary font-medium">{images.length}/4</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {images.map((img, idx) => (
+                <div key={idx} className="relative aspect-square rounded-2xl border-2 border-slate-100 overflow-hidden group">
+                  <img src={img.type === 'url' ? img.url : img.preview} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button" 
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  {idx === 0 && (
+                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-widest uppercase">
+                      Main
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {images.length < 4 && (
+                <div 
+                  onClick={() => document.getElementById('image-input')?.click()}
+                  className="relative aspect-square bg-slate-50 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-all"
+                >
+                  <Upload className="w-6 h-6 text-secondary mb-1" />
+                  <span className="text-[11px] text-secondary font-medium text-center px-4 leading-tight">
+                    Add Photo
+                  </span>
+                  <input 
+                    id="image-input"
+                    type="file" 
+                    accept="image/*"
+                    multiple
+                    className="hidden" 
+                    onChange={handleImageChange}
+                  />
                 </div>
               )}
             </div>

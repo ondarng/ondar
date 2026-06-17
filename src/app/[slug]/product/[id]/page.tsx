@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
-
+import { ProductGallery } from '@/components/product-gallery'
+import { ProductShareButton } from '@/components/product-share-button'
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const { slug, id } = await params
 
@@ -34,25 +35,25 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <ArrowLeft className="w-5 h-5" />
       </Link>
 
-      {/* Hero Image (Edge to Edge, 60% Visual on Mobile) */}
-      <div className="w-full h-[60vh] md:h-[70vh] bg-neutral-100 relative">
-        <img 
-          src={product.image_url} 
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-        {/* Subtle bottom gradient to ensure text readability if it overlaps */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/5 to-transparent pointer-events-none" />
-      </div>
+      {/* Hero Image Gallery */}
+      <ProductGallery 
+        images={[
+          product.image_url, 
+          ...(Array.isArray(product.additional_images) ? product.additional_images : [])
+        ].filter(Boolean)} 
+      />
 
       {/* Product Information (Pure Content) */}
       <main className="flex-1 w-full max-w-2xl mx-auto px-6 pt-8 pb-10 space-y-6">
         
-        {/* Title & Price */}
-        <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-normal text-neutral-900 tracking-tight leading-snug">
-            {product.name}
-          </h1>
+        {/* Title, Share & Price */}
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-2xl md:text-3xl font-normal text-neutral-900 tracking-tight leading-snug">
+              {product.name}
+            </h1>
+            <ProductShareButton productName={product.name} storeName={product.stores.store_name} />
+          </div>
           <p className="text-xl md:text-2xl font-medium text-neutral-900 tracking-tight">
             ₦{product.price.toLocaleString()}
           </p>

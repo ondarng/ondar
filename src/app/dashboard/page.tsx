@@ -199,7 +199,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Setup Checklist */}
-        {(!store.whatsapp_number || stats.products === 0) && (
+        {(!store.whatsapp_number || !store.logo_url || stats.products === 0) && (
           <div className="bg-white rounded-3xl border-2 border-primary-100 p-6 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -214,14 +214,21 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <Link 
                 href="/dashboard/settings"
-                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${!store.whatsapp_number ? 'border-primary-100 bg-primary-50/30' : 'border-green-100 bg-green-50'}`}
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${(!store.whatsapp_number || !store.logo_url) ? 'border-primary-100 bg-primary-50/30' : 'border-green-100 bg-green-50'}`}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${!store.whatsapp_number ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
-                  {!store.whatsapp_number ? <Plus className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${(!store.whatsapp_number || !store.logo_url) ? 'bg-white text-primary-600 shadow-sm' : 'bg-green-500 text-white'}`}>
+                  {(!store.whatsapp_number || !store.logo_url) ? <Plus className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                 </div>
-                <span className={`text-sm font-bold ${!store.whatsapp_number ? 'text-primary-900' : 'text-green-800'}`}>
-                  {!store.whatsapp_number ? 'Connect WhatsApp Number' : 'WhatsApp Connected'}
-                </span>
+                <div className="flex flex-col">
+                  <span className={`text-sm font-bold ${(!store.whatsapp_number || !store.logo_url) ? 'text-primary-900' : 'text-green-800'}`}>
+                    Store Profile & WhatsApp
+                  </span>
+                  {(!store.whatsapp_number || !store.logo_url) && (
+                    <span className="text-[10px] text-secondary">
+                      {!store.logo_url && !store.whatsapp_number ? 'Add your logo and connect WhatsApp' : !store.logo_url ? 'Add your store logo' : 'Connect your WhatsApp number'}
+                    </span>
+                  )}
+                </div>
               </Link>
 
               <Link 
@@ -255,7 +262,7 @@ export default function DashboardPage() {
             <p className="text-secondary text-sm font-medium">
               {typeof window !== 'undefined' ? window.location.host : ''}/{store.slug}
             </p>
-            {(!store.whatsapp_number || stats.products === 0) ? (
+            {(!store.whatsapp_number || !store.logo_url || stats.products === 0) ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-amber-100">
                 <Clock className="w-3 h-3" /> Incomplete Setup
               </span>

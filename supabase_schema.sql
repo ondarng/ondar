@@ -36,9 +36,13 @@ CREATE TABLE IF NOT EXISTS products (
     image_url TEXT NOT NULL,
     category TEXT,
     stock_quantity INTEGER DEFAULT 0,
+    additional_images TEXT[] DEFAULT ARRAY[]::TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Run this to update existing products table if already created:
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS additional_images TEXT[] DEFAULT ARRAY[]::TEXT[];
 
 -- 3. ORDERS TABLE
 CREATE TABLE IF NOT EXISTS orders (

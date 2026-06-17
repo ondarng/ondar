@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { ArrowLeft, Loader2, Upload } from 'lucide-react'
+import { ArrowLeft, Loader2, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardAddProductPage() {
@@ -14,8 +14,11 @@ export default function DashboardAddProductPage() {
   const [variants, setVariants] = useState('')
   const [category, setCategory] = useState('')
   const [hasManuallyEditedCategory, setHasManuallyEditedCategory] = useState(false)
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  // Multi-image upload state
+  const [images, setImages] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [storeId, setStoreId] = useState<string | null>(null)
@@ -56,25 +59,18 @@ export default function DashboardAddProductPage() {
     
     // Comprehensive dictionary for diverse store types
     const categoryRules: Record<string, string[]> = {
-      // Tech & Electronics
       'Phones': ['iphone', 'samsung', 'pixel', 'tecno', 'infinix', 'redmi', 'smartphone', 'nokia', 'vivo', 'oppo'],
       'Laptops': ['macbook', 'hp', 'dell', 'lenovo', 'asus', 'laptop', 'chromebook', 'thinkpad'],
       'Audio': ['airpods', 'earpods', 'headset', 'headphone', 'speaker', 'jbl', 'sony', 'earbuds', 'boombox'],
       'Wearables': ['watch', 'apple watch', 'smart watch', 'fitbit', 'band'],
       'Accessories': ['charger', 'cable', 'case', 'screen protector', 'power bank', 'adapter', 'hub', 'dongle'],
-      
-      // Fashion & Apparel
       'Clothing': ['shirt', 't-shirt', 'dress', 'jeans', 'trousers', 'skirt', 'jacket', 'hoodie', 'suit', 'gown'],
       'Shoes': ['sneakers', 'shoes', 'boots', 'heels', 'sandals', 'slides', 'slippers'],
       'Bags': ['bag', 'handbag', 'backpack', 'purse', 'wallet', 'tote'],
       'Jewelry': ['necklace', 'ring', 'bracelet', 'earrings', 'jewelry', 'chain', 'watch'],
-      
-      // Beauty & Health
       'Skincare': ['lotion', 'serum', 'cream', 'cleanser', 'sunscreen', 'moisturizer', 'toner'],
       'Makeup': ['lipstick', 'foundation', 'concealer', 'mascara', 'palette', 'powder'],
       'Fragrance': ['perfume', 'cologne', 'fragrance', 'body spray', 'mist'],
-      
-      // Home & Groceries
       'Groceries': ['rice', 'beans', 'oil', 'pasta', 'milk', 'sugar', 'salt', 'spice', 'flour'],
       'Home Appliances': ['blender', 'microwave', 'tv', 'television', 'fridge', 'refrigerator', 'iron', 'fan', 'ac', 'air conditioner'],
       'Furniture': ['chair', 'table', 'sofa', 'bed', 'wardrobe', 'desk', 'cabinet']
@@ -89,60 +85,86 @@ export default function DashboardAddProductPage() {
   }, [name, hasManuallyEditedCategory]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImage(file)
-      setImagePreview(URL.createObjectURL(file))
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    // Limit to 4 images total
+    const availableSlots = 4 - images.length
+    const filesToAdd = files.slice(0, availableSlots)
+    
+    if (files.length > availableSlots) {
+      alert(`You can only upload up to 4 images.`)
     }
+
+    setImages(prev => [...prev, ...filesToAdd])
+    
+    const newPreviews = filesToAdd.map(file => URL.createObjectURL(file))
+    setImagePreviews(prev => [...prev, ...newPreviews])
+    
+    // reset input
+    e.target.value = ''
+  }
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => {
+      // release memory
+      URL.revokeObjectURL(prev[index])
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!image || !storeId) {
-      setError('Please upload an image for your product.')
+    if (images.length === 0 || !storeId) {
+      setError('Please upload at least one image for your product.')
       return
     }
 
     setLoading(true)
     setError(null)
 
-    // 1. Upload image
-    const fileExt = image.name.split('.').pop()
-    const fileName = `${storeId}/${Math.random()}.${fileExt}`
-    
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, image)
+    const uploadedUrls: string[] = []
 
-    if (uploadError) {
-      setError(`Image upload failed: ${uploadError.message}`)
+    try {
+      // 1. Upload all images
+      for (const img of images) {
+        const fileExt = img.name.split('.').pop()
+        const fileName = `${storeId}/${Math.random()}.${fileExt}`
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, img)
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName)
+          
+        uploadedUrls.push(publicUrl)
+      }
+
+      // 2. Insert product (first image is main, rest are additional)
+      const { error: insertError } = await supabase.from('products').insert({
+        store_id: storeId,
+        name,
+        price: parseFloat(price),
+        description,
+        stock_quantity: parseInt(stock),
+        image_url: uploadedUrls[0],
+        additional_images: uploadedUrls.slice(1),
+        category: category ? category.trim() : null,
+        variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
+      })
+
+      if (insertError) throw insertError
+
+      router.push('/dashboard/products')
+    } catch (err: any) {
+      setError(err.message)
       setLoading(false)
-      return
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(fileName)
-
-    // 2. Insert product
-    const { error: insertError } = await supabase.from('products').insert({
-      store_id: storeId,
-      name,
-      price: parseFloat(price),
-      description,
-      stock_quantity: parseInt(stock),
-      image_url: publicUrl,
-      category: category ? category.trim() : null,
-      variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
-    })
-
-    if (insertError) {
-      setError(insertError.message)
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard/products')
   }
 
   return (
@@ -156,29 +178,52 @@ export default function DashboardAddProductPage() {
 
       <main className="flex-1 max-w-md mx-auto w-full px-4 py-6">
         <form onSubmit={handleAddProduct} className="space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-border">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-primary-900">Product Image</label>
-            <div 
-              onClick={() => document.getElementById('image-input')?.click()}
-              className="relative w-full aspect-square bg-slate-50 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-all overflow-hidden"
-            >
-              {imagePreview ? (
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-secondary mb-2" />
-                  <span className="text-xs text-secondary font-medium text-center px-4">
-                    Tap to upload photo
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-primary-900">Product Images</label>
+              <span className="text-xs text-secondary font-medium">{images.length}/4</span>
+            </div>
+            
+            {/* Image Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {imagePreviews.map((preview, idx) => (
+                <div key={idx} className="relative aspect-square rounded-2xl border-2 border-slate-100 overflow-hidden group">
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button" 
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  {idx === 0 && (
+                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-widest uppercase">
+                      Main
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {images.length < 4 && (
+                <div 
+                  onClick={() => document.getElementById('image-input')?.click()}
+                  className="relative aspect-square bg-slate-50 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-all"
+                >
+                  <Upload className="w-6 h-6 text-secondary mb-1" />
+                  <span className="text-[11px] text-secondary font-medium text-center px-4 leading-tight">
+                    Add Photo
                   </span>
-                </>
+                  <input 
+                    id="image-input"
+                    type="file" 
+                    accept="image/*"
+                    multiple
+                    className="hidden" 
+                    onChange={handleImageChange}
+                  />
+                </div>
               )}
-              <input 
-                id="image-input"
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleImageChange}
-              />
             </div>
           </div>
 

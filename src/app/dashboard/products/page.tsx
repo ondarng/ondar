@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { Plus, Pencil, Trash2, Package, ArrowLeft, Loader2, Minus } from 'lucide-react'
+import { Plus, Pencil, Trash2, Package, ArrowLeft, Loader2, Minus, Copy } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DashboardProductsPage() {
@@ -63,6 +63,19 @@ export default function DashboardProductsPage() {
     }
   }
 
+  const handleDuplicate = async (product: any) => {
+    const { id, created_at, updated_at, ...productData } = product
+    
+    const { data: newProduct, error } = await supabase.from('products').insert({
+      ...productData,
+      name: `${product.name} (Copy)`
+    }).select().single()
+    
+    if (!error && newProduct) {
+      setProducts([newProduct, ...products])
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -119,9 +132,17 @@ export default function DashboardProductsPage() {
                 <Link 
                   href={`/dashboard/products/${product.id}`}
                   className="p-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors"
+                  title="Edit"
                 >
                   <Pencil className="w-4 h-4" />
                 </Link>
+                <button 
+                  onClick={() => handleDuplicate(product)}
+                  className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                  title="Duplicate"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
                 <button 
                   onClick={() => handleDelete(product.id)}
                   className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"

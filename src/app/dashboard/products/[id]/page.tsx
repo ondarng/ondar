@@ -21,7 +21,15 @@ export default function EditProductPage() {
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
   const [stock, setStock] = useState('0')
-  const [variants, setVariants] = useState('')
+  const [variants, setVariants] = useState<{name: string, price: string | number | null}[]>([])
+
+  const addVariant = () => setVariants([...variants, { name: '', price: '' }])
+  const removeVariant = (index: number) => setVariants(variants.filter((_, i) => i !== index))
+  const updateVariant = (index: number, field: 'name' | 'price', value: string) => {
+    const newVariants = [...variants]
+    newVariants[index][field] = value
+    setVariants(newVariants)
+  }
   const [category, setCategory] = useState('')
   const [hasManuallyEditedCategory, setHasManuallyEditedCategory] = useState(false)
   
@@ -48,7 +56,7 @@ export default function EditProductPage() {
       setName(data.name)
       setPrice(data.price.toString())
       setDescription(data.description || '')
-      setVariants(data.variants || '')
+      setVariants(data.variants && Array.isArray(data.variants) ? data.variants : [])
       setCategory(data.category || '')
       setStock(data.stock_quantity.toString())
       
@@ -172,7 +180,7 @@ export default function EditProductPage() {
           image_url: finalUrls[0],
           additional_images: finalUrls.slice(1),
           category: category ? category.trim() : null,
-          variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
+          variants: variants.filter(v => v.name.trim() !== '').map(v => ({ name: v.name.trim(), price: v.price ? parseFloat(v.price as string) : null }))
         })
         .eq('id', id)
 
@@ -305,16 +313,43 @@ export default function EditProductPage() {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-primary-900">Variants / Options (Optional)</label>
-              <input
-                type="text"
-                value={variants}
-                onChange={(e) => setVariants(e.target.value)}
-                placeholder="e.g. Size 40, Size 42, Black, Red, 128GB"
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-              />
-              <p className="text-[10px] text-secondary mt-1">Comma-separated list of choices for buyers to select.</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-primary-900">Variants (Optional)</label>
+                <button 
+                  type="button" 
+                  onClick={addVariant}
+                  className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded-md"
+                >
+                  + Add Variant
+                </button>
+              </div>
+              {variants.map((variant, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={variant.name}
+                    onChange={(e) => updateVariant(idx, 'name', e.target.value)}
+                    placeholder="e.g. Size M"
+                    className="w-1/2 px-3 py-2 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                  />
+                  <input
+                    type="number"
+                    value={variant.price || ''}
+                    onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                    placeholder="Specific Price (₦)"
+                    className="w-1/2 px-3 py-2 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeVariant(idx)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <p className="text-[10px] text-secondary">Leave price empty to use the base product price.</p>
             </div>
 
             <div className="space-y-1">

@@ -11,7 +11,15 @@ export default function DashboardAddProductPage() {
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('10')
   const [description, setDescription] = useState('')
-  const [variants, setVariants] = useState('')
+  const [variants, setVariants] = useState<{name: string, price: string}[]>([])
+
+  const addVariant = () => setVariants([...variants, { name: '', price: '' }])
+  const removeVariant = (index: number) => setVariants(variants.filter((_, i) => i !== index))
+  const updateVariant = (index: number, field: 'name' | 'price', value: string) => {
+    const newVariants = [...variants]
+    newVariants[index][field] = value
+    setVariants(newVariants)
+  }
   const [category, setCategory] = useState('')
   const [hasManuallyEditedCategory, setHasManuallyEditedCategory] = useState(false)
   
@@ -155,7 +163,7 @@ export default function DashboardAddProductPage() {
         image_url: uploadedUrls[0],
         additional_images: uploadedUrls.slice(1),
         category: category ? category.trim() : null,
-        variants: variants ? variants.split(',').map(v => v.trim()).filter(Boolean).join(', ') : null
+        variants: variants.filter(v => v.name.trim() !== '').map(v => ({ name: v.name.trim(), price: v.price ? parseFloat(v.price) : null }))
       })
 
       if (insertError) throw insertError
@@ -261,16 +269,43 @@ export default function DashboardAddProductPage() {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-primary-900">Variants / Options (Optional)</label>
-            <input
-              type="text"
-              value={variants}
-              onChange={(e) => setVariants(e.target.value)}
-              placeholder="e.g. Size 40, Size 42, Black, Red, 128GB"
-              className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
-            />
-            <p className="text-[10px] text-secondary mt-1">Comma-separated list of choices for buyers to select.</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-primary-900">Variants (Optional)</label>
+              <button 
+                type="button" 
+                onClick={addVariant}
+                className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded-md"
+              >
+                + Add Variant
+              </button>
+            </div>
+            {variants.map((variant, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={variant.name}
+                  onChange={(e) => updateVariant(idx, 'name', e.target.value)}
+                  placeholder="e.g. Size M"
+                  className="w-1/2 px-3 py-2 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                />
+                <input
+                  type="number"
+                  value={variant.price}
+                  onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                  placeholder="Specific Price (₦)"
+                  className="w-1/2 px-3 py-2 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => removeVariant(idx)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <p className="text-[10px] text-secondary">Leave price empty to use the base product price.</p>
           </div>
 
           <div className="space-y-1">

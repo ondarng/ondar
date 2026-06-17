@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BadgeCheck, Search, ShieldCheck, Truck, Zap } from 'lucide-react'
+import { BadgeCheck, Search, ShieldCheck, Truck, Zap, Package } from 'lucide-react'
 import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']

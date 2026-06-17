@@ -22,9 +22,10 @@ interface WhatsappOrderCTAProps {
   }
   label?: string
   className?: string
+  selectedVariant?: { name: string, price: number | null } | null
 }
 
-export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp", className }: WhatsappOrderCTAProps) {
+export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp", className, selectedVariant }: WhatsappOrderCTAProps) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const accent = store.accent_color || '#00A859'
@@ -39,12 +40,15 @@ export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp
     setLoading(true)
 
     try {
+      const finalPrice = selectedVariant?.price || product.price
+      const variantText = selectedVariant ? ` (${selectedVariant.name})` : ''
+
       // 1. Record the order in Supabase as PENDING
       await supabase.from('orders').insert({
         store_id: store.id,
         product_id: product.id,
         quantity: 1,
-        total_price: product.price,
+        total_price: finalPrice,
         customer_name: 'WhatsApp Lead',
         status: 'PENDING'
       })
@@ -53,9 +57,10 @@ export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp
       posthog.capture('whatsapp_order_initiated', {
         product_id: product.id,
         product_name: product.name,
+        variant_name: selectedVariant?.name,
         store_id: store.id,
         store_name: store.store_name,
-        price: product.price
+        price: finalPrice
       })
 
       let phone = store.whatsapp_number.replace(/[^0-9]/g, '')
@@ -65,7 +70,7 @@ export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp
         phone = '234' + phone
       }
 
-      const message = `Hi ${store.store_name}, I want to buy this product from your Ondar store:\n\n📦 *${product.name}*\n💰 ₦${product.price.toLocaleString()}\n\nImage: ${product.image_url}\n\nIs it still available?`
+      const message = `Hi ${store.store_name}, I want to buy this product from your Ondar store:\n\n📦 *${product.name}${variantText}*\n💰 ₦${finalPrice.toLocaleString()}\n\nImage: ${product.image_url}\n\nIs it still available?`
       const encodedMessage = encodeURIComponent(message)
       const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`
 
@@ -73,9 +78,11 @@ export function WhatsappOrderCTA({ product, store, label = "Continue on WhatsApp
       window.open(whatsappUrl, '_blank')
     } catch (err) {
       console.error('Error initiating WhatsApp order:', err)
+      const finalPrice = selectedVariant?.price || product.price
+      const variantText = selectedVariant ? ` (${selectedVariant.name})` : ''
       let phone = store.whatsapp_number.replace(/[^0-9]/g, '')
       if (phone.startsWith('0')) phone = '234' + phone.slice(1)
-      const message = `Hi ${store.store_name}, I want to buy: ${product.name} (₦${product.price})`
+      const message = `Hi ${store.store_name}, I want to buy: ${product.name}${variantText} (₦${finalPrice})`
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
     } finally {
       setLoading(false)

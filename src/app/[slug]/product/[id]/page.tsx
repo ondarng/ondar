@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
 import { ProductGallery } from '@/components/product-gallery'
 import { ProductShareButton } from '@/components/product-share-button'
+import { ProductClientSidePricing } from '@/components/product-client-pricing'
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const { slug, id } = await params
 
@@ -54,10 +54,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </h1>
             <ProductShareButton productName={product.name} storeName={product.stores.store_name} />
           </div>
-          <p className="text-xl md:text-2xl font-medium text-neutral-900 tracking-tight">
-            ₦{product.price.toLocaleString()}
-          </p>
         </div>
+
+        <ProductClientSidePricing product={product} store={product.stores} />
 
         {/* Minimal Divider */}
         <div className="w-8 h-[1px] bg-neutral-200" />
@@ -70,22 +69,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         )}
 
       </main>
-
-      {/* Sticky Bottom Action */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 py-4 md:py-6 z-40 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-20px_40px_-20px_rgba(0,0,0,0.05)]">
-        <div className="max-w-2xl mx-auto w-full">
-          {product.stock_quantity > 0 ? (
-            <WhatsappOrderCTA product={product} store={product.stores} />
-          ) : (
-            <button 
-              disabled
-              className="w-full bg-neutral-100 text-neutral-400 font-medium tracking-wide py-4 rounded-none flex items-center justify-center text-[15px] cursor-not-allowed uppercase"
-            >
-              Out of Stock
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

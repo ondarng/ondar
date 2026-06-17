@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS products (
     image_url TEXT NOT NULL,
     category TEXT,
     stock_quantity INTEGER DEFAULT 0,
+    variants JSONB DEFAULT '[]'::jsonb,
     additional_images TEXT[] DEFAULT ARRAY[]::TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

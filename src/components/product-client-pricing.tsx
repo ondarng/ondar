@@ -16,9 +16,24 @@ export function ProductClientSidePricing({ product, store }: { product: any, sto
 
   return (
     <>
-      <p className="text-xl md:text-2xl font-medium text-neutral-900 tracking-tight">
-        ₦{currentPrice.toLocaleString()}
-      </p>
+      <div className="flex flex-col gap-1.5 mt-1">
+        <p className="text-xl md:text-2xl font-medium text-neutral-900 tracking-tight">
+          ₦{currentPrice.toLocaleString()}
+        </p>
+        {product.stock_quantity > 5 ? (
+          <div className="flex items-center gap-1.5 text-[#00A859] text-[13px] font-bold">
+            <span>✓</span> Available
+          </div>
+        ) : product.stock_quantity > 0 ? (
+          <div className="flex items-center gap-1.5 text-[#eab308] text-[13px] font-bold">
+            <span>⚠</span> Limited Stock
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-neutral-400 text-[13px] font-bold">
+            <span>⛔</span> Out of Stock
+          </div>
+        )}
+      </div>
 
       {variants.length > 0 && (
         <div className="space-y-3 mt-6">

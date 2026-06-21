@@ -87,47 +87,49 @@ export default async function PublicStorePage(props: {
         <div className="max-w-5xl mx-auto px-4">
 
           {/* ── SELLER IDENTITY BLOCK ── */}
-          {/*
-            Layout:
-            Mobile  → centered column  (logo → name → desc → trust)
-            Tablet+ → left-aligned row (logo | name + desc + trust)
-            This is the PRIMARY TRUST signal. Everything else is secondary.
-          */}
-          <div className="py-8 md:py-10">
-            <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-8">
+          <div className="py-6 md:py-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 md:gap-6">
 
-              {/* Logo */}
-              <div className="flex justify-center md:justify-start shrink-0">
+              {/* Avatar */}
+              <div className="flex justify-center shrink-0">
                 {store.logo_url ? (
                   <img
                     src={store.logo_url}
                     alt={store.store_name}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-white shadow-md"
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white shadow-sm"
                   />
                 ) : (
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-neutral-200 flex items-center justify-center border-2 border-white shadow-md">
-                    <span className="text-2xl font-extrabold text-neutral-500">{store.store_name.charAt(0)}</span>
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-neutral-200 flex items-center justify-center border-2 border-white shadow-sm">
+                    <span className="text-xl font-extrabold text-neutral-500">{store.store_name.charAt(0)}</span>
                   </div>
                 )}
               </div>
 
               {/* Text Stack */}
-              <div className="text-center md:text-left flex-1">
-                {/* 1. Store Name — strongest element */}
-                <h1 className="text-[28px] md:text-[34px] font-extrabold text-neutral-900 leading-tight tracking-tight flex items-center justify-center md:justify-start gap-2 mb-2">
+              <div className="flex-1 flex flex-col space-y-2 md:space-y-2.5">
+                {/* 1. Store Name + Verified */}
+                <h1 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight flex items-center justify-center md:justify-start gap-1.5">
                   {store.store_name}
-                  <BadgeCheck className="w-6 h-6 md:w-7 md:h-7 text-[#00A859] shrink-0" />
+                  <BadgeCheck className="w-5 h-5 md:w-6 md:h-6 text-[#00A859] shrink-0" />
                 </h1>
 
                 {/* 2. Description */}
-                <p className="text-[14px] md:text-[15px] text-neutral-500 leading-relaxed mb-5 max-w-lg mx-auto md:mx-0">
-                  {store.description || 'Your trusted vendor on Ondar. Browse the catalog and start a conversation.'}
+                <p className="text-[14px] md:text-[15px] text-neutral-700 leading-snug max-w-lg mx-auto md:mx-0">
+                  {store.description || 'Quality products and fast nationwide delivery.'}
                 </p>
 
-                {/* 3. Trust signals — attached to identity, not the page */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2">
+                {/* 3. Location & Response Time */}
+                {(store.location || store.response_time) && (
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[13px] font-medium text-neutral-500">
+                    {store.location && <span>📍 {store.location}</span>}
+                    {store.response_time && <span>⚡ {store.response_time}</span>}
+                  </div>
+                )}
+
+                {/* 4. Trust Badges */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 pt-1">
                   {trustBadges.map((badge: string, i: number) => (
-                    <div key={i} className="flex items-center gap-1.5 text-[12px] font-semibold text-neutral-700">
+                    <div key={i} className="flex items-center gap-1 text-[12px] font-semibold text-neutral-700 bg-neutral-100 px-2 py-1 rounded-md">
                       <TrustIcon badge={badge} />
                       <span>{badge}</span>
                     </div>
@@ -243,9 +245,24 @@ export default async function PublicStorePage(props: {
                         <h3 className="text-[13px] text-neutral-800 font-semibold leading-snug line-clamp-2 min-h-[36px]">
                           {product.name}
                         </h3>
-                        <p className="text-[15px] text-neutral-900 font-extrabold tracking-tight">
-                          ₦{product.price.toLocaleString()}
-                        </p>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <p className="text-[15px] text-neutral-900 font-extrabold tracking-tight">
+                            ₦{product.price.toLocaleString()}
+                          </p>
+                          {product.stock_quantity > 5 ? (
+                            <div className="flex items-center gap-1 text-[#00A859] text-[10px] font-bold">
+                              <span>✓</span> Available
+                            </div>
+                          ) : product.stock_quantity > 0 ? (
+                            <div className="flex items-center gap-1 text-[#eab308] text-[10px] font-bold">
+                              <span>⚠</span> Limited Stock
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-neutral-400 text-[10px] font-bold">
+                              <span>⛔</span> Out of Stock
+                            </div>
+                          )}
+                        </div>
                       </Link>
 
                       {/* Single standardized CTA — identical on every card */}

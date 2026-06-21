@@ -19,12 +19,18 @@ CREATE TABLE IF NOT EXISTS stores (
     subscription_status TEXT DEFAULT 'TRIAL',
     trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + interval '7 days'),
     trust_badges TEXT[] DEFAULT ARRAY['Nationwide Delivery', '100% Original', 'Warranty']::TEXT[],
+    description TEXT,
+    location TEXT,
+    response_time TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Run this to update existing stores table if already created:
 -- ALTER TABLE stores ADD COLUMN IF NOT EXISTS accent_color TEXT DEFAULT '#00A859';
+-- ALTER TABLE stores ADD COLUMN IF NOT EXISTS description TEXT;
+-- ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT;
+-- ALTER TABLE stores ADD COLUMN IF NOT EXISTS response_time TEXT;
 
 -- 2. PRODUCTS TABLE
 CREATE TABLE IF NOT EXISTS products (

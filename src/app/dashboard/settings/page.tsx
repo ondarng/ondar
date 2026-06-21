@@ -16,6 +16,9 @@ export default function DashboardSettingsPage() {
   const [storeName, setStoreName] = useState('')
   const [slug, setSlug] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [description, setDescription] = useState('')
+  const [location, setLocation] = useState('')
+  const [responseTime, setResponseTime] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [accentColor, setAccentColor] = useState('#00A859')
   const [trustBadges, setTrustBadges] = useState('Nationwide Delivery, 100% Original, Warranty')
@@ -52,6 +55,9 @@ export default function DashboardSettingsPage() {
       setStoreName(storeData.store_name || '')
       setSlug(storeData.slug || '')
       setWhatsapp(storeData.whatsapp_number || '')
+      setDescription(storeData.description || '')
+      setLocation(storeData.location || '')
+      setResponseTime(storeData.response_time || '')
       setLogoUrl(storeData.logo_url || '')
       setAccentColor(storeData.accent_color || '#00A859')
       setInstagram(storeData.instagram_handle || '')
@@ -77,6 +83,9 @@ export default function DashboardSettingsPage() {
         store_name: storeName,
         slug,
         whatsapp_number: whatsapp,
+        description,
+        location,
+        response_time: responseTime,
         logo_url: logoUrl,
         accent_color: accentColor,
         trust_badges: trustBadges.split(',').map(b => b.trim()).filter(Boolean),
@@ -231,6 +240,41 @@ export default function DashboardSettingsPage() {
                 required
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Store Description (Optional)</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={160}
+                rows={2}
+                placeholder="e.g. Original phones and gadgets. Nationwide delivery available."
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none"
+              />
+              <p className="text-[10px] text-secondary mt-1">Short bio or catchphrase (max 160 characters).</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Location (Optional)</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Lagos"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Response Time (Optional)</label>
+              <input
+                type="text"
+                value={responseTime}
+                onChange={(e) => setResponseTime(e.target.value)}
+                placeholder="e.g. Replies in ~15 mins"
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               />
             </div>

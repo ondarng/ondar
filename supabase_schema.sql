@@ -64,7 +64,19 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. ROW LEVEL SECURITY (RLS)
+-- 4. LEADS TABLE (CRM)
+CREATE TABLE IF NOT EXISTS leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    customer_name TEXT,
+    customer_phone TEXT,
+    products JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status TEXT CHECK (status IN ('NEW', 'CONTACTED', 'NEGOTIATING', 'PAID', 'DELIVERED', 'CLOSED')) DEFAULT 'NEW',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. ROW LEVEL SECURITY (RLS)
 
 -- STORES: Vendors can only view/edit their own store
 ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
@@ -135,7 +147,20 @@ FOR UPDATE TO authenticated USING (
   store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid())
 );
 
--- 6. VENTS TABLE (Vendor Feedback / Stress Log)
+-- LEADS: Vendors view their store's leads; public can create
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Vendors can view their store's leads" ON leads
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = leads.store_id AND stores.vendor_id = auth.uid())
+    );
+CREATE POLICY "Vendors can update their store's leads" ON leads
+    FOR UPDATE USING (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = leads.store_id AND stores.vendor_id = auth.uid())
+    );
+CREATE POLICY "Public can create leads" ON leads
+    FOR INSERT WITH CHECK (true);
+
+-- 7. VENTS TABLE (Vendor Feedback / Stress Log)
 CREATE TABLE IF NOT EXISTS vents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     vendor_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,

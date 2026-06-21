@@ -2,8 +2,6 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Settings, Search, Package } from 'lucide-react'
-import { AddToInquiryButton } from '@/components/add-to-inquiry-button'
-import { StorefrontBottomBar } from '@/components/storefront-bottom-bar'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
 export const revalidate = 0
@@ -120,27 +118,6 @@ export default async function PublicStorePage(props: {
             </Link>
           </div>
 
-          {/* Row 2: Location + Response Time + Trust badges as chips */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-            {store.location && (
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full">
-                📍 {store.location}
-              </span>
-            )}
-            {store.response_time && (
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full">
-                ⚡ {store.response_time}
-              </span>
-            )}
-            {trustBadges.map((badge: string, i: number) => (
-              <span
-                key={i}
-                className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full"
-              >
-                ✓ {badge}
-              </span>
-            ))}
-          </div>
         </header>
 
         <div className="max-w-2xl mx-auto px-3 md:px-4">
@@ -210,7 +187,7 @@ export default async function PublicStorePage(props: {
           </div>
 
           {/* ── PRODUCT GRID ── */}
-          <main className="pb-44">
+          <main className="pb-10">
             {products && products.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
                 {products.map((product) => {
@@ -246,10 +223,6 @@ export default async function PublicStorePage(props: {
                           </div>
                         )}
 
-                        {/* Add to Inquiry — bottom right of image */}
-                        {product.stock_quantity > 0 && (
-                          <AddToInquiryButton product={product} storeName={store.store_name} />
-                        )}
                       </Link>
 
                       {/* Card Body */}
@@ -291,13 +264,7 @@ export default async function PublicStorePage(props: {
           </main>
         </div>
 
-        {/* ── FIXED BOTTOM BAR (WhatsApp CTA + nav) ── */}
-        <StorefrontBottomBar
-          slug={slug}
-          storeId={store.id}
-          waPhone={waPhone}
-          storeName={store.store_name}
-        />
+
 
         <style dangerouslySetInnerHTML={{ __html: `
           .hide-scrollbar::-webkit-scrollbar { display: none; }

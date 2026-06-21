@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ProductGallery } from '@/components/product-gallery'
-import { ProductShareButton } from '@/components/product-share-button'
 import { ProductClientSidePricing } from '@/components/product-client-pricing'
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const { slug, id } = await params
@@ -52,7 +51,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <h1 className="text-2xl md:text-3xl font-normal text-neutral-900 tracking-tight leading-snug">
               {product.name}
             </h1>
-            <ProductShareButton productName={product.name} storeName={product.stores.store_name} />
           </div>
         </div>
 

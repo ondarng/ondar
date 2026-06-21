@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
+import { ProductWhatsappButton } from '@/components/product-whatsapp-button'
 
 interface Variant {
   name: string
@@ -71,7 +71,7 @@ export function ProductClientSidePricing({ product, store }: { product: any, sto
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 py-4 md:py-6 z-40 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-20px_40px_-20px_rgba(0,0,0,0.05)]">
         <div className="max-w-2xl mx-auto w-full">
           {product.stock_quantity > 0 ? (
-            <WhatsappOrderCTA product={product} store={store} selectedVariant={selectedVariant} />
+            <ProductWhatsappButton product={product} store={store} selectedVariant={selectedVariant} />
           ) : (
             <button 
               disabled

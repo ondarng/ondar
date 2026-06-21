@@ -1,18 +1,42 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BadgeCheck, Search, ShieldCheck, Truck, Zap, Package } from 'lucide-react'
-import { WhatsappOrderCTA } from '@/components/whatsapp-order-cta'
+import { Settings, Search, Package } from 'lucide-react'
+import { AddToInquiryButton } from '@/components/add-to-inquiry-button'
+import { StorefrontBottomBar } from '@/components/storefront-bottom-bar'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
 export const revalidate = 0
 
-function TrustIcon({ badge }: { badge: string }) {
-  const l = badge.toLowerCase()
-  if (l.includes('delivery') || l.includes('shipping') || l.includes('fast')) return <Truck className="w-3.5 h-3.5 shrink-0" />
-  if (l.includes('warranty') || l.includes('guarantee')) return <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-  if (l.includes('quick') || l.includes('reply') || l.includes('support')) return <Zap className="w-3.5 h-3.5 shrink-0" />
-  return <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+/** Returns short availability label + CSS classes for the image overlay badge */
+function AvailabilityBadge({ qty }: { qty: number }) {
+  if (qty > 5) {
+    return (
+      <span className="absolute top-2 left-2 flex items-center gap-1 bg-[#00A859] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+        <span className="text-[8px]">✓</span> Available
+      </span>
+    )
+  }
+  if (qty > 0) {
+    return (
+      <span className="absolute top-2 left-2 flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+        ⚠ Limited
+      </span>
+    )
+  }
+  return (
+    <span className="absolute top-2 left-2 flex items-center gap-1 bg-neutral-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+      ⛔ Out of Stock
+    </span>
+  )
+}
+
+function PreorderBadge() {
+  return (
+    <span className="absolute top-2 left-2 flex items-center gap-1 bg-[#c0392b] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+      🕒 Pre-order
+    </span>
+  )
 }
 
 export default async function PublicStorePage(props: {
@@ -37,10 +61,10 @@ export default async function PublicStorePage(props: {
     if (storeError) throw storeError
     if (!store) notFound()
 
-    // Fetch all categories for filter strip
+    // Fetch all categories
     const { data: allProds } = await supabase
-      .from('products').select('category').eq('store_id', store.id)
-    const categories = ['All', ...Array.from(new Set(allProds?.map(p => p.category).filter(Boolean)))]
+      .from('products').select('category, name').eq('store_id', store.id)
+    const categories = ['All', ...Array.from(new Set(allProds?.map(p => p.category).filter(Boolean)))] as string[]
 
     // Fetch products with filters
     let query = supabase
@@ -55,111 +79,90 @@ export default async function PublicStorePage(props: {
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
 
     return (
-      <div className="min-h-screen bg-[#FAFAFA] font-sans">
+      <div className="min-h-screen bg-[#F5F5F5] font-sans">
 
-        {/* ── SEARCH BAR – sticky, ultra-minimal ── */}
-        <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-neutral-100">
-          <form
-            action={`/${slug}`}
-            method="GET"
-            className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3"
-          >
+        {/* ── TOP HEADER ── */}
+        <header className="bg-white px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-neutral-100">
+          {/* Row 1: Logo + Name + Settings */}
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            {store.logo_url ? (
+              <img
+                src={store.logo_url}
+                alt={store.store_name}
+                className="w-9 h-9 rounded-full object-cover shrink-0 border border-neutral-200"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-[#00A859] flex items-center justify-center shrink-0">
+                <span className="text-white text-sm font-extrabold">{store.store_name.charAt(0)}</span>
+              </div>
+            )}
+
+            {/* Name + Description */}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[16px] font-extrabold text-neutral-900 leading-tight truncate">
+                {store.store_name}
+              </h1>
+              {(store.description) && (
+                <p className="text-[12px] text-neutral-500 leading-tight truncate">
+                  {store.description}
+                </p>
+              )}
+            </div>
+
+            {/* Settings icon (links to their own store, but visible for branding) */}
+            <Link
+              href={`/${slug}`}
+              aria-label="Settings"
+              className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+          </div>
+
+          {/* Row 2: Location + Response Time + Trust badges as chips */}
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+            {store.location && (
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full">
+                📍 {store.location}
+              </span>
+            )}
+            {store.response_time && (
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full">
+                ⚡ {store.response_time}
+              </span>
+            )}
+            {trustBadges.map((badge: string, i: number) => (
+              <span
+                key={i}
+                className="flex items-center gap-1 text-[11px] font-semibold text-neutral-600 border border-neutral-200 bg-white px-2 py-0.5 rounded-full"
+              >
+                ✓ {badge}
+              </span>
+            ))}
+          </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto px-3 md:px-4">
+
+          {/* ── SEARCH BAR ── */}
+          <form action={`/${slug}`} method="GET" className="mt-3 mb-3">
             {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
-            {/* Store name in header on mobile */}
-            <span className="md:hidden text-[14px] font-bold text-neutral-900 truncate max-w-[130px]">
-              {store.store_name}
-            </span>
-            <div className="relative flex items-center ml-auto">
-              <Search className="absolute left-3 w-4 h-4 text-neutral-400 pointer-events-none" />
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
               <input
                 type="search"
                 name="q"
                 defaultValue={searchQuery}
-                placeholder="Search products…"
-                className="pl-9 pr-4 py-2 bg-neutral-100 rounded-full text-[13px] outline-none
-                           w-[160px] focus:w-[220px] transition-all duration-300
-                           focus:ring-2 focus:ring-neutral-300"
+                placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
+                className="w-full bg-white border border-neutral-200 rounded-full pl-10 pr-4 py-2.5 text-[13px] text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#00A859]/30 focus:border-[#00A859] transition-all"
               />
             </div>
           </form>
-        </div>
 
-        <div className="max-w-5xl mx-auto px-4">
-
-          {/* ── SELLER IDENTITY BLOCK ── */}
-          <div className="py-6 md:py-8">
-            <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 md:gap-6">
-
-              {/* Avatar */}
-              <div className="flex justify-center shrink-0">
-                {store.logo_url ? (
-                  <img
-                    src={store.logo_url}
-                    alt={store.store_name}
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                ) : (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-neutral-200 flex items-center justify-center border-2 border-white shadow-sm">
-                    <span className="text-xl font-extrabold text-neutral-500">{store.store_name.charAt(0)}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Text Stack */}
-              <div className="flex-1 flex flex-col space-y-2 md:space-y-2.5">
-                {/* 1. Store Name + Verified */}
-                <h1 className="text-2xl md:text-[28px] font-extrabold text-neutral-900 tracking-tight flex items-center justify-center md:justify-start gap-1.5">
-                  {store.store_name}
-                  <BadgeCheck className="w-5 h-5 md:w-6 md:h-6 text-[#00A859] shrink-0" />
-                </h1>
-
-                {/* 2. Description */}
-                <p className="text-[14px] md:text-[15px] text-neutral-700 leading-snug max-w-lg mx-auto md:mx-0">
-                  {store.description || 'Quality products and fast nationwide delivery.'}
-                </p>
-
-                {/* 3. Location & Response Time */}
-                {(store.location || store.response_time) && (
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[13px] font-medium text-neutral-500">
-                    {store.location && <span>📍 {store.location}</span>}
-                    {store.response_time && <span>⚡ {store.response_time}</span>}
-                  </div>
-                )}
-
-                {/* 4. Trust Badges */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 pt-1">
-                  {trustBadges.map((badge: string, i: number) => (
-                    <div key={i} className="flex items-center gap-1 text-[12px] font-semibold text-neutral-700 bg-neutral-100 px-2 py-1 rounded-md">
-                      <TrustIcon badge={badge} />
-                      <span>{badge}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Desktop: Sticky WhatsApp CTA in hero row */}
-              <div className="hidden md:flex shrink-0 self-center">
-                <a
-                  href={`https://wa.me/${waPhone}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-[#00A859] text-white px-6 py-3 rounded-full font-bold text-[14px] hover:bg-[#008f4a] transition-colors shadow-sm whitespace-nowrap"
-                >
-                  <svg className="w-4.5 h-4.5 fill-current w-[18px] h-[18px]" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                  Chat with Us
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* ── DIVIDER ── */}
-          <div className="border-t border-neutral-200 mb-5" />
-
-          {/* ── CATEGORY FILTER ── */}
+          {/* ── CATEGORY PILLS ── */}
           {categories.length > 1 && (
-            <div className="overflow-x-auto hide-scrollbar mb-6">
+            <div className="overflow-x-auto hide-scrollbar mb-4">
               <div className="flex items-center gap-2 w-max">
                 {categories.map((cat: string) => {
                   const isActive = activeCategory === cat
@@ -169,8 +172,8 @@ export default async function PublicStorePage(props: {
                       href={`/${slug}${cat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(cat)}${searchQuery ? `&q=${searchQuery}` : ''}`}`}
                       className={`px-4 py-1.5 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all ${
                         isActive
-                          ? 'bg-neutral-900 text-white'
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                          ? 'bg-[#00A859] text-white'
+                          : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
                       }`}
                     >
                       {cat}
@@ -181,125 +184,105 @@ export default async function PublicStorePage(props: {
             </div>
           )}
 
-          {/* ── SEARCH INDICATOR ── */}
-          {searchQuery && (
-            <div className="flex items-center justify-between bg-neutral-100/80 border border-neutral-200 rounded-xl px-4 py-3 mb-6">
-              <p className="text-[13px] text-neutral-700">
-                Search results for <span className="font-bold text-neutral-900">"{searchQuery}"</span>
+          {/* ── INVENTORY HEADER ── */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-[15px] font-extrabold text-neutral-900">
+                {searchQuery ? `Results for "${searchQuery}"` : 'Available Inventory'}
+              </h2>
+              <p className="text-[11px] text-neutral-400">
+                {products && products.length > 0 ? `${products.length} item${products.length !== 1 ? 's' : ''}` : 'Updated just now'}
               </p>
-              <Link 
-                href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                className="text-[12px] font-bold text-neutral-500 hover:text-neutral-900 bg-white border border-neutral-200 px-3 py-1.5 rounded-lg shadow-sm transition-all"
-              >
-                Clear Search
-              </Link>
             </div>
-          )}
+            {!searchQuery && (
+              <button className="flex items-center gap-1 text-[12px] font-semibold text-neutral-500 border border-neutral-200 bg-white px-3 py-1.5 rounded-full">
+                Sort ↕
+              </button>
+            )}
+            {searchQuery && (
+              <Link
+                href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
+                className="text-[12px] font-bold text-neutral-500 border border-neutral-200 bg-white px-3 py-1.5 rounded-full"
+              >
+                Clear
+              </Link>
+            )}
+          </div>
 
           {/* ── PRODUCT GRID ── */}
-          {/*
-            Responsive grid:
-            Mobile  → 2 columns, compact cards
-            Tablet  → 3 columns
-            Desktop → 4 columns
-          */}
-          <main className="pb-28">
+          <main className="pb-44">
             {products && products.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex flex-col bg-white rounded-2xl overflow-hidden border border-neutral-150 hover:border-neutral-300 hover:shadow-md transition-all duration-200 group"
-                    style={{ borderColor: '#EBEBEB' }}
-                  >
-                    {/* Image */}
-                    <Link href={`/${slug}/product/${product.id}`} className="relative block">
-                      <div className="w-full aspect-square bg-neutral-100 overflow-hidden">
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-contain group-hover:scale-[1.04] transition-transform duration-500 ease-in-out p-2"
-                          loading="lazy"
-                        />
-                      </div>
-                      {/* Category badge on image for scannability */}
-                      {product.category && (
-                        <span className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                          {product.category}
-                        </span>
-                      )}
-                      
-                      {/* Sold out overlay */}
-                      {product.stock_quantity <= 0 && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                          <span className="bg-white/90 text-neutral-900 text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest rotate-[-12deg] shadow-lg">
-                            Sold Out
-                          </span>
-                        </div>
-                      )}
-                    </Link>
+              <div className="grid grid-cols-2 gap-3">
+                {products.map((product) => {
+                  // Derive first variant hint for subtitle (e.g. "256GB • Titanium Grey")
+                  const variants: { name: string; price?: number | null }[] = Array.isArray(product.variants) ? product.variants : []
+                  const variantHint = variants.length > 0 ? variants.map(v => v.name).join(' • ') : null
 
-                    {/* Card Info */}
-                    <div className="p-3 flex flex-col flex-1 gap-2">
-                      <Link href={`/${slug}/product/${product.id}`} className="flex flex-col gap-0.5">
-                        <h3 className="text-[13px] text-neutral-800 font-semibold leading-snug line-clamp-2 min-h-[36px]">
-                          {product.name}
-                        </h3>
-                        <div className="flex flex-col gap-1 mt-1">
-                          <p className="text-[15px] text-neutral-900 font-extrabold tracking-tight">
-                            ₦{product.price.toLocaleString()}
-                          </p>
-                          {product.stock_quantity > 5 ? (
-                            <div className="flex items-center gap-1 text-[#00A859] text-[10px] font-bold">
-                              <span>✓</span> Available
-                            </div>
-                          ) : product.stock_quantity > 0 ? (
-                            <div className="flex items-center gap-1 text-[#eab308] text-[10px] font-bold">
-                              <span>⚠</span> Limited Stock
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-neutral-400 text-[10px] font-bold">
-                              <span>⛔</span> Out of Stock
-                            </div>
-                          )}
+                  return (
+                    <div
+                      key={product.id}
+                      className="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm"
+                    >
+                      {/* Image */}
+                      <Link href={`/${slug}/product/${product.id}`} className="relative block">
+                        <div className="w-full aspect-square bg-neutral-100 overflow-hidden">
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-contain p-2"
+                            loading="lazy"
+                          />
                         </div>
+
+                        {/* Availability badge — top left */}
+                        <AvailabilityBadge qty={product.stock_quantity ?? 0} />
+
+                        {/* Sold-out overlay */}
+                        {product.stock_quantity <= 0 && (
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                            <span className="bg-white/95 text-neutral-900 text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest rotate-[-12deg] shadow-lg">
+                              Sold Out
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Add to Inquiry — bottom right of image */}
+                        {product.stock_quantity > 0 && (
+                          <AddToInquiryButton product={product} storeName={store.store_name} />
+                        )}
                       </Link>
 
-                      {/* Single standardized CTA — identical on every card */}
-                      <div className="mt-auto pt-1">
-                        {product.stock_quantity > 0 ? (
-                          <WhatsappOrderCTA
-                            product={product}
-                            store={store}
-                            label="Ask on WhatsApp"
-                            className="w-full text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 bg-[#00A859] text-white hover:bg-[#008f4a] active:scale-95 transition-all tracking-wide uppercase"
-                          />
-                        ) : (
-                          <button
-                            disabled
-                            className="w-full text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1.5 bg-neutral-100 text-neutral-400 cursor-not-allowed tracking-wide uppercase"
-                          >
-                            Out of Stock
-                          </button>
+                      {/* Card Body */}
+                      <Link href={`/${slug}/product/${product.id}`} className="p-3 flex flex-col gap-0.5">
+                        <h3 className="text-[13px] font-bold text-neutral-800 leading-snug line-clamp-2">
+                          {product.name}
+                        </h3>
+                        {variantHint && (
+                          <p className="text-[11px] text-neutral-400 truncate">
+                            {variantHint}
+                          </p>
                         )}
-                      </div>
+                        <p className="text-[15px] font-extrabold text-neutral-900 mt-1 tracking-tight">
+                          ₦{Number(product.price).toLocaleString()}
+                        </p>
+                      </Link>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 border border-dashed border-neutral-200 rounded-2xl text-center gap-3 bg-white">
-                <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100 shadow-inner mb-2">
+              <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-neutral-100 shadow-inner mb-2">
                   <Package className="w-8 h-8 text-neutral-300" />
                 </div>
                 <p className="text-[15px] text-neutral-900 font-bold">
-                  {allProds?.length === 0 ? "This store is getting ready." : (searchQuery ? `No products found for "${searchQuery}"` : 'No products in this category.')}
+                  {allProds?.length === 0 ? "This store is getting ready." : (searchQuery ? `No results for "${searchQuery}"` : 'No products in this category.')}
                 </p>
                 <p className="text-[13px] text-neutral-500 max-w-[250px]">
                   {allProds?.length === 0 ? "The vendor hasn't added any products yet. Check back later!" : "Try adjusting your filters or search term."}
                 </p>
                 {searchQuery && (
-                  <Link href={`/${slug}`} className="text-[13px] font-bold text-neutral-900 underline underline-offset-2">
+                  <Link href={`/${slug}`} className="text-[13px] font-bold text-[#00A859] underline underline-offset-2">
                     Clear search
                   </Link>
                 )}
@@ -308,65 +291,13 @@ export default async function PublicStorePage(props: {
           </main>
         </div>
 
-        {/* ── FLOATING WHATSAPP BUTTON (mobile/tablet) ── */}
-        <div className="fixed bottom-5 left-0 right-0 z-50 flex justify-center md:hidden pointer-events-none">
-          <a
-            href={`https://wa.me/${waPhone}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pointer-events-auto flex items-center gap-2 bg-[#00A859] text-white px-6 py-3.5 rounded-full font-bold text-[14px] shadow-xl hover:bg-[#008f4a] active:scale-95 transition-all"
-          >
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Chat with {store.store_name}
-          </a>
-        </div>
-
-        {/* ── FOOTER ── */}
-        <footer className="border-t border-neutral-200 bg-white py-10 px-4">
-          <div className="max-w-5xl mx-auto flex flex-col items-center gap-4 text-center">
-            <p className="text-[13px] font-bold text-neutral-900">{store.store_name}</p>
-            <p className="text-[11px] text-neutral-400">
-              Powered by <a href="https://ondar.ng" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors underline underline-offset-2">Ondar.ng</a>
-            </p>
-            {(store.instagram_handle || store.facebook_handle || store.twitter_handle) && (
-              <div className="flex items-center gap-5 text-neutral-400 mt-1">
-                {store.instagram_handle && (
-                  <a
-                    href={store.instagram_handle.startsWith('http') ? store.instagram_handle : `https://instagram.com/${store.instagram_handle.replace('@', '')}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="hover:text-neutral-900 transition-colors"
-                    aria-label="Instagram"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                  </a>
-                )}
-                {store.facebook_handle && (
-                  <a
-                    href={store.facebook_handle.startsWith('http') ? store.facebook_handle : `https://facebook.com/${store.facebook_handle}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="hover:text-neutral-900 transition-colors"
-                    aria-label="Facebook"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                  </a>
-                )}
-                {store.twitter_handle && (
-                  <a
-                    href={store.twitter_handle.startsWith('http') ? store.twitter_handle : `https://x.com/${store.twitter_handle.replace('@', '')}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="hover:text-neutral-900 transition-colors"
-                    aria-label="Twitter / X"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  </a>
-                )}
-              </div>
-            )}
-            <p className="text-[11px] text-neutral-300">© {new Date().getFullYear()} {store.store_name}. All rights reserved.</p>
-          </div>
-        </footer>
+        {/* ── FIXED BOTTOM BAR (WhatsApp CTA + nav) ── */}
+        <StorefrontBottomBar
+          slug={slug}
+          storeId={store.id}
+          waPhone={waPhone}
+          storeName={store.store_name}
+        />
 
         <style dangerouslySetInnerHTML={{ __html: `
           .hide-scrollbar::-webkit-scrollbar { display: none; }

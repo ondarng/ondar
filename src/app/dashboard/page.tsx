@@ -150,9 +150,6 @@ export default function DashboardPage() {
           <img src="/icon.png" alt="Ondar" className="w-8 h-8" />
           <div className="flex flex-col">
             <span className="font-display font-bold text-lg text-primary-900 leading-none">Ondar</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#00A859]">
-              • Early Access Beta
-            </span>
           </div>
         </div>
         <button onClick={handleLogout} className="p-2 text-secondary hover:text-accent transition-colors">
@@ -161,6 +158,27 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
+        {/* PWA Install Prompt (Simple Banner) */}
+        <div className="bg-gradient-to-r from-primary-900 to-primary-800 p-5 rounded-2xl shadow-lg flex items-center justify-between text-white relative overflow-hidden">
+          <div className="absolute -right-4 -top-10 opacity-10">
+            <ShoppingBag className="w-24 h-24" />
+          </div>
+          <div className="space-y-1 relative z-10">
+            <h3 className="font-display font-bold text-sm">Get the Ondar App</h3>
+            <p className="text-[11px] text-primary-100 max-w-[180px] leading-relaxed">
+              Install Ondar on your phone for faster access to your store.
+            </p>
+          </div>
+          <button 
+            onClick={() => {
+              alert('To install the app:\n\n📱 iOS (iPhone):\nTap the Share button at the bottom of Safari, then scroll down and tap "Add to Home Screen".\n\n🤖 Android:\nTap the 3 dots menu at the top right of Chrome, then tap "Add to Home screen".')
+            }}
+            className="bg-white text-primary-900 text-[11px] font-extrabold px-4 py-2 rounded-xl shadow-sm active:scale-95 transition-all whitespace-nowrap relative z-10"
+          >
+            Install App
+          </button>
+        </div>
+
         {/* Venting Card: What's stressing you? */}
         <div className="bg-white p-6 rounded-2xl border-2 border-primary-100 shadow-md space-y-4 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-primary-600" />
@@ -292,6 +310,31 @@ export default function DashboardPage() {
               View Store
               <ExternalLink className="w-4 h-4" />
             </Link>
+          </div>
+        </div>
+
+        {/* Auto-Reply Template */}
+        <div className="bg-white p-5 rounded-2xl border border-border shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-primary-900 flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-green-500" /> WhatsApp Auto-Reply
+            </h3>
+            <button
+              onClick={() => {
+                const message = `Hello! Welcome to ${store.store_name}. 🛍️\n\nPlease view our available products and prices here:\nhttps://${window.location.host}/${store.slug}\n\nLet me know what you'd like to order!`;
+                navigator.clipboard.writeText(message);
+                alert('Auto-reply message copied!');
+              }}
+              className="text-xs font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Copy Message
+            </button>
+          </div>
+          <p className="text-xs text-secondary leading-relaxed">
+            Paste this into your WhatsApp Business app (Settings &gt; Business tools &gt; Greeting message).
+          </p>
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-700 whitespace-pre-wrap font-medium">
+            {`Hello! Welcome to ${store.store_name}. 🛍️\n\nPlease view our available products and prices here:\nhttps://${typeof window !== 'undefined' ? window.location.host : ''}/${store.slug}\n\nLet me know what you'd like to order!`}
           </div>
         </div>
 

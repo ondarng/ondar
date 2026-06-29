@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Settings, Search, Package } from 'lucide-react'
+import { Settings, Search, Package, X } from 'lucide-react'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
 export const revalidate = 0
@@ -48,6 +50,19 @@ export default async function PublicStorePage(props: {
 
   if (RESERVED_SLUGS.includes(slug)) notFound()
 
+  const cookieStore = await cookies()
+  const supabaseSsr = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
+    }
+  )
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -58,6 +73,9 @@ export default async function PublicStorePage(props: {
       .from('stores').select('*').eq('slug', slug).maybeSingle()
     if (storeError) throw storeError
     if (!store) notFound()
+
+    const { data: { user } } = await supabaseSsr.auth.getUser()
+    const isOwner = user?.id === store.vendor_id
 
     // Fetch all categories
     const { data: allProds } = await supabase
@@ -108,14 +126,23 @@ export default async function PublicStorePage(props: {
               )}
             </div>
 
-            {/* Settings icon (links to their own store, but visible for branding) */}
-            <Link
-              href={`/${slug}`}
-              aria-label="Settings"
-              className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-            </Link>
+            {/* Settings icon or Admin link */}
+            {isOwner ? (
+              <Link
+                href="/dashboard"
+                className="shrink-0 px-3 py-1.5 bg-[#00A859]/10 text-[#00A859] rounded-full text-[12px] font-extrabold hover:bg-[#00A859]/20 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href={`/${slug}`}
+                aria-label="Settings"
+                className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </Link>
+            )}
           </div>
 
         </header>
@@ -132,8 +159,16 @@ export default async function PublicStorePage(props: {
                 name="q"
                 defaultValue={searchQuery}
                 placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
-                className="w-full bg-white border border-neutral-200 rounded-full pl-10 pr-4 py-2.5 text-[13px] text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#00A859]/30 focus:border-[#00A859] transition-all"
+                className="w-full bg-white border border-neutral-200 rounded-full pl-10 pr-10 py-2.5 text-[13px] text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#00A859]/30 focus:border-[#00A859] transition-all"
               />
+              {searchQuery && (
+                <Link
+                  href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-neutral-500 hover:text-neutral-800 bg-neutral-100 hover:bg-neutral-200 rounded-full transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </Link>
+              )}
             </div>
           </form>
 

@@ -409,8 +409,8 @@ export default function Home() {
             <div>
               <h4 className="text-white font-bold mb-6">Company</h4>
               <ul className="space-y-4">
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#">About Us</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#">Contact</a></li>
+                <li><a className="text-gray-400 hover:text-white transition-colors" href="/about-us">About Us</a></li>
+                <li><a className="text-gray-400 hover:text-white transition-colors" href="/contact">Contact</a></li>
                 <li><a className="text-gray-400 hover:text-white transition-colors" href="#">Careers</a></li>
               </ul>
             </div>

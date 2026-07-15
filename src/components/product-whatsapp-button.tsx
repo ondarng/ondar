@@ -16,7 +16,7 @@ export function ProductWhatsappButton({
   store: any
   selectedVariant: Variant | null 
 }) {
-  const currentPrice = selectedVariant?.price || product.price
+  const currentPrice = selectedVariant?.price ?? product.price
   
   // Format the text for WhatsApp
   const storeName = store.store_name

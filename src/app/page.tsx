@@ -1,81 +1,72 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { PhoneMockup } from '@/components/landing/phone-mockup'
+import { PhoneMockupPain } from '@/components/landing/phone-mockup-pain'
+import { PhoneMockupDashboard } from '@/components/landing/phone-mockup-dashboard'
+import { DesktopMockup } from '@/components/landing/desktop-mockup'
+import { TabletMockup } from '@/components/landing/tablet-mockup'
+
+const HEADLINES = [
+  "Your WhatsApp business deserves a real storefront.",
+  "Stop copy-pasting bank details in DMs.",
+  "Sell professionally. Keep using WhatsApp.",
+  "One checkout link. Zero chat chaos."
+]
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false)
-  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 0, minutes: 0, seconds: 0 })
+  const [headlineIndex, setHeadlineIndex] = useState(0)
 
   useEffect(() => {
-    // Set target to exactly 14 days from initial load to ensure it always looks good for the demo, 
-    // or use a fixed date. We'll use a fixed future date (e.g. 14 days from now) to simulate the 2 week launch.
-    const target = new Date().getTime() + (14 * 24 * 60 * 60 * 1000);
-    
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = target - now;
-      
-      if (distance < 0) {
-        clearInterval(interval);
-        return;
-      }
-      
-      setTimeLeft({
-        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((distance % (1000 * 60)) / 1000)
-      });
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    setMounted(true)
-    // Simple scroll reveal interaction
+    // Reveal interaction for general elements
     const observerOptions = {
-      threshold: 0.1
+      threshold: 0.1,
+      rootMargin: "0px 0px -50px 0px"
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('opacity-100', 'translate-y-0');
-          entry.target.classList.remove('opacity-0', 'translate-y-10');
+          entry.target.classList.remove('opacity-0', 'translate-y-8');
+          observer.unobserve(entry.target); // Only reveal once
         }
       });
     }, observerOptions);
 
     document.querySelectorAll('.reveal').forEach(el => {
-      el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+      el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-8');
       observer.observe(el);
     });
+
+    // Headline rotation
+    const interval = setInterval(() => {
+      setHeadlineIndex((prev) => (prev + 1) % HEADLINES.length)
+    }, 4000)
+
+    return () => {
+      clearInterval(interval)
+      observer.disconnect()
+    }
   }, [])
 
   return (
-    <div className="bg-[#f8faf8] text-gray-900 selection:bg-primary-100 selection:text-primary-900 overflow-x-hidden min-h-screen">
-      {/* TopNavBar */}
-      <nav className="fixed top-0 w-full z-50 bg-[#f8faf8]/80 backdrop-blur-md shadow-sm border-b border-gray-100">
-        <div className="flex justify-between items-center w-full px-6 md:px-8 max-w-[1280px] mx-auto h-20">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Ondar" className="h-7" />
-          </div>
-          {/* Desktop Links */}
+    <div className="bg-white text-neutral-900 selection:bg-[#00A859]/20 selection:text-[#00342b] min-h-screen font-body overflow-clip">
+      {/* 1. Minimal Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100">
+        <div className="flex justify-between items-center w-full px-6 md:px-8 max-w-[1200px] mx-auto h-20">
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="Ondar" className="h-6" />
+          </Link>
           <div className="hidden md:flex gap-8 items-center">
-            <a className="font-semibold text-gray-600 hover:text-primary-600 transition-colors duration-200" href="#features">Features</a>
-            <a className="font-semibold text-gray-600 hover:text-primary-600 transition-colors duration-200" href="#how-it-works">How it Works</a>
-            <a className="font-semibold text-gray-600 hover:text-primary-600 transition-colors duration-200" href="#pricing">Pricing</a>
-            <a className="font-semibold text-gray-600 hover:text-primary-600 transition-colors duration-200" href="#faq">FAQ</a>
-            <a href="/login" className="font-semibold text-gray-600 hover:text-primary-600 transition-colors duration-200">Login</a>
-            <a href="/signup" className="bg-[#00342b] text-white px-8 py-3 rounded-full font-semibold active:scale-95 transition-transform duration-150 hover:bg-[#002212]">
-              Get Started
-            </a>
+            <a className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors" href="#workflow">How it Works</a>
+            <a className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors" href="#everyday">Everyday Use</a>
+            <a className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors" href="#pricing">Pricing</a>
           </div>
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center gap-4">
-            <a href="/login" className="font-semibold text-gray-600 text-sm">Login</a>
-            <a href="/signup" className="bg-[#00342b] text-white px-5 py-2 rounded-full font-semibold text-sm">
+          <div className="flex items-center gap-4">
+            <a href="/login" className="hidden sm:block text-sm font-medium text-neutral-600 hover:text-neutral-900">Login</a>
+            <a href="/signup" className="bg-[#00342b] text-white px-5 py-2.5 rounded-full text-sm font-semibold active:scale-95 transition-transform hover:bg-[#002212]">
               Get Started
             </a>
           </div>
@@ -83,348 +74,549 @@ export default function Home() {
       </nav>
 
       <main className="pt-20">
-        {/* Hero Section */}
-        <section className="bg-[#f8faf8] pt-20 pb-16 md:pt-32 md:pb-32 px-6 md:px-8">
-          <div className="max-w-[1280px] mx-auto text-center flex flex-col items-center reveal">
-            <div className="inline-flex items-center gap-2 bg-[#F4EBFF] px-4 py-2 rounded-full mb-8 border border-purple-100">
-              <span className="text-purple-600 text-sm">🚀</span>
-              <span className="text-xs font-bold text-purple-900 uppercase tracking-widest">WhatsApp Commerce for Africa</span>
+        {/* 2. Hero Section */}
+        <section className="pt-24 pb-32 md:pt-32 px-6 md:px-8 relative">
+          <div className="max-w-[1000px] mx-auto text-center flex flex-col items-center">
+            <div className="h-[150px] xs:h-[120px] sm:h-[110px] md:h-[140px] lg:h-[180px] flex items-center justify-center w-full relative mb-4">
+              {HEADLINES.map((headline, idx) => (
+                <h1 
+                  key={idx}
+                  className={`absolute w-full text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-neutral-900 leading-[1.1] tracking-tight transition-all duration-1000 ${idx === headlineIndex ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-4 -z-10'}`}
+                >
+                  {headline}
+                </h1>
+              ))}
             </div>
             
-            <h1 className="text-4xl md:text-6xl lg:text-[72px] font-display font-extrabold text-[#00342b] mb-6 max-w-[900px] leading-[1.1] tracking-tight">
-              Sell Smarter on WhatsApp.
-            </h1>
-            
-            <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-[640px] leading-relaxed">
-              Transform your WhatsApp chats into a professional automated storefront. Manage orders, track inventory, and get paid instantly without leaving the chat.
+            <p className="text-lg md:text-xl text-neutral-500 mb-10 max-w-[600px] leading-relaxed reveal delay-100">
+              Give your WhatsApp business a professional storefront in 5 minutes. No coding, no complicated setup. Just smooth selling.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto">
-              <a href="/signup" className="bg-[#00342b] text-white px-10 py-5 rounded-full font-bold text-lg active:scale-95 transition-transform duration-150 shadow-xl shadow-[#00342b]/20 flex items-center justify-center">
-                Try Ondar Now
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto reveal delay-200">
+              <a href="/signup" className="bg-[#00342b] text-white px-8 py-4 rounded-full font-semibold text-lg active:scale-95 transition-transform flex items-center justify-center">
+                Create Your Store
               </a>
-              <a href="#how-it-works" className="border-2 border-[#00342b] text-[#00342b] px-10 py-5 rounded-full font-bold text-lg hover:bg-gray-50 active:scale-95 transition-all duration-150 flex items-center justify-center">
-                Watch Demo
+              <a href="#workflow" className="text-neutral-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-neutral-50 active:scale-95 transition-all flex items-center justify-center border border-neutral-200">
+                See How It Works
               </a>
-            </div>
-
-            {/* Massive Mockup */}
-            <div className="relative mx-auto mt-12 md:mt-16 w-full max-w-[280px] md:max-w-[340px] bg-black rounded-[40px] md:rounded-[56px] shadow-[0_30px_60px_-15px_rgba(0,52,43,0.3)] border-[8px] md:border-[12px] border-gray-900 overflow-hidden transform hover:-translate-y-2 transition-transform duration-500">
-              <div className="absolute top-0 inset-x-0 h-5 md:h-6 bg-gray-900 z-20 rounded-b-[16px] md:rounded-b-[20px] w-[45%] mx-auto"></div>
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-auto object-cover rounded-[32px] md:rounded-[44px]"
-              >
-                <source src="/herovid.mp4" type="video/mp4" />
-              </video>
             </div>
           </div>
         </section>
 
-        {/* Outcome Section 1: Professional Look */}
-        <section className="bg-[#F4EBFF] py-20 md:py-32 px-6 md:px-8 reveal" id="features">
-          <div className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div className="order-2 md:order-1 relative">
-              
-              {/* Floating Chat Bubbles */}
-              <div className="absolute z-20 -top-8 -left-2 md:-top-6 md:-left-2 max-w-[240px] md:max-w-[280px] reveal" style={{ transitionDelay: '200ms' }}>
-                <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-xl shadow-gray-300/50 border border-gray-100 text-left">
-                  <p className="text-[12px] md:text-[13px] text-gray-800 font-medium leading-relaxed">
-                    "Do you have other colors? Let me see all the handbags you sell so I can make my choice 🙏🏾"
-                  </p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">10:42 AM</span>
-                </div>
-              </div>
-              
-              <div className="absolute z-20 -bottom-6 -right-2 md:-bottom-8 md:-right-8 max-w-[240px] md:max-w-[280px] reveal" style={{ transitionDelay: '600ms' }}>
-                <div className="bg-[#E7FFDB] p-4 rounded-2xl rounded-tr-none shadow-xl shadow-emerald-900/10 border border-[#D1F2C4] text-left">
-                  <p className="text-[12px] md:text-[13px] text-gray-900 font-medium leading-relaxed">
-                    Yes! You can see everything we have in stock and order here 👇🏾<br/>
-                    <a href="#" className="text-blue-600 underline decoration-blue-300 underline-offset-2 mt-1 inline-block">ondar.ng/luxewear</a>
-                  </p>
-                  <div className="flex justify-end gap-1 items-center mt-1">
-                    <span className="text-[10px] text-gray-500">10:43 AM</span>
-                    <svg className="w-3 h-3 text-blue-500" viewBox="0 0 24 24" fill="none"><path d="M11.6 15L7.5 10.9L8.9 9.5L11.6 12.2L19.6 4.2L21 5.6L11.6 15Z" fill="currentColor"/><path d="M4.6 15L0.5 10.9L1.9 9.5L4.6 12.2L12.6 4.2L14 5.6L4.6 15Z" fill="currentColor"/></svg>
+        {/* 3. The Sticky Stacked Cards (Workflow) */}
+        <section id="workflow" className="relative pb-40 pt-16 px-4 md:px-8 bg-neutral-100">
+          <div className="max-w-[1200px] mx-auto">
+            
+            <div className="text-center mb-16 md:mb-24 reveal">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-neutral-900 mb-6">
+                Stop drowning in DMs.
+              </h2>
+              <p className="text-neutral-500 text-lg md:text-xl max-w-2xl mx-auto">
+                See how Ondar transforms the way you sell, giving you back hours of your day.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-6 md:gap-0 relative">
+
+              {/* Stacked Card 1: The Reality */}
+              <div className="sticky top-16 md:top-20 lg:top-28 z-10 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#111111] rounded-[24px] md:rounded-[48px] border border-neutral-800 shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-red-500/10 text-red-400 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-red-500/20">The Reality</span>
+                      <span className="inline-block bg-neutral-900 text-neutral-400 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-neutral-700 flex items-center gap-1.5">
+                        <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Wasting 3 hrs/day
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-white mb-3 md:mb-6 leading-tight">
+                      Selling on WhatsApp is chaotic.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-neutral-400 mb-6 md:mb-10 leading-relaxed">
+                      You post 20 blurry photos on your status. Customers reply "How much?" You spend hours replying manually while losing track of who actually paid and what's out of stock.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-white text-black px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-neutral-200 transition-all w-fit">
+                      Try Ondar Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side */}
+                  <div className="w-full lg:w-1/2 bg-[#1a1a1a] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative">
+                    <div className="w-full max-w-[200px] md:max-w-[300px] lg:max-w-[320px] drop-shadow-2xl translate-y-0 lg:translate-y-12 group-hover:translate-y-8 transition-transform duration-700">
+                      <PhoneMockupPain />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-[40px] shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(0,52,43,0.08)] transition-shadow duration-300 relative z-10">
-                <img className="w-full h-auto rounded-[32px]" src="/plook.png" alt="Ondar beautiful storefront catalog" />
+              {/* Stacked Card 2: The Solution (Storefront) */}
+              <div className="sticky top-20 md:top-24 lg:top-36 z-20 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#F0FDF4] rounded-[24px] md:rounded-[48px] border border-green-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-[#00A859]/10 text-[#00A859] px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-[#00A859]/20">The Solution</span>
+                      <span className="inline-block bg-white text-neutral-500 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-green-200 flex items-center gap-1.5 shadow-sm">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 text-[#00A859]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        Instant checkouts
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-neutral-900 mb-3 md:mb-6 leading-tight">
+                      Give them a premium checkout.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-neutral-600 mb-6 md:mb-10 leading-relaxed">
+                      Your customers browse a sleek storefront, see live prices, and place perfectly formatted orders straight to your WhatsApp. You look like a top-tier brand, and they check out in seconds without the endless "How much?" back-and-forth.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-[#00A859] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-[#00924D] transition-all w-fit shadow-lg shadow-[#00A859]/20">
+                      Try Ondar Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side */}
+                  <div className="w-full lg:w-1/2 bg-[#e6fcf0] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
+                    <div className="w-full max-w-[200px] md:max-w-[300px] lg:max-w-[320px] drop-shadow-[0_35px_35px_rgba(0,168,89,0.2)] translate-y-0 lg:translate-y-12 group-hover:translate-y-8 transition-transform duration-700 relative">
+                      <PhoneMockup title="Premium Storefront" glow={true} />
+                      {/* Floating Visual */}
+                      <div className="absolute -right-2 md:-right-12 top-20 bg-white p-2 md:p-3 rounded-xl shadow-xl border border-green-100 flex items-center gap-2 md:gap-3 animate-bounce z-20 scale-90 md:scale-100 origin-right" style={{ animationDuration: '3s' }}>
+                        <div className="w-6 h-6 md:w-8 md:h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-[10px] md:text-sm">🛍️</div>
+                        <div>
+                          <p className="text-[9px] md:text-xs font-bold text-neutral-900 leading-tight">New Order</p>
+                          <p className="text-[8px] md:text-[10px] text-green-600 font-bold leading-tight">₦28,500</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked Card 3: Inventory & Sync */}
+              <div className="sticky top-24 md:top-28 lg:top-44 z-30 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#EFF4FF] rounded-[24px] md:rounded-[48px] border border-blue-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-blue-500/10 text-blue-600 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-blue-500/20">Live Sync</span>
+                      <span className="inline-block bg-white text-neutral-500 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-blue-200 flex items-center gap-1.5 shadow-sm">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Real-time inventory
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-neutral-900 mb-3 md:mb-6 leading-tight">
+                      Never sell out of stock items.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-neutral-600 mb-6 md:mb-10 leading-relaxed">
+                      Your inventory syncs instantly. The moment a customer buys your last pair, it shows as "Sold Out". Save hours tracking stock on paper.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-blue-700 transition-all w-fit shadow-lg shadow-blue-500/20">
+                      Try Ondar Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side - Minimalist Inventory UI */}
+                  <div className="w-full lg:w-1/2 bg-[#e0ecff] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
+                    <div className="w-full max-w-[280px] md:max-w-[400px] lg:max-w-[450px] drop-shadow-[0_20px_40px_rgba(37,99,235,0.15)] scale-[0.85] sm:scale-100 origin-top translate-y-0 lg:translate-y-12 transition-transform duration-700">
+                      <TabletMockup title="Inventory Sync" shadow={false} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked Card 4: Receipts & Dashboard */}
+              <div className="sticky top-28 md:top-32 lg:top-48 z-40 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#00342b] rounded-[24px] md:rounded-[48px] border border-[#00473a] shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-[#00A859]/20 text-[#4ADE80] px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-[#4ADE80]/30">The Magic</span>
+                      <span className="inline-block bg-[#00221c] text-neutral-300 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-[#00473a] flex items-center gap-1.5 shadow-sm">
+                        <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Auto-Receipts
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-white mb-3 md:mb-6 leading-tight">
+                      Build trust with professional receipts.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-[#9ca3af] mb-6 md:mb-10 leading-relaxed">
+                      Stop arguing over "I paid you yesterday". Every order is logged, and Ondar instantly generates a beautiful PDF receipt you can share with your customers. Look like a premium business, and build massive trust.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-[#00A859] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-[#00924D] transition-all w-fit shadow-lg shadow-[#00A859]/20">
+                      Get Started Free <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side */}
+                  <div className="w-full lg:w-1/2 bg-[#00221c] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
+                    <div className="w-full max-w-[200px] md:max-w-[300px] lg:max-w-[320px] drop-shadow-[0_35px_35px_rgba(0,0,0,0.5)] translate-y-0 lg:translate-y-12 group-hover:translate-y-8 transition-transform duration-700 relative">
+                      <PhoneMockupDashboard />
+                      {/* Floating Receipt Visual */}
+                      <div className="absolute -left-2 md:-left-12 top-32 bg-white p-2 md:p-3 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-neutral-100 flex items-center gap-2 md:gap-3 animate-bounce z-20 scale-90 md:scale-100 origin-left" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+                        <div className="w-6 h-6 md:w-8 md:h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-500">
+                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <div>
+                          <p className="text-[9px] md:text-xs font-bold text-neutral-900 leading-tight">Receipt_#1042.pdf</p>
+                          <p className="text-[8px] md:text-[10px] text-neutral-500 leading-tight">Generated automatically</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked Card 5: Payment Verification */}
+              <div className="sticky top-32 md:top-36 lg:top-56 z-50 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#FFFDF5] rounded-[24px] md:rounded-[48px] border border-amber-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-amber-500/10 text-amber-700 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-amber-500/20">Payment Check</span>
+                      <span className="inline-block bg-white text-neutral-500 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        Simulated Audit
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-neutral-900 mb-3 md:mb-6 leading-tight">
+                      Stop chasing bank alerts.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-neutral-600 mb-6 md:mb-10 leading-relaxed">
+                      "Did Simi actually transfer the ₦15,000?" No more scrolling through SMS bank alerts or squinting to check if a screenshot is photoshopped. Ondar cleanly logs bank transfer intents, letting you verify payouts with a single tap.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-amber-600 text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-amber-700 transition-all w-fit shadow-lg shadow-amber-500/20">
+                      Try Ondar Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side */}
+                  <div className="w-full lg:w-1/2 bg-[#FFFBEB] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
+                    <div className="w-full max-w-[240px] md:max-w-[340px] lg:max-w-[360px] bg-white rounded-3xl p-4 md:p-6 shadow-xl border border-amber-100/50 translate-y-0 lg:translate-y-12 transition-transform duration-700 flex flex-col gap-3">
+                      <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
+                        <span className="font-bold text-xs md:text-sm text-neutral-950">Confirm Transfers</span>
+                        <span className="text-[8px] md:text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">3 pending</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-2.5 bg-neutral-50 rounded-xl border border-neutral-100">
+                        <div>
+                          <p className="font-bold text-xs text-neutral-900">Simi Cole</p>
+                          <p className="text-[10px] text-neutral-500">GTBank • ₦15,000</p>
+                        </div>
+                        <button className="bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition-all">Confirm</button>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2.5 bg-neutral-50 rounded-xl border border-neutral-100">
+                        <div>
+                          <p className="font-bold text-xs text-neutral-900">Adebayo K.</p>
+                          <p className="text-[10px] text-neutral-500">Access • ₦28,500</p>
+                        </div>
+                        <span className="text-[#00A859] font-bold text-[10px] px-2.5 py-1 bg-green-50 rounded-lg flex items-center gap-1">✓ Verified</span>
+                      </div>
+
+                      <div className="flex justify-between items-center p-2.5 bg-red-50/50 rounded-xl border border-red-100">
+                        <div className="opacity-75">
+                          <p className="font-bold text-xs text-neutral-900">Unknown</p>
+                          <p className="text-[10px] text-red-500">Alert Mismatch • ₦85,000</p>
+                        </div>
+                        <span className="text-red-600 font-bold text-[10px] px-2.5 py-1 bg-red-100 rounded-lg flex items-center gap-1">⚠ Flagged</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked Card 6: Customer Memory */}
+              <div className="sticky top-36 md:top-40 lg:top-64 z-50 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#FAF9FF] rounded-[24px] md:rounded-[48px] border border-purple-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
+                <div className="flex flex-col lg:flex-row h-full">
+                  {/* Text Side */}
+                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
+                      <span className="inline-block bg-purple-500/10 text-purple-700 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-purple-500/20">Retention CRM</span>
+                      <span className="inline-block bg-white text-neutral-500 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-purple-200 flex items-center gap-1.5 shadow-sm">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        Customer Memory
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-neutral-900 mb-3 md:mb-6 leading-tight">
+                      Build relationships, not just sales.
+                    </h3>
+                    <p className="text-[15px] md:text-lg text-neutral-600 mb-6 md:mb-10 leading-relaxed">
+                      Remembering every customer's preference, sizes, delivery addresses, and payment logs is impossible. Ondar automatically builds a clean customer card history, letting you offer a premium, VIP treatment every time they message.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center gap-2 bg-purple-700 text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-purple-800 transition-all w-fit shadow-lg shadow-purple-500/20">
+                      Upgrade to Ondar <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                  </div>
+                  {/* Mockup Side */}
+                  <div className="w-full lg:w-1/2 bg-[#F5F3FF] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
+                    <div className="w-full max-w-[240px] md:max-w-[340px] lg:max-w-[360px] bg-white rounded-3xl p-4 md:p-6 shadow-xl border border-purple-100/50 translate-y-0 lg:translate-y-12 transition-transform duration-700 flex flex-col gap-3">
+                      <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
+                        <span className="font-bold text-xs md:text-sm text-neutral-950">Customer Profiles</span>
+                        <span className="text-[8px] md:text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Memory</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-2 bg-neutral-50 rounded-xl border border-neutral-100">
+                        <div className="w-9 h-9 bg-purple-200 rounded-full flex items-center justify-center font-bold text-purple-700 text-xs shrink-0">TA</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-baseline">
+                            <p className="font-bold text-[11px] text-neutral-900 truncate">Tunde Alabi</p>
+                            <span className="text-[8px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-full shrink-0">VIP</span>
+                          </div>
+                          <p className="text-[9px] text-neutral-500">12 orders • Fav: Black Loafers (Sz 44)</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-2 bg-neutral-50 rounded-xl border border-neutral-100">
+                        <div className="w-9 h-9 bg-green-200 rounded-full flex items-center justify-center font-bold text-green-700 text-xs shrink-0">SN</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[11px] text-neutral-900 truncate">Somto Nwachukwu</p>
+                          <p className="text-[9px] text-neutral-500">4 orders • Notes: Prefers evening dropoff</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-2 bg-neutral-50 rounded-xl border border-neutral-100">
+                        <div className="w-9 h-9 bg-pink-200 rounded-full flex items-center justify-center font-bold text-pink-700 text-xs shrink-0">CO</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[11px] text-neutral-900 truncate">Chioma Okoro</p>
+                          <p className="text-[9px] text-neutral-500">Last order: ₦45,000 Silk Gown</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* 3.5. Everyday Life Demo Section */}
+        <section className="py-24 md:py-32 px-6 md:px-8 bg-neutral-950 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
+          <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
+            {/* Text Side */}
+            <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 text-left reveal">
+              <span className="inline-block bg-[#00A859]/20 text-[#4ADE80] px-4 py-2 rounded-full font-bold text-xs tracking-widest uppercase border border-[#4ADE80]/30">
+                Passive Commerce
+              </span>
+              <h2 className="text-3xl md:text-5xl font-display font-bold leading-tight text-white">
+                Run your empire, right from your bed.
+              </h2>
+              <p className="text-neutral-400 text-base md:text-lg leading-relaxed">
+                You don't need to stay glued to WhatsApp chats, confirming payments and checking stock 24/7. Ondar works silently in the background. While you rest, orders flow directly into your dashboard, inventory counts deduct in real-time, and custom checkout links verify details automatically.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                <div className="space-y-2">
+                  <div className="w-10 h-10 bg-green-950 text-green-400 rounded-xl flex items-center justify-center font-bold text-sm">⚡</div>
+                  <h4 className="font-bold text-white text-sm">Automated Syncing</h4>
+                  <p className="text-xs text-neutral-400">Stock updates instantly on checkouts, preventing oversells.</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-10 h-10 bg-amber-950 text-amber-400 rounded-xl flex items-center justify-center font-bold text-sm">📝</div>
+                  <h4 className="font-bold text-white text-sm">Direct Checkouts</h4>
+                  <p className="text-xs text-neutral-400">Customers pay and log addresses directly, saving chat friction.</p>
+                </div>
               </div>
             </div>
-            <div className="order-1 md:order-2">
-              <h2 className="text-3xl md:text-5xl font-display font-extrabold text-[#00342b] mb-6 leading-tight">
-                Your 24/7 Digital Salesperson
-              </h2>
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                Give your customers a beautiful storefront where they can browse your catalog, discover what you sell, and place orders even while you are away.
-              </p>
-              <ul className="space-y-5">
-                <li className="flex items-start gap-4">
-                  <svg className="w-7 h-7 text-primary-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  <span className="text-lg font-medium text-gray-900">High-speed catalog loading</span>
+
+            {/* Visual Side */}
+            <div className="w-full lg:w-1/2 flex justify-center items-center relative reveal delay-200">
+              <div className="relative w-full max-w-[450px] aspect-[4/3] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl">
+                <img 
+                  src="/vendor_bed.png" 
+                  alt="Online merchant running store from bed" 
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Floating CSS badges for interactivity */}
+                <div className="absolute left-2 sm:-left-4 top-4 sm:top-8 bg-white p-2 sm:p-3 rounded-2xl shadow-xl border border-neutral-100 flex items-center gap-2 sm:gap-3 animate-bounce scale-75 sm:scale-90 md:scale-100 origin-left" style={{ animationDuration: '3.5s' }}>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xs sm:text-sm">🎉</div>
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-neutral-900 leading-tight">Order Confirmed</p>
+                    <p className="text-[8px] sm:text-[9px] text-green-600 font-bold leading-tight">₦28,500 Payout logged</p>
+                  </div>
+                </div>
+
+                <div className="absolute right-2 sm:-right-4 top-20 sm:top-24 bg-neutral-900/80 backdrop-blur-md p-2 sm:p-3 rounded-2xl border border-neutral-800 flex items-center gap-2 sm:gap-3 animate-pulse scale-75 sm:scale-90 md:scale-100 origin-right">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs sm:text-sm">🔄</div>
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-white leading-tight">Live Inventory Sync</p>
+                    <p className="text-[8px] sm:text-[9px] text-neutral-300 leading-tight">Nike Air Max: Restocked</p>
+                  </div>
+                </div>
+
+                <div className="absolute left-2 sm:left-6 bottom-4 sm:bottom-8 bg-neutral-900/90 backdrop-blur-md p-2 sm:p-3 rounded-2xl border border-neutral-800 flex items-center gap-2 sm:gap-3 animate-bounce scale-75 sm:scale-90 md:scale-100 origin-left" style={{ animationDuration: '4s', animationDelay: '0.5s' }}>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center text-xs sm:text-sm">👤</div>
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-white leading-tight">Sarah IG (VIP Customer)</p>
+                    <p className="text-[8px] sm:text-[9px] text-purple-400 font-bold leading-tight">Address logged in CRM</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. "Where Ondar Fits Into Everyday Life" Grid */}
+        <section id="everyday" className="py-32 px-6 md:px-8 bg-white relative">
+          <div className="max-w-[1200px] mx-auto">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-neutral-900 mb-12 text-center reveal">
+              Where Ondar Fits Into Everyday Life
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              {/* Grid Item 1 */}
+              <div className="bg-neutral-50 rounded-3xl p-8 border border-neutral-100 hover:shadow-lg hover:border-neutral-200 transition-all duration-300 reveal delay-0">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 mb-8 w-full flex flex-col gap-2 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#00A859]"></div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">New Order • 2m ago</span>
+                      <span className="text-sm font-bold text-neutral-900">Nike Air Max 90</span>
+                    </div>
+                    <span className="text-sm font-black text-[#00A859]">₦85,000</span>
+                  </div>
+                </div>
+                <h4 className="font-bold text-neutral-900 text-lg mb-3">Instagram Fashion Brand</h4>
+                <p className="text-sm text-neutral-500 leading-relaxed">Stop asking for DMs to order. Put your Ondar link in your IG bio.</p>
+              </div>
+
+              {/* Grid Item 2 */}
+              <div className="bg-neutral-50 rounded-3xl p-8 border border-neutral-100 hover:shadow-lg hover:border-neutral-200 transition-all duration-300 reveal delay-100">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 mb-8 w-full flex flex-col gap-2 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#00A859]"></div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">New Order • 15m ago</span>
+                      <span className="text-sm font-bold text-neutral-900">Braiding Hair (Col 30)</span>
+                    </div>
+                    <span className="text-sm font-black text-[#00A859]">₦12,500</span>
+                  </div>
+                </div>
+                <h4 className="font-bold text-neutral-900 text-lg mb-3">Hair & Beauty Vendors</h4>
+                <p className="text-sm text-neutral-500 leading-relaxed">Let clients choose colors, lengths, and styles directly from your store.</p>
+              </div>
+
+              {/* Grid Item 3 */}
+              <div className="bg-neutral-50 rounded-3xl p-8 border border-neutral-100 hover:shadow-lg hover:border-neutral-200 transition-all duration-300 reveal delay-200">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 mb-8 w-full flex flex-col gap-2 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#00A859]"></div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">New Order • 1h ago</span>
+                      <span className="text-sm font-bold text-neutral-900">Jollof & Turkey x2</span>
+                    </div>
+                    <span className="text-sm font-black text-[#00A859]">₦8,000</span>
+                  </div>
+                </div>
+                <h4 className="font-bold text-neutral-900 text-lg mb-3">Food Businesses</h4>
+                <p className="text-sm text-neutral-500 leading-relaxed">Take food orders seamlessly without mixing up addresses or payments.</p>
+              </div>
+
+              {/* Grid Item 4 */}
+              <div className="bg-neutral-50 rounded-3xl p-8 border border-neutral-100 hover:shadow-lg hover:border-neutral-200 transition-all duration-300 reveal delay-300">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 mb-8 w-full flex flex-col gap-2 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#00A859]"></div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">New Order • 2h ago</span>
+                      <span className="text-sm font-bold text-neutral-900">MacBook Pro Case</span>
+                    </div>
+                    <span className="text-sm font-black text-[#00A859]">₦15,000</span>
+                  </div>
+                </div>
+                <h4 className="font-bold text-neutral-900 text-lg mb-3">Gadget & Tech Sellers</h4>
+                <p className="text-sm text-neutral-500 leading-relaxed">Display high-quality images and clear specs without flooding your WhatsApp status.</p>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Pricing Section */}
+        <section className="py-32 px-6 md:px-8 bg-neutral-100" id="pricing">
+          <div className="max-w-[1200px] mx-auto text-center reveal">
+            <h2 className="text-3xl md:text-5xl font-display font-bold text-neutral-900 mb-4">
+              Simple, transparent pricing.
+            </h2>
+            <p className="text-neutral-500 text-lg md:text-xl mb-16 max-w-xl mx-auto">
+              We only make money when you make money. Start building your empire today.
+            </p>
+
+            <div className="max-w-[420px] mx-auto border border-neutral-200 rounded-[40px] p-6 sm:p-8 md:p-12 shadow-[0_20px_40px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] transition-shadow duration-500 bg-white">
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">Pro Plan</h3>
+              <div className="flex items-end justify-center gap-1 mb-10">
+                <span className="text-6xl font-black text-neutral-900 tracking-tight">₦750</span>
+                <span className="text-neutral-500 font-medium mb-1">/mo</span>
+              </div>
+              
+              <ul className="space-y-5 mb-12 text-left">
+                <li className="flex items-center gap-4 text-neutral-700 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-[#00A859]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  Unlimited products
                 </li>
-                <li className="flex items-start gap-4">
-                  <svg className="w-7 h-7 text-primary-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  <span className="text-lg font-medium text-gray-900">Custom brand colors & logos</span>
+                <li className="flex items-center gap-4 text-neutral-700 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-[#00A859]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  Unlimited orders & receipts
                 </li>
-                <li className="flex items-start gap-4">
-                  <svg className="w-7 h-7 text-primary-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  <span className="text-lg font-medium text-gray-900">Optimized for mobile shoppers</span>
+                <li className="flex items-center gap-4 text-neutral-700 font-medium">
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-[#00A859]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  Dashboard & Live Inventory
                 </li>
               </ul>
+
+              <a href="/signup" className="block w-full bg-neutral-900 text-white py-4 md:py-5 rounded-full font-bold text-base md:text-lg hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10">
+                Start 14-Day Free Trial
+              </a>
+              <p className="text-[10px] md:text-xs font-medium text-neutral-400 mt-4 md:mt-6 uppercase tracking-widest">No credit card required.</p>
             </div>
           </div>
         </section>
 
-        {/* Outcome Section 2: Zero Lost Orders */}
-        <section className="bg-white py-20 md:py-32 px-6 md:px-8 reveal">
-          <div className="max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl md:text-5xl font-display font-extrabold text-[#00342b] mb-6 leading-tight">
-                Zero Lost Orders
-              </h2>
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                Stop hunting through chat history to find order details. Ondar organizes every sale, address, and payment status in one central dashboard.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#f8faf8] p-6 rounded-3xl shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] border border-gray-200/60">
-                  <span className="text-3xl font-bold text-[#00342b] block mb-1">100%</span>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Capture Rate</p>
-                </div>
-                <div className="bg-[#f8faf8] p-6 rounded-3xl shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] border border-gray-200/60">
-                  <span className="text-3xl font-bold text-[#00342b] block mb-1">24/7</span>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Auto-Reply</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="bg-[#00342b] p-10 md:p-12 rounded-[40px] text-white">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
-                  </div>
-                  <h3 className="text-2xl font-bold">Inventory Sync</h3>
-                </div>
-                <p className="text-lg mb-8 opacity-90 leading-relaxed">
-                  Real-time stock tracking prevents you from selling items you no longer have in stock.
-                </p>
-                <img className="w-full h-auto rounded-2xl shadow-xl" src="/ipic.png" alt="Ondar Inventory Management Dashboard" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Outcome Section 3: Instant WhatsApp Handoff */}
-        <section className="bg-[#F4EBFF] py-20 md:py-32 px-6 md:px-8 reveal" id="how-it-works">
-          <div className="max-w-[1280px] mx-auto text-center">
-            <h2 className="text-3xl md:text-5xl font-display font-extrabold text-[#00342b] mb-6 leading-tight">
-              Instant WhatsApp Handoff
+        {/* 6. Final CTA */}
+        <section className="py-40 md:py-56 px-6 md:px-8 bg-neutral-900 text-center reveal relative">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#00A859]/20 to-transparent blur-[100px]" />
+          
+          <div className="max-w-[800px] mx-auto relative z-10">
+            <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-tight">
+              Ready to give your business the storefront it deserves?
             </h2>
-            <p className="text-lg text-gray-700 mb-16 max-w-[700px] mx-auto leading-relaxed">
-              Customers browse your catalog on the web and checkout directly to your WhatsApp. No confusing multi-step processes — just seamless communication and conversion.
+            <p className="text-xl text-neutral-400 mb-12 max-w-2xl mx-auto">
+              Join thousands of Nigerian businesses selling smarter, faster, and more professionally with Ondar.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              <div className="bg-white p-10 rounded-[32px] shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(0,52,43,0.08)] transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-14 h-14 bg-[#F4EBFF] rounded-2xl flex items-center justify-center mb-6">
-                  <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                </div>
-                <h4 className="text-xl font-bold text-[#00342b] mb-3">Customer Shops</h4>
-                <p className="text-gray-600">They visit your Ondar link and select items for their cart.</p>
-              </div>
-              
-              <div className="bg-white p-10 rounded-[32px] shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(0,52,43,0.08)] transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-14 h-14 bg-[#F4EBFF] rounded-2xl flex items-center justify-center mb-6">
-                  <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
-                </div>
-                <h4 className="text-xl font-bold text-[#00342b] mb-3">Direct to Chat</h4>
-                <p className="text-gray-600">The order is sent as a pre-filled WhatsApp message to your phone.</p>
-              </div>
-
-              <div className="bg-white p-10 rounded-[32px] shadow-[0_10px_30px_-5px_rgba(0,52,43,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(0,52,43,0.08)] transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-14 h-14 bg-[#F4EBFF] rounded-2xl flex items-center justify-center mb-6">
-                  <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                </div>
-                <h4 className="text-xl font-bold text-[#00342b] mb-3">Instant Payment</h4>
-                <p className="text-gray-600">Confirm order and accept payment directly through secure links.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section className="bg-[#f8faf8] py-20 md:py-32 px-6 md:px-8 reveal" id="pricing">
-          <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row gap-16 items-center justify-center">
-            
-            {/* Context / Countdown */}
-            <div className="max-w-[500px] text-center md:text-left">
-              <div className="inline-flex items-center gap-2 bg-red-100 px-4 py-2 rounded-full mb-6 border border-red-200">
-                <span className="text-red-600 text-sm animate-pulse">🔥</span>
-                <span className="text-xs font-bold text-red-900 uppercase tracking-widest">Pre-Launch Offer</span>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-display font-extrabold text-[#00342b] mb-6 leading-tight">
-                Lock in 50% Off Before We Launch
-              </h2>
-              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                We're officially launching in 2 weeks. Get early access today and secure our exclusive pre-launch pricing forever.
-              </p>
-              
-              <div className="flex gap-4 justify-center md:justify-start">
-                <div className="bg-white p-3 rounded-2xl shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 min-w-[75px] text-center">
-                  <span className="block text-3xl font-black text-[#00342b]">{mounted ? timeLeft.days : 14}</span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Days</span>
-                </div>
-                <div className="bg-white p-3 rounded-2xl shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 min-w-[75px] text-center">
-                  <span className="block text-3xl font-black text-[#00342b]">{mounted ? timeLeft.hours : '00'}</span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Hours</span>
-                </div>
-                <div className="bg-white p-3 rounded-2xl shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 min-w-[75px] text-center">
-                  <span className="block text-3xl font-black text-[#00342b]">{mounted ? timeLeft.minutes : '00'}</span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Mins</span>
-                </div>
-                <div className="bg-white p-3 rounded-2xl shadow-[0_5px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 min-w-[75px] text-center">
-                  <span className="block text-3xl font-black text-[#00342b]">{mounted ? timeLeft.seconds : '00'}</span>
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Secs</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pricing Card */}
-            <div className="w-full max-w-[420px]">
-              <div className="bg-white rounded-[40px] p-8 md:p-10 shadow-[0_20px_40px_-10px_rgba(0,52,43,0.1)] border-2 border-[#00A859] relative transform hover:-translate-y-2 transition-transform duration-300">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#00A859] text-white px-6 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase shadow-lg shadow-[#00A859]/30">
-                  14-Day Free Trial
-                </div>
-                
-                <div className="text-center mt-4 mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro Plan</h3>
-                  <div className="flex items-center justify-center gap-3 mb-1">
-                    <span className="text-gray-400 line-through text-2xl font-medium">₦1,500</span>
-                    <span className="text-6xl font-extrabold text-[#00342b]">₦750</span>
-                  </div>
-                  <p className="text-gray-500 font-medium">per month</p>
-                </div>
-
-                <ul className="space-y-4 mb-10">
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#E7FFDB] flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                    </div>
-                    <span className="text-gray-700 font-medium text-lg">Automated Web-Store</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#E7FFDB] flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                    </div>
-                    <span className="text-gray-700 font-medium text-lg">Unlimited Orders</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#E7FFDB] flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                    </div>
-                    <span className="text-gray-700 font-medium text-lg">Real-time Inventory Sync</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#E7FFDB] flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                    </div>
-                    <span className="text-gray-700 font-medium text-lg">Secure Payment Links</span>
-                  </li>
-                </ul>
-
-                <a href="/signup" className="block w-full bg-[#00342b] text-white text-center px-8 py-5 rounded-full font-bold text-xl hover:bg-[#002212] active:scale-95 transition-all duration-200 shadow-xl shadow-[#00342b]/20">
-                  Claim 50% Off Now
-                </a>
-                <p className="text-center text-sm text-gray-500 mt-4 font-medium">No credit card required for trial.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="bg-[#00342b] py-20 md:py-32 px-6 md:px-8 relative overflow-hidden reveal">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
-          </div>
-          <div className="max-w-[1280px] mx-auto text-center relative z-10">
-            <h2 className="text-4xl md:text-5xl font-display font-extrabold text-white mb-8 leading-tight">
-              Ready to scale your business?
-            </h2>
-            <p className="text-emerald-100 text-xl mb-12 max-w-[600px] mx-auto">
-              Join over 5,000 Nigerian vendors using Ondar to automate their WhatsApp sales.
-            </p>
-            <a href="/signup" className="inline-flex bg-white text-[#00342b] px-16 py-5 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all duration-200 shadow-2xl items-center justify-center">
-              Get Started for Free
+            <a href="/signup" className="inline-flex bg-[#00A859] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#00924D] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-[#00A859]/30">
+              Create Your Free Store
             </a>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#0A0D14] w-full text-white">
-        <div className="w-full py-20 px-6 md:px-8 max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between gap-12">
-          <div className="md:w-1/3">
-            <span className="text-3xl font-display font-black text-white mb-6 block tracking-tight">Ondar</span>
-            <p className="text-gray-400 font-body-md mb-8 max-w-xs leading-relaxed">
-              Professional WhatsApp Commerce for high-growth African businesses.
-            </p>
-            
-            {/* Social Links exactly as requested */}
-            <div className="flex items-center gap-4">
-              <a href="https://instagram.com/ondar.ng" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-[#0A0D14] transition-all">
-                <span className="sr-only">Instagram</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
-                </svg>
-              </a>
-              <a href="https://x.com/ondarng" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-[#0A0D14] transition-all">
-                <span className="sr-only">X (Twitter)</span>
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-                </svg>
-              </a>
-              <a href="https://youtube.com/@ondarng" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-[#0A0D14] transition-all">
-                <span className="sr-only">YouTube</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.418 4.814a2.504 2.504 0 0 1-1.768 1.768c-1.56.419-7.814.419-7.814.419s-6.255 0-7.814-.419a2.505 2.505 0 0 1-1.768-1.768C2 15.255 2 12 2 12s0-3.255.417-4.814a2.507 2.507 0 0 1 1.768-1.768C5.744 5 11.998 5 11.998 5s6.255 0 7.814.418ZM15.194 12 10 15V9l5.194 3Z" clipRule="evenodd" />
-                </svg>
-              </a>
-            </div>
-            
+      {/* 7. Minimal Footer */}
+      <footer className="bg-neutral-950 border-t border-neutral-900 py-16 px-6 md:px-8">
+        <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Ondar" className="h-6 grayscale opacity-50 invert" />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:w-2/3">
-            <div>
-              <h4 className="text-white font-bold mb-6">Product</h4>
-              <ul className="space-y-4">
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#features">Features</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#pricing">Pricing</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#how-it-works">How it Works</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-6">Company</h4>
-              <ul className="space-y-4">
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="/about-us">About Us</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="/contact">Contact</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="#">Careers</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-6">Legal</h4>
-              <ul className="space-y-4">
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="/privacy-policy">Privacy Policy</a></li>
-                <li><a className="text-gray-400 hover:text-white transition-colors" href="/terms-of-service">Terms of Service</a></li>
-              </ul>
-            </div>
+          <div className="flex flex-wrap justify-center gap-8 text-sm font-bold tracking-wide text-neutral-500 uppercase">
+            <a href="#workflow" className="hover:text-white transition-colors">How it Works</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+            <a href="/privacy-policy" className="hover:text-white transition-colors">Privacy</a>
+            <a href="/terms-of-service" className="hover:text-white transition-colors">Terms</a>
+            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
           </div>
-        </div>
-        <div className="border-t border-white/10 py-8 px-6 text-center">
-          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">© 2026 Ondar. Professional WhatsApp Commerce. All Rights Reserved.</p>
+          <div className="flex items-center gap-6 text-neutral-500">
+            <a href="https://instagram.com/ondar.ng" className="hover:text-white transition-colors">
+              <span className="sr-only">Instagram</span>
+              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" /></svg>
+            </a>
+            <a href="https://x.com/ondarng" className="hover:text-white transition-colors">
+              <span className="sr-only">X (Twitter)</span>
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" /></svg>
+            </a>
+          </div>
         </div>
       </footer>
     </div>

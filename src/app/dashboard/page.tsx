@@ -17,7 +17,8 @@ import {
   Users,
   Share2,
   Check,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -28,6 +29,8 @@ export default function DashboardPage() {
   const [ventText, setVentText] = useState('')
   const [ventSubmitting, setVentSubmitting] = useState(false)
   const [ventSubmitted, setVentSubmitted] = useState(false)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -73,12 +76,57 @@ export default function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('store_id', storeData.id)
 
+      // Fetch All Orders to evaluate reminders/notifications
+      const { data: allOrders } = await supabase
+        .from('orders')
+        .select('*, products(name)')
+        .eq('store_id', storeData.id)
+
+      const calculatedNotifications = [
+        {
+          id: 'welcome',
+          title: 'Direct checkout is live! ⚡',
+          description: 'Your customers can now check out directly on the storefront without needing to redirect to WhatsApp.',
+          time: 'System Update',
+          type: 'info'
+        }
+      ]
+
+      if (allOrders) {
+        const now = new Date()
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+        // 1. Check for old pending orders (over 24h)
+        const oldPending = allOrders.filter(o => o.status === 'PENDING' && new Date(o.created_at) < oneDayAgo)
+        oldPending.forEach(o => {
+          calculatedNotifications.push({
+            id: `pending-${o.id}`,
+            title: `Follow Up: Order #${o.id.slice(0, 8).toUpperCase()}`,
+            description: `Order for ${o.products?.name || 'product'} has been pending for over 24h. Send them a negotiated checkout link to close the sale!`,
+            time: new Date(o.created_at).toLocaleDateString(),
+            type: 'warning'
+          })
+        })
+
+        // 2. Check for new orders in the last 24h
+        const newOrders = allOrders.filter(o => new Date(o.created_at) >= oneDayAgo)
+        if (newOrders.length > 0) {
+          calculatedNotifications.unshift({
+            id: 'new-orders-summary',
+            title: `🎉 ${newOrders.length} New Orders`,
+            description: `You received ${newOrders.length} order(s) in the last 24 hours. Check your inventory sync status!`,
+            time: 'Recent',
+            type: 'success'
+          })
+        }
+      }
+
       setStats({
         products: productCount || 0,
         orders: orderCount || 0,
         revenue
       })
-
+      setNotifications(calculatedNotifications)
       setLoading(false)
 
       // Subscribe to real-time order updates
@@ -109,6 +157,69 @@ export default function DashboardPage() {
     fetchData()
   }, [])
 
+  const handleActivatePremium = async () => {
+    if (!store) return
+    setLoading(true)
+    const { error } = await supabase
+      .from('stores')
+      .update({ subscription_status: 'ACTIVE' })
+      .eq('id', store.id)
+    if (!error) {
+      setStore({ ...store, subscription_status: 'ACTIVE' })
+    } else {
+      alert("Error upgrading: " + error.message)
+    }
+    setLoading(false)
+  }
+
+  const handleSimulateExpired = async () => {
+    if (!store) return
+    setLoading(true)
+    const pastDate = new Date()
+    pastDate.setDate(pastDate.getDate() - 8)
+    const { error } = await supabase
+      .from('stores')
+      .update({ 
+        subscription_status: 'TRIAL',
+        trial_ends_at: pastDate.toISOString()
+      })
+      .eq('id', store.id)
+    if (!error) {
+      setStore({ 
+        ...store, 
+        subscription_status: 'TRIAL', 
+        trial_ends_at: pastDate.toISOString() 
+      })
+    } else {
+      alert("Error simulating: " + error.message)
+    }
+    setLoading(false)
+  }
+
+  const handleResetTrial = async () => {
+    if (!store) return
+    setLoading(true)
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 7)
+    const { error } = await supabase
+      .from('stores')
+      .update({ 
+        subscription_status: 'TRIAL',
+        trial_ends_at: futureDate.toISOString()
+      })
+      .eq('id', store.id)
+    if (!error) {
+      setStore({ 
+        ...store, 
+        subscription_status: 'TRIAL', 
+        trial_ends_at: futureDate.toISOString() 
+      })
+    } else {
+      alert("Error resetting: " + error.message)
+    }
+    setLoading(false)
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
@@ -134,6 +245,12 @@ export default function DashboardPage() {
     setVentText('')
   }
 
+  const isTrial = store?.subscription_status === 'TRIAL'
+  const trialEnds = store?.trial_ends_at ? new Date(store.trial_ends_at) : null
+  const now = new Date()
+  const trialEnded = isTrial && trialEnds && trialEnds < now
+  const daysLeft = isTrial && trialEnds ? Math.ceil((trialEnds.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -142,8 +259,66 @@ export default function DashboardPage() {
     )
   }
 
+  if (trialEnded) {
+    return (
+      <div className="min-h-screen bg-[#0A0D14] flex flex-col justify-center items-center px-6 text-center text-white relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-600/10 rounded-full blur-[120px] -z-10" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] -z-10" />
+        
+        <div className="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
+          <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto border border-red-500/30">
+            <Clock className="w-8 h-8" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl font-display font-extrabold text-white">Your Trial Has Ended</h2>
+            <p className="text-sm text-neutral-400 leading-relaxed">
+              Ondar Premium keeps your online store active, processes WhatsApp checkout requests, and manages your real-time inventory sync.
+            </p>
+          </div>
+
+          <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-left space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <p className="text-xs text-neutral-300"><span className="font-bold text-white">Unlimited orders</span> and WhatsApp cart syncing</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <p className="text-xs text-neutral-300"><span className="font-bold text-white">Automated PDF receipts</span> generated instantly</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-green-400 mt-0.5">✓</span>
+              <p className="text-xs text-neutral-300"><span className="font-bold text-white">Live storefront hosting</span> on your custom link</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <button 
+              onClick={handleActivatePremium}
+              className="w-full bg-primary-600 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-primary-600/30 hover:bg-primary-500 active:scale-95 transition-all text-sm"
+            >
+              Activate Premium (₦2,500/mo)
+            </button>
+            
+            <button 
+              onClick={handleResetTrial}
+              className="w-full bg-white/5 hover:bg-white/10 text-neutral-300 py-3 rounded-2xl text-xs font-bold transition-all border border-white/10"
+            >
+              Simulate Reset (Restart 7d Trial)
+            </button>
+            
+            <button onClick={handleLogout} className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors">
+              Log Out of Account
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col relative">
+    <div className="min-h-screen bg-slate-50 flex flex-col relative pb-24">
       {/* Top Nav */}
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
@@ -152,10 +327,51 @@ export default function DashboardPage() {
             <span className="font-display font-bold text-lg text-primary-900 leading-none">Ondar</span>
           </div>
         </div>
-        <button onClick={handleLogout} className="p-2 text-secondary hover:text-accent transition-colors">
-          <LogOut className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Notification Bell Icon */}
+          <button 
+            onClick={() => setShowNotifications(true)}
+            className="p-2 text-secondary hover:text-primary-900 relative transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {notifications.length > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white font-black text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+          
+          <button onClick={handleLogout} className="p-2 text-secondary hover:text-accent transition-colors">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </header>
+
+      {/* Trial Countdown Banner */}
+      {isTrial && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between">
+          <p className="text-xs text-amber-800 font-medium">
+            ⏳ Your free trial ends in <span className="font-bold">{daysLeft} {daysLeft === 1 ? 'day' : 'days'}</span>.
+          </p>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleActivatePremium}
+              className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all"
+            >
+              Upgrade
+            </button>
+            <button 
+              onClick={handleSimulateExpired}
+              className="text-amber-600 hover:text-amber-800 text-[10px] font-bold"
+              title="Simulate trial ended to test paywall"
+            >
+              Simulate Expired
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">
         {/* PWA Install Prompt (Simple Banner) */}
@@ -294,7 +510,7 @@ export default function DashboardPage() {
           <div className="flex w-full gap-3">
             <button 
               onClick={() => {
-                const url = `${window.location.host}/${store.slug}`
+                const url = `https://${window.location.host}/${store.slug}`
                 navigator.clipboard.writeText(url)
                 alert('Store link copied!')
               }}
@@ -432,6 +648,61 @@ export default function DashboardPage() {
           Add Product
         </Link>
       </div>
+
+      {/* Notifications Drawer */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end">
+          <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl animate-slide-in">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-neutral-900 text-lg">Platform Alerts</span>
+              </div>
+              <button 
+                onClick={() => setShowNotifications(false)} 
+                className="p-2 -mr-2 rounded-full hover:bg-neutral-50 text-neutral-400 hover:text-neutral-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {notifications.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+                  <p className="font-bold text-neutral-500">All caught up! No notifications.</p>
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div 
+                    key={n.id} 
+                    className={`p-4 rounded-2xl border text-left space-y-1.5 transition-all shadow-sm ${
+                      n.type === 'warning' ? 'bg-amber-50/50 border-amber-200 text-amber-900' :
+                      n.type === 'success' ? 'bg-green-50/50 border-green-200 text-green-900' :
+                      'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  >
+                    <div className="flex justify-between items-baseline">
+                      <h4 className="font-bold text-xs">{n.title}</h4>
+                      <span className="text-[9px] text-neutral-400 font-bold shrink-0">{n.time}</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 leading-relaxed">{n.description}</p>
+                    {n.type === 'warning' && (
+                      <Link 
+                        href="/dashboard/orders" 
+                        onClick={() => setShowNotifications(false)}
+                        className="inline-block text-[10px] font-black text-amber-700 underline mt-1"
+                      >
+                        Go to Orders Panel
+                      </Link>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

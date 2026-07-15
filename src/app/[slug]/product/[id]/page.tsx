@@ -4,6 +4,48 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ProductGallery } from '@/components/product-gallery'
 import { ProductClientSidePricing } from '@/components/product-client-pricing'
+import type { Metadata } from 'next'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string, id: string }> }): Promise<Metadata> {
+  const { slug, id } = await params
+  const supabase = getSupabase()
+  const { data: product } = await supabase
+    .from('products')
+    .select('name, description, price, image_url, stores(store_name, slug)')
+    .eq('id', id)
+    .single()
+
+  if (!product || (product.stores as any)?.slug !== slug) {
+    return { title: 'Product Not Found | Ondar' }
+  }
+
+  const title = `${product.name} | ${(product.stores as any)?.store_name}`
+  const description = product.description || `${product.name} — ₦${Number(product.price).toLocaleString()} on Ondar`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: product.image_url ? [{ url: product.image_url }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: product.image_url ? [product.image_url] : [],
+    },
+  }
+}
+
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string, id: string }> }) {
   const { slug, id } = await params
 

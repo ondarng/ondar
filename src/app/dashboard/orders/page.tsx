@@ -13,6 +13,9 @@ export default function DashboardOrdersPage() {
   const [storeInfo, setStoreInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [receiptOrder, setReceiptOrder] = useState<any>(null)
+  const [editingOrderForLink, setEditingOrderForLink] = useState<any>(null)
+  const [customPrice, setCustomPrice] = useState<number>(0)
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null)
   const receiptRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const supabase = createClient()
@@ -79,6 +82,30 @@ export default function DashboardOrdersPage() {
     }
 
       setOrders(orders.map(o => o.id === order.id ? { ...o, status: newStatus } : o))
+  }
+
+  const handleGenerateCheckoutLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingOrderForLink) return
+
+    // 1. Update order price in Supabase
+    const { error } = await supabase
+      .from('orders')
+      .update({ total_price: customPrice })
+      .eq('id', editingOrderForLink.id)
+
+    if (error) {
+      alert("Error updating order price: " + error.message)
+      return
+    }
+
+    // 2. Generate link
+    const link = `${window.location.protocol}//${window.location.host}/${storeInfo?.slug}/checkout?order_id=${editingOrderForLink.id}`
+    setGeneratedLink(link)
+    navigator.clipboard.writeText(link)
+
+    // Update local orders list state
+    setOrders(orders.map(o => o.id === editingOrderForLink.id ? { ...o, total_price: customPrice } : o))
   }
 
   const handleDownloadReceipt = (order: any) => {
@@ -227,6 +254,17 @@ export default function DashboardOrdersPage() {
                     Download Receipt
                   </button>
                 )}
+
+                <button 
+                  onClick={() => {
+                    setEditingOrderForLink(order)
+                    setCustomPrice(order.total_price)
+                    setGeneratedLink(null)
+                  }}
+                  className="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 py-2 rounded-lg text-sm font-bold transition-colors mt-2 flex items-center justify-center gap-2 border border-amber-200"
+                >
+                  Create Checkout Link
+                </button>
               </div>
             </div>
           ))
@@ -308,6 +346,81 @@ export default function DashboardOrdersPage() {
                 <span style={{ height: '1px', flex: 1, backgroundColor: '#f1f5f9' }}></span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Custom Checkout Link Modal */}
+      {editingOrderForLink && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md p-6 rounded-3xl space-y-5 animate-scale-up">
+            <div className="flex justify-between items-center pb-2 border-b border-neutral-100">
+              <h3 className="font-bold text-primary-900">Custom Checkout Link</h3>
+              <button 
+                onClick={() => setEditingOrderForLink(null)} 
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {!generatedLink ? (
+              <form onSubmit={handleGenerateCheckoutLink} className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-secondary leading-relaxed">
+                    Set the negotiated discounted price for this order before generating the customer link.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-primary-900">Negotiated Total Price (₦)</label>
+                  <input
+                    type="number"
+                    required
+                    value={customPrice}
+                    onChange={(e) => setCustomPrice(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-slate-50 border border-border rounded-xl text-sm outline-none focus:ring-1 focus:ring-primary-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl text-xs active:scale-95 transition-all"
+                >
+                  Generate & Copy Link
+                </button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-3 bg-green-50 text-green-800 rounded-xl text-xs font-medium leading-relaxed border border-green-100">
+                  🎉 Link generated and copied to clipboard! Send it to the customer on WhatsApp.
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-primary-900">Checkout URL</label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={generatedLink}
+                    className="w-full px-3 py-2 bg-slate-50 border border-border rounded-xl text-[10px] font-mono outline-none select-all"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditingOrderForLink(null)}
+                    className="flex-1 bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-xl text-xs"
+                  >
+                    Done
+                  </button>
+                  {editingOrderForLink.customer_phone && (
+                    <a
+                      href={`https://wa.me/${editingOrderForLink.customer_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Here is your custom checkout link with the negotiated price: ${generatedLink}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                    >
+                      Send via WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -162,7 +162,7 @@ export default function DashboardProductsPage() {
               <p className="text-sm text-secondary">Add some products to start selling.</p>
             </div>
             <Link 
-              href="/onboarding/add-product"
+              href="/dashboard/products/add"
               className="mt-4 bg-primary-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-primary-600/20"
             >
               Add Product

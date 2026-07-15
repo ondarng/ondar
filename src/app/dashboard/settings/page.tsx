@@ -25,6 +25,7 @@ export default function DashboardSettingsPage() {
   const [instagram, setInstagram] = useState('')
   const [facebook, setFacebook] = useState('')
   const [twitter, setTwitter] = useState('')
+  const [announcementText, setAnnouncementText] = useState('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -63,6 +64,7 @@ export default function DashboardSettingsPage() {
       setInstagram(storeData.instagram_handle || '')
       setFacebook(storeData.facebook_handle || '')
       setTwitter(storeData.twitter_handle || '')
+      setAnnouncementText(storeData.announcement_text || '')
       if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
         setTrustBadges(storeData.trust_badges.join(', '))
       }
@@ -91,7 +93,8 @@ export default function DashboardSettingsPage() {
         trust_badges: trustBadges.split(',').map(b => b.trim()).filter(Boolean),
         instagram_handle: instagram,
         facebook_handle: facebook,
-        twitter_handle: twitter
+        twitter_handle: twitter,
+        announcement_text: announcementText
       })
       .eq('id', store.id)
 
@@ -380,6 +383,18 @@ export default function DashboardSettingsPage() {
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               />
               <p className="text-[10px] text-secondary mt-1">Comma-separated list of badges displayed to customers.</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Storefront Announcement Text</label>
+              <input
+                type="text"
+                value={announcementText}
+                onChange={(e) => setAnnouncementText(e.target.value)}
+                placeholder="e.g. ⚡ Shopping more than one item? Use our direct checkout!"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+              <p className="text-[10px] text-secondary mt-1">Displays at the very top of your storefront in your accent color.</p>
             </div>
           </div>
 

@@ -5,8 +5,9 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/dashboard'
+  // if "next" is in param, use it as the redirect URL — but validate it's a safe relative path
+  const rawNext = searchParams.get('next') ?? '/dashboard'
+  const next = (rawNext.startsWith('/') && !rawNext.startsWith('//')) ? rawNext : '/dashboard'
 
   // Netlify / Cloud CDN forwards the true client host in x-forwarded-host
   const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host')

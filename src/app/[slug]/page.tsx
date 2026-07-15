@@ -3,10 +3,44 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Settings, Search, Package, X } from 'lucide-react'
+import { Search, Package, Share2, X } from 'lucide-react'
+import { CartDrawer } from '@/components/cart-drawer'
+import type { Metadata } from 'next'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
 export const revalidate = 0
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  if (RESERVED_SLUGS.includes(slug)) return { title: 'Not Found' }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+  const { data: store } = await supabase
+    .from('stores').select('store_name, description, logo_url').eq('slug', slug).maybeSingle()
+
+  if (!store) return { title: 'Store Not Found | Ondar' }
+
+  const title = `${store.store_name} | Ondar`
+  const description = store.description || `Shop ${store.store_name} on Ondar`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: store.logo_url ? [{ url: store.logo_url }] : [],
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
+  }
+}
 
 /** Returns short availability label + CSS classes for the image overlay badge */
 function AvailabilityBadge({ qty }: { qty: number }) {
@@ -74,6 +108,47 @@ export default async function PublicStorePage(props: {
     if (storeError) throw storeError
     if (!store) notFound()
 
+    const isTrial = store.subscription_status === 'TRIAL'
+    const trialEnds = store.trial_ends_at ? new Date(store.trial_ends_at) : null
+    const trialEnded = isTrial && trialEnds && trialEnds < new Date()
+
+    if (trialEnded) {
+      return (
+        <div className="min-h-screen bg-[#0A0D14] flex flex-col justify-center items-center px-6 text-center text-white relative overflow-hidden">
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-red-500/10 rounded-full blur-[120px] -z-10" />
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-primary-600/10 rounded-full blur-[120px] -z-10" />
+          
+          <div className="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
+            <div className="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/30">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-xl font-display font-extrabold text-white">Store Temporarily Offline</h2>
+              <p className="text-sm text-neutral-400 leading-relaxed">
+                The trial period for <span className="font-bold text-white">{store.store_name}</span> has expired.
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 pt-4">
+              <p className="text-xs text-neutral-500">
+                Are you the store owner? Log in to your Ondar dashboard to renew your subscription and bring your store back online instantly.
+              </p>
+            </div>
+
+            <div>
+              <Link 
+                href="/login"
+                className="inline-block w-full bg-primary-600 text-white font-extrabold py-3.5 rounded-2xl shadow-lg hover:bg-primary-500 active:scale-95 transition-all text-xs"
+              >
+                Log In to Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     const { data: { user } } = await supabaseSsr.auth.getUser()
     const isOwner = user?.id === store.vendor_id
 
@@ -95,7 +170,17 @@ export default async function PublicStorePage(props: {
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
 
     return (
-      <div className="min-h-screen bg-[#F5F5F5] font-sans">
+      <div className="min-h-screen bg-[#F5F5F5] font-sans pb-16">
+        
+        {/* ── TOP ANNOUNCEMENT BANNER ── */}
+        {store.announcement_text && (
+          <div 
+            style={{ backgroundColor: store.accent_color || '#00A859' }} 
+            className="text-white text-xs font-bold py-2.5 px-4 text-center select-none shadow-sm sticky top-0 z-50 flex items-center justify-center gap-2"
+          >
+            <span>{store.announcement_text}</span>
+          </div>
+        )}
 
         {/* ── TOP HEADER ── */}
         <header className="bg-white px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-neutral-100">
@@ -135,13 +220,15 @@ export default async function PublicStorePage(props: {
                 Dashboard
               </Link>
             ) : (
-              <Link
-                href={`/${slug}`}
-                aria-label="Settings"
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name}: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Share store"
                 className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
               >
-                <Settings className="w-5 h-5" />
-              </Link>
+                <Share2 className="w-5 h-5" />
+              </a>
             )}
           </div>
 
@@ -206,10 +293,15 @@ export default async function PublicStorePage(props: {
                 {products && products.length > 0 ? `${products.length} item${products.length !== 1 ? 's' : ''}` : 'Updated just now'}
               </p>
             </div>
-            {!searchQuery && (
-              <button className="flex items-center gap-1 text-[12px] font-semibold text-neutral-500 border border-neutral-200 bg-white px-3 py-1.5 rounded-full">
-                Sort ↕
-              </button>
+            {!searchQuery && trustBadges.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {trustBadges.map((badge: string, i: number) => (
+                  <span key={i} className="inline-flex items-center gap-1 text-[10px] font-bold text-neutral-500 bg-white border border-neutral-200 px-2.5 py-1 rounded-full">
+                    <svg className="w-3 h-3 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                    {badge}
+                  </span>
+                ))}
+              </div>
             )}
             {searchQuery && (
               <Link
@@ -300,6 +392,24 @@ export default async function PublicStorePage(props: {
         </div>
 
 
+
+        {/* Floating WhatsApp Contact Seller Button */}
+        {waPhone && (
+          <a
+            href={`https://wa.me/${waPhone}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
+            aria-label="Contact seller on WhatsApp"
+          >
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </a>
+        )}
+
+        {/* Persistent Cart Drawer component */}
+        <CartDrawer store={store} />
 
         <style dangerouslySetInnerHTML={{ __html: `
           .hide-scrollbar::-webkit-scrollbar { display: none; }

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-// import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PHProvider } from "@/components/providers/posthog-provider";
 
-const inter = { variable: "font-inter" };
-const plusJakartaSans = { variable: "font-outfit" };
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: "Ondar | Sell faster, stress less",

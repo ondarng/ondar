@@ -40,12 +40,29 @@ export default function EditProductPage() {
 
   useEffect(() => {
     async function fetchProduct() {
+      // Verify ownership: get user, then their store, then the product scoped to that store
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('vendor_id', user.id)
+        .maybeSingle()
+
+      if (!storeData) {
+        router.push('/onboarding/create-store')
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('id', id)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('store_id', storeData.id)
         .maybeSingle()
       
       if (error || !data) {

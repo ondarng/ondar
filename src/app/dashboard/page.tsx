@@ -172,53 +172,7 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  const handleSimulateExpired = async () => {
-    if (!store) return
-    setLoading(true)
-    const pastDate = new Date()
-    pastDate.setDate(pastDate.getDate() - 8)
-    const { error } = await supabase
-      .from('stores')
-      .update({ 
-        subscription_status: 'TRIAL',
-        trial_ends_at: pastDate.toISOString()
-      })
-      .eq('id', store.id)
-    if (!error) {
-      setStore({ 
-        ...store, 
-        subscription_status: 'TRIAL', 
-        trial_ends_at: pastDate.toISOString() 
-      })
-    } else {
-      alert("Error simulating: " + error.message)
-    }
-    setLoading(false)
-  }
 
-  const handleResetTrial = async () => {
-    if (!store) return
-    setLoading(true)
-    const futureDate = new Date()
-    futureDate.setDate(futureDate.getDate() + 7)
-    const { error } = await supabase
-      .from('stores')
-      .update({ 
-        subscription_status: 'TRIAL',
-        trial_ends_at: futureDate.toISOString()
-      })
-      .eq('id', store.id)
-    if (!error) {
-      setStore({ 
-        ...store, 
-        subscription_status: 'TRIAL', 
-        trial_ends_at: futureDate.toISOString() 
-      })
-    } else {
-      alert("Error resetting: " + error.message)
-    }
-    setLoading(false)
-  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -301,12 +255,7 @@ export default function DashboardPage() {
               Activate Premium (₦2,500/mo)
             </button>
             
-            <button 
-              onClick={handleResetTrial}
-              className="w-full bg-white/5 hover:bg-white/10 text-neutral-300 py-3 rounded-2xl text-xs font-bold transition-all border border-white/10"
-            >
-              Simulate Reset (Restart 7d Trial)
-            </button>
+
             
             <button onClick={handleLogout} className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors">
               Log Out of Account
@@ -362,13 +311,7 @@ export default function DashboardPage() {
             >
               Upgrade
             </button>
-            <button 
-              onClick={handleSimulateExpired}
-              className="text-amber-600 hover:text-amber-800 text-[10px] font-bold"
-              title="Simulate trial ended to test paywall"
-            >
-              Simulate Expired
-            </button>
+
           </div>
         </div>
       )}

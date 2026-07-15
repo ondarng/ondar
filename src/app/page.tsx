@@ -260,63 +260,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Stacked Card 5: Payment Verification */}
-              <div className="sticky top-32 md:top-36 lg:top-56 z-50 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#FFFDF5] rounded-[24px] md:rounded-[48px] border border-amber-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
-                <div className="flex flex-col lg:flex-row h-full">
-                  {/* Text Side */}
-                  <div className="w-full lg:w-1/2 p-6 md:p-12 lg:p-16 flex flex-col justify-center text-left shrink-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-8">
-                      <span className="inline-block bg-amber-500/10 text-amber-700 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-[10px] md:text-xs tracking-widest uppercase border border-amber-500/20">Payment Check</span>
-                      <span className="inline-block bg-white text-neutral-500 px-3 py-1 md:px-4 md:py-2 rounded-full font-medium text-[10px] md:text-xs border border-amber-200 flex items-center gap-1.5 shadow-sm">
-                        <svg className="w-3 h-3 md:w-4 md:h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        Simulated Audit
-                      </span>
-                    </div>
-                    <h3 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-neutral-900 mb-3 md:mb-6 leading-tight">
-                      Stop chasing bank alerts.
-                    </h3>
-                    <p className="text-[15px] md:text-lg text-neutral-600 mb-6 md:mb-10 leading-relaxed">
-                      "Did Simi actually transfer the ₦15,000?" No more scrolling through SMS bank alerts or squinting to check if a screenshot is photoshopped. Ondar cleanly logs bank transfer intents, letting you verify payouts with a single tap.
-                    </p>
-                    <a href="/signup" className="inline-flex items-center gap-2 bg-amber-600 text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-sm md:text-base hover:bg-amber-700 transition-all w-fit shadow-lg shadow-amber-500/20">
-                      Try Ondar Now <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                    </a>
-                  </div>
-                  {/* Mockup Side */}
-                  <div className="w-full lg:w-1/2 bg-[#FFFBEB] flex-1 flex justify-center items-start pt-4 lg:pt-16 px-4 lg:px-16 relative overflow-hidden">
-                    <div className="w-full max-w-[240px] md:max-w-[340px] lg:max-w-[360px] bg-white rounded-3xl p-4 md:p-6 shadow-xl border border-amber-100/50 translate-y-0 lg:translate-y-12 transition-transform duration-700 flex flex-col gap-3">
-                      <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
-                        <span className="font-bold text-xs md:text-sm text-neutral-950">Confirm Transfers</span>
-                        <span className="text-[8px] md:text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">3 pending</span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center p-2.5 bg-neutral-50 rounded-xl border border-neutral-100">
-                        <div>
-                          <p className="font-bold text-xs text-neutral-900">Simi Cole</p>
-                          <p className="text-[10px] text-neutral-500">GTBank • ₦15,000</p>
-                        </div>
-                        <button className="bg-amber-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition-all">Confirm</button>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2.5 bg-neutral-50 rounded-xl border border-neutral-100">
-                        <div>
-                          <p className="font-bold text-xs text-neutral-900">Adebayo K.</p>
-                          <p className="text-[10px] text-neutral-500">Access • ₦28,500</p>
-                        </div>
-                        <span className="text-[#00A859] font-bold text-[10px] px-2.5 py-1 bg-green-50 rounded-lg flex items-center gap-1">✓ Verified</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-2.5 bg-red-50/50 rounded-xl border border-red-100">
-                        <div className="opacity-75">
-                          <p className="font-bold text-xs text-neutral-900">Unknown</p>
-                          <p className="text-[10px] text-red-500">Alert Mismatch • ₦85,000</p>
-                        </div>
-                        <span className="text-red-600 font-bold text-[10px] px-2.5 py-1 bg-red-100 rounded-lg flex items-center gap-1">⚠ Flagged</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Stacked Card 6: Customer Memory */}
               <div className="sticky top-36 md:top-40 lg:top-64 z-50 w-full h-[85vh] min-h-[500px] max-h-[800px] lg:h-auto lg:min-h-0 bg-[#FAF9FF] rounded-[24px] md:rounded-[48px] border border-purple-200 shadow-2xl overflow-hidden reveal transition-all duration-500">
@@ -385,7 +328,7 @@ export default function Home() {
 
         {/* 3.5. Everyday Life Demo Section */}
         <section className="py-24 md:py-32 px-6 md:px-8 bg-neutral-950 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
+
           <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
             {/* Text Side */}
             <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 text-left reveal">
@@ -577,8 +520,7 @@ export default function Home() {
 
         {/* 6. Final CTA */}
         <section className="py-40 md:py-56 px-6 md:px-8 bg-neutral-900 text-center reveal relative">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#00A859]/20 to-transparent blur-[100px]" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#00A859]/10 to-transparent" />
           
           <div className="max-w-[800px] mx-auto relative z-10">
             <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-tight">

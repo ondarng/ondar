@@ -207,7 +207,7 @@ export default function DashboardOrdersPage() {
                   <span className="text-secondary">Customer</span>
                   <span className="font-medium text-primary-900 text-right">
                     {order.customer_name}<br/>
-                    <span className="text-xs">{order.customer_phone}</span>
+                    <span className="text-xs text-blue-600"><a href={`tel:${order.customer_phone}`}>{order.customer_phone}</a></span>
                     {order.customer_instagram && (
                       <span className="block text-[#E1306C] font-bold text-[10px]">
                         @{order.customer_instagram.replace('@', '')}
@@ -215,6 +215,14 @@ export default function DashboardOrdersPage() {
                     )}
                   </span>
                 </div>
+                {order.delivery_address && (
+                  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+                    <span className="text-secondary">Address</span>
+                    <span className="font-medium text-primary-900 text-right text-xs max-w-[200px]">
+                      {order.delivery_address}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 border-t border-border flex flex-wrap gap-2">

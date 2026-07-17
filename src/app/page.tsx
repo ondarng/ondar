@@ -51,8 +51,25 @@ export default function Home() {
     }
   }, [])
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Ondar",
+    "url": "https://ondar.shop",
+    "logo": "https://ondar.shop/logo.png",
+    "description": "The simplest storefront for Nigerian social media vendors. Stop copy-pasting bank details and sell professionally via WhatsApp.",
+    "sameAs": [
+      "https://twitter.com/ondar_shop",
+      "https://instagram.com/ondar.shop"
+    ]
+  };
+
   return (
     <div className="bg-white text-neutral-900 selection:bg-[#00A859]/20 selection:text-[#00342b] min-h-screen font-body overflow-clip">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       {/* 1. Minimal Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100">
         <div className="flex justify-between items-center w-full px-6 md:px-8 max-w-[1200px] mx-auto h-20">

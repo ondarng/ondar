@@ -43,6 +43,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       images: product.image_url ? [product.image_url] : [],
     },
+    alternates: {
+      canonical: `https://ondar.shop/${slug}/product/${id}`,
+    }
   }
 }
 
@@ -65,8 +68,37 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     notFound()
   }
 
+  const store = product.stores;
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans relative pb-32">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.name,
+            "image": product.image_url,
+            "description": product.description || product.name,
+            "brand": {
+              "@type": "Brand",
+              "name": store.store_name
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": `https://ondar.shop/${slug}/product/${id}`,
+              "priceCurrency": "NGN",
+              "price": product.price,
+              "availability": product.stock_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              "seller": {
+                "@type": "Organization",
+                "name": store.store_name
+              }
+            }
+          })
+        }}
+      />
       
       {/* Floating Back Button */}
       <Link 

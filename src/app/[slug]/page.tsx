@@ -35,10 +35,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: store.logo_url ? [{ url: store.logo_url }] : [],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
+      images: store.logo_url ? [store.logo_url] : [],
     },
+    alternates: {
+      canonical: `https://ondar.shop/${slug}`,
+    }
   }
 }
 
@@ -171,7 +175,20 @@ export default async function PublicStorePage(props: {
 
     return (
       <div className="min-h-screen bg-[#F5F5F5] font-sans pb-16">
-        
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "name": store.store_name,
+              "description": store.description || `Shop ${store.store_name} on Ondar.`,
+              "image": store.logo_url || "https://ondar.shop/og-image.jpg",
+              "url": `https://ondar.shop/${store.slug}`,
+              "telephone": store.whatsapp_number || undefined,
+            })
+          }}
+        />
         {/* ── TOP ANNOUNCEMENT BANNER ── */}
         {store.announcement_text && (
           <div 

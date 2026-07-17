@@ -70,12 +70,12 @@ export default function EditProductPage() {
         return
       }
 
-      setName(data.name)
-      setPrice(data.price.toString())
+      setName(data.name || '')
+      setPrice(data.price != null ? data.price.toString() : '0')
       setDescription(data.description || '')
       setVariants(data.variants && Array.isArray(data.variants) ? data.variants : [])
       setCategory(data.category || '')
-      setStock(data.stock_quantity.toString())
+      setStock(data.stock_quantity != null ? data.stock_quantity.toString() : '0')
       
       const loadedImages: ImageAsset[] = []
       if (data.image_url) loadedImages.push({ type: 'url', url: data.image_url })

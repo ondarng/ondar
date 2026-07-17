@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ondar | Professional Commerce for Nigeria</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#6d382a",
+                    "tertiary-container": "#693527",
+                    "secondary": "#5f5e5e",
+                    "on-tertiary-container": "#e89f8c",
+                    "tertiary-fixed": "#ffdbd1",
+                    "inverse-on-surface": "#f1f1f1",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-primary": "#ffffff",
+                    "surface-bright": "#f9f9f9",
+                    "outline": "#707975",
+                    "on-surface": "#1a1c1c",
+                    "on-background": "#1a1c1c",
+                    "primary-container": "#004d40",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#00342b",
+                    "tertiary-fixed-dim": "#ffb5a1",
+                    "surface-tint": "#29695b",
+                    "on-surface-variant": "#3f4945",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#065043",
+                    "surface-dim": "#dadada",
+                    "inverse-surface": "#2f3131",
+                    "surface-container": "#eeeeee",
+                    "surface": "#f9f9f9",
+                    "surface-container-highest": "#e2e2e2",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "on-primary-fixed": "#00201a",
+                    "on-primary-container": "#7ebdac",
+                    "primary-fixed": "#afefdd",
+                    "surface-container-low": "#f3f3f3",
+                    "error": "#ba1a1a",
+                    "background": "#f9f9f9",
+                    "primary-fixed-dim": "#94d3c1",
+                    "surface-variant": "#e2e2e2",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#94d3c1",
+                    "on-tertiary-fixed": "#370e04",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#636262",
+                    "tertiary": "#4e2013",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#bfc9c4",
+                    "surface-container-high": "#e8e8e8",
+                    "on-secondary-fixed-variant": "#474746",
+                    "secondary-container": "#e2dfde",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin": "20px",
+                    "gutter": "16px",
+                    "lg": "32px",
+                    "sm": "16px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "md": "24px",
+                    "xl": "48px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .rotate-x-12 {
+            transform: rotateX(12deg) rotateY(-8deg) rotateZ(4deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-surface-variant">
+<div class="flex justify-between items-center px-container-margin py-sm max-w-[1200px] mx-auto w-full">
+<span class="text-headline-md font-headline-md font-extrabold text-on-surface">Ondar</span>
+<!-- Desktop Nav -->
+<div class="hidden md:flex items-center gap-md">
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:text-primary transition-colors" href="#how-it-works">How it works</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:text-primary transition-colors" href="#features">Features</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:text-primary transition-colors" href="#faq">FAQ</a>
+<button class="bg-primary text-on-primary px-md py-xs rounded-xl font-label-md hover:scale-95 duration-150 transition-all">Get Started</button>
+</div>
+<!-- Mobile Menu Trigger -->
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 overflow-x-hidden">
+<!-- Hero Section -->
+<section class="px-container-margin max-w-[1200px] mx-auto pt-xl pb-xl flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-xs px-sm py-xs bg-primary-fixed text-on-primary-fixed rounded-full mb-md animate-bounce">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest">Built for Nigeria</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-sm max-w-4xl">
+                A professional way to sell without changing how you work.
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-2xl">
+                The e-commerce platform for Nigerian WhatsApp and Instagram vendors. Build structure, not more conversations.
+            </p>
+<div class="flex flex-col sm:flex-row gap-sm w-full sm:w-auto mb-xl">
+<button class="bg-primary text-on-primary px-xl h-[56px] rounded-xl font-label-md hover:opacity-90 transition-opacity active:scale-95">
+                    Start Selling for Free
+                </button>
+<button class="border border-outline text-on-surface px-xl h-[56px] rounded-xl font-label-md hover:bg-surface-container transition-colors">
+                    View Demo Store
+                </button>
+</div>
+<!-- Dashboard Mockup Image -->
+<div class="relative w-full max-w-md mx-auto mt-lg perspective-1000">
+<div class="rounded-[40px] border-[12px] border-on-surface bg-on-surface overflow-hidden shadow-2xl rotate-x-12 hover:rotate-0 transition-transform duration-700">
+<img alt="Ondar Mobile Dashboard mockup showing total sales of 145,000 Naira and status indicators" class="w-full h-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzWY8yRyirLHW-aKD-7YjJwAEbECCG6tRMRQVuUGrUUml9XxmBYMqDf8ebqsSrJQwQXV09xWJNtClOPXYINhTSkyRS3KLyk0Qtd2Y_uAj7YmZzFxbCA45OSgX3-FJSFch1bHJGaUZwRKh3-DOBCEYWFCjIlFAb34c8tNUtqeeNtZYEg3NTBWmvbX95JTAJRogPPA5rNNzANGzPVdHlNqTQgDYKwEEyYSE3jbZaahSsjLrHZxTQi9WjlDg_qiT8aJc3BsVKc9okgxY"/>
+</div>
+<!-- Decorative element -->
+<div class="absolute -bottom-xl -right-xl -z-10 w-64 h-64 bg-primary-fixed opacity-30 blur-3xl rounded-full"></div>
+</div>
+</section>
+<!-- Social Proof -->
+<section class="bg-surface-container py-xl">
+<div class="px-container-margin max-w-[1200px] mx-auto text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-lg uppercase tracking-widest">Trusted by early Nigerian vendors</p>
+<div class="flex flex-wrap justify-center items-center gap-xl grayscale opacity-60">
+<div class="text-headline-md font-bold">LUXEWEAR</div>
+<div class="text-headline-md font-bold">GADGETHUB</div>
+<div class="text-headline-md font-bold">FRUITLY</div>
+<div class="text-headline-md font-bold">BONDSTORES</div>
+</div>
+</div>
+</section>
+<!-- How it Works -->
+<section class="px-container-margin max-w-[1200px] mx-auto py-xl" id="how-it-works">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Selling made simple</h2>
+</div>
+<div class="grid md:grid-cols-3 gap-lg">
+<div class="bg-surface-container-lowest p-md rounded-[24px] border border-surface-variant flex flex-col items-center text-center">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-md">
+<span class="font-bold">1</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-xs">Create your store</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Upload your products and set prices in less than 2 minutes. No tech skills needed.</p>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-[24px] border border-surface-variant flex flex-col items-center text-center">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-md">
+<span class="font-bold">2</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-xs">Share your link</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Paste your professional storefront link in your Instagram bio and WhatsApp status.</p>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-[24px] border border-surface-variant flex flex-col items-center text-center">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center mb-md">
+<span class="font-bold">3</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-xs">Close on WhatsApp</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Customers browse your catalog and send orders directly to your WhatsApp DM.</p>
+</div>
+</div>
+</section>
+<!-- Product Showcase (Bento Layout) -->
+<section class="bg-primary text-on-primary py-xl overflow-hidden">
+<div class="px-container-margin max-w-[1200px] mx-auto">
+<div class="grid lg:grid-cols-2 gap-xl items-center">
+<div class="order-2 lg:order-1">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg mb-md leading-tight">
+                            A premium boutique storefront for your bio link.
+                        </h2>
+<ul class="space-y-sm mb-xl">
+<li class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">check_circle</span>
+<span class="font-body-lg">Optimized for mobile shoppers</span>
+</li>
+<li class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">check_circle</span>
+<span class="font-body-lg">Currency support in Naira (₦)</span>
+</li>
+<li class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">check_circle</span>
+<span class="font-body-lg">Instant checkout to WhatsApp</span>
+</li>
+</ul>
+</div>
+<div class="order-1 lg:order-2 flex justify-center">
+<div class="relative w-full max-w-[320px]">
+<div class="rounded-[32px] border-[8px] border-primary-container shadow-2xl overflow-hidden scale-105">
+<img alt="Ondar Mobile Storefront mockup showing luxury items like silk scarves, sunglasses and leather wallets with 'Order via WhatsApp' buttons" class="w-full h-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl_ZSR0O4z1cGJ1gpJilr1Ia1e-oiiECSu80JhZ9WGabnyycQVEqkoXbEF_OpFenpoj3xJ0xgDharBuHNAdbwo2K1EQGDhkGk07h3lw9qCN8nJc7JjIfVJ-JkOiznWQ5-ttNbw-8QNIyRNkEnWfFxE-98bZNMRXtsYhg5OII0tDac7GX-CsC2vPUWQK4mOHN0RiOSJavd0n4gZ0A5TDp3GBjt3dk0uXs7XK7iR9DTS1YW6pNn7vK_P9P86DNlxk7T_2t7OHsh5YqQ"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Benefits -->
+<section class="px-container-margin max-w-[1200px] mx-auto py-xl" id="features">
+<div class="grid md:grid-cols-3 gap-md">
+<div class="flex flex-col gap-sm">
+<span class="material-symbols-outlined text-primary text-[40px]">inventory_2</span>
+<h3 class="font-headline-lg text-headline-lg">No more lost orders</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Orders are tracked in your dashboard. Never forget who paid or what item they ordered in a sea of chat bubbles.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="material-symbols-outlined text-primary text-[40px]">verified_user</span>
+<h3 class="font-headline-lg text-headline-lg">Professional look, same workflow</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">Upgrade your business perception without learning a complex new tool. Keep chatting with customers as usual.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="material-symbols-outlined text-primary text-[40px]">memory</span>
+<h3 class="font-headline-lg text-headline-lg">Automatic customer memory</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">The system remembers customer details, making repeat orders as easy as a single tap for your loyal clients.</p>
+</div>
+</div>
+</section>
+<!-- FAQ Section -->
+<section class="bg-surface-container-low py-xl px-container-margin" id="faq">
+<div class="max-w-[800px] mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-center mb-xl">Frequently Asked Questions</h2>
+<div class="space-y-sm">
+<details class="group bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden" open="">
+<summary class="flex justify-between items-center p-md cursor-pointer list-none font-headline-md">
+                            Is Ondar free to use?
+                            <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="px-md pb-md font-body-md text-on-surface-variant">
+                            Yes! Our basic plan is 100% free. We only charge a small premium for advanced automation features and analytics.
+                        </div>
+</details>
+<details class="group bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
+<summary class="flex justify-between items-center p-md cursor-pointer list-none font-headline-md">
+                            Do I need a laptop to set up my store?
+                            <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="px-md pb-md font-body-md text-on-surface-variant">
+                            Not at all. Ondar is built for mobile first. You can manage your entire business right from your smartphone.
+                        </div>
+</details>
+<details class="group bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden">
+<summary class="flex justify-between items-center p-md cursor-pointer list-none font-headline-md">
+                            How do I receive payments?
+                            <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="px-md pb-md font-body-md text-on-surface-variant">
+                            You can display your bank account details for transfers or integrate local payment gateways like Paystack or Flutterwave.
+                        </div>
+</details>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-xl px-container-margin max-w-[1200px] mx-auto text-center">
+<div class="bg-primary-container text-on-primary-container rounded-[32px] p-xl relative overflow-hidden">
+<!-- Abstract Pattern Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 24px 24px;"></div>
+<h2 class="font-display-lg-mobile md:font-display-lg mb-md relative z-10">Ready to professionalize your hustle?</h2>
+<p class="font-body-lg mb-xl relative z-10 max-w-xl mx-auto opacity-90">Join thousands of Nigerian vendors who have stopped managing DMs and started managing a business.</p>
+<button class="bg-on-primary-container text-primary-container px-xl h-[64px] rounded-full font-headline-md relative z-10 hover:scale-105 transition-transform">
+                    Get Started for Free
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-surface-variant">
+<div class="flex flex-col md:flex-row justify-between items-center px-container-margin py-xl max-w-[1200px] mx-auto w-full gap-md">
+<div class="flex flex-col items-center md:items-start gap-xs">
+<span class="text-headline-md font-headline-md font-extrabold text-on-surface">Ondar</span>
+<p class="text-label-sm font-label-sm text-on-secondary-fixed-variant">© 2024 Ondar. Professional Commerce for Nigeria.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-md">
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:underline text-primary transition-all" href="#">How it works</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:underline text-primary transition-all" href="#">Features</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:underline text-primary transition-all" href="#">FAQ</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:underline text-primary transition-all" href="#">Privacy Policy</a>
+<a class="text-label-md font-label-md text-on-secondary-fixed-variant hover:underline text-primary transition-all" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple scroll reveal interaction
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(el => {
+            el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+    </script>
+</body></html>

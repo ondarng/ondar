@@ -1,0 +1,355 @@
+﻿<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ondar | Professional WhatsApp Commerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "surface-tint": "#29695b",
+                    "surface": "#f8faf8",
+                    "charcoal-slate": "#20232D",
+                    "primary": "#00342b",
+                    "on-surface-variant": "#3f4945",
+                    "on-secondary-container": "#e5e6ff",
+                    "outline": "#707975",
+                    "on-secondary-fixed-variant": "#0035be",
+                    "surface-dim": "#d8dad9",
+                    "background": "#f8faf8",
+                    "surface-container-highest": "#e1e3e1",
+                    "tertiary-container": "#693527",
+                    "surface-lavender": "#F4EBFF",
+                    "on-tertiary-container": "#e89f8c",
+                    "tertiary-fixed-dim": "#ffb5a1",
+                    "tertiary": "#4e2013",
+                    "surface-bright": "#f8faf8",
+                    "primary-fixed": "#afefdd",
+                    "on-secondary-fixed": "#001356",
+                    "primary-container": "#004d40",
+                    "on-primary-container": "#7ebdac",
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#191c1b",
+                    "outline-variant": "#bfc9c4",
+                    "tertiary-fixed": "#ffdbd1",
+                    "on-surface": "#191c1b",
+                    "white": "#FFFFFF",
+                    "secondary-fixed": "#dde1ff",
+                    "on-error": "#ffffff",
+                    "secondary": "#003cd5",
+                    "secondary-container": "#2154ff",
+                    "on-secondary": "#ffffff",
+                    "surface-container": "#eceeec",
+                    "secondary-fixed-dim": "#b9c3ff",
+                    "inverse-primary": "#94d3c1",
+                    "deep-onyx": "#0A0D14",
+                    "surface-container-low": "#f2f4f2",
+                    "on-tertiary-fixed": "#370e04",
+                    "inverse-surface": "#2e3130",
+                    "surface-variant": "#e1e3e1",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#eff1ef",
+                    "on-primary-fixed-variant": "#065043",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#94d3c1",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#00201a",
+                    "on-tertiary-fixed-variant": "#6d382a",
+                    "surface-container-high": "#e6e9e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap-desktop": "160px",
+                    "section-gap-mobile": "80px",
+                    "gutter": "32px",
+                    "container-max-width": "1280px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "headline-xl": ["Inter"],
+                    "button": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-xl-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "button": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800"}],
+                    "display-lg": ["72px", {"lineHeight": "80px", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "headline-xl-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .atmospheric-shadow {
+            box-shadow: 0 10px 30px -5px rgba(0, 52, 43, 0.04), 0 4px 10px -2px rgba(0, 52, 43, 0.02);
+        }
+        .atmospheric-shadow-hover:hover {
+            box-shadow: 0 20px 40px -10px rgba(0, 52, 43, 0.08);
+        }
+        .bleed-mockup {
+            width: calc(100% + 40px);
+            margin-left: -20px;
+        }
+        @media (min-width: 768px) {
+            .bleed-mockup {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex justify-between items-center w-full px-6 md:px-gutter max-w-container-max-width mx-auto h-20">
+<span class="text-headline-md font-headline-md font-extrabold text-primary">Ondar</span>
+<!-- Desktop Links -->
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-200" href="#features">Features</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-200" href="#how-it-works">How it Works</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-200" href="#pricing">Pricing</a>
+<a class="font-button text-button text-on-surface-variant hover:text-primary transition-colors duration-200" href="#faq">FAQ</a>
+<button class="bg-primary text-white px-8 py-4 rounded-full font-button text-button active:scale-95 transition-transform duration-150">Get Started</button>
+</div>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="bg-surface py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter">
+<div class="max-w-container-max-width mx-auto text-center flex flex-col items-center">
+<div class="inline-flex items-center gap-2 bg-surface-lavender px-4 py-2 rounded-full mb-8">
+<span class="material-symbols-outlined text-secondary text-sm">rocket_launch</span>
+<span class="text-label-caps font-label-caps text-secondary uppercase">WhatsApp Commerce for Africa</span>
+</div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-6 max-w-[900px]">
+                    Sell Smarter on WhatsApp.
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-12 max-w-[640px]">
+                    Transform your WhatsApp chats into a professional automated storefront. Manage orders, track inventory, and get paid instantly without leaving the chat.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto">
+<button class="bg-primary text-white px-10 py-5 rounded-full font-button text-button active:scale-95 transition-transform duration-150 shadow-lg">Try Ondar Now</button>
+<button class="border-2 border-primary text-primary px-10 py-5 rounded-full font-button text-button active:scale-95 transition-transform duration-150">Watch Demo</button>
+</div>
+<!-- Massive Mockup -->
+<div class="relative w-full max-w-[1000px] mt-8 bleed-mockup">
+<img alt="Ondar Mobile Storefront Mockup" class="w-full h-auto drop-shadow-2xl rounded-[32px] md:rounded-[64px]" src="https://lh3.googleusercontent.com/aida/AP1WRLtfEcOs5DtxQLfX_h6EIJmU7aF8UGhS0NcaiFxVxnoR2F3aiikE45cbN8MksB9SDpg7kDhfl_p_-5SOYY0Aftce_xy_fU9TEtv1FMJTGu8qJnN6derNpnVFLSL-_u6T7SdSshi_V3Foe6_7O-u7x7gwZWgbgdRUx0_L0kWfnWDiF3GSUsTds32euvWew93HHvc0Ico8CE_XGlNrNc4RsxEqwY5vL8duX_jfpvBnDGA9O7bx08ZMx0jkFKo"/>
+</div>
+</div>
+</section>
+<!-- Outcome Section 1: Professional Look -->
+<section class="bg-surface-lavender py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter" id="features">
+<div class="max-w-container-max-width mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div class="order-2 md:order-1">
+<div class="bg-white p-4 rounded-[40px] atmospheric-shadow">
+<img class="w-full h-auto rounded-[32px]" data-alt="A clean mobile app interface showing a beautiful digital catalog of fashion accessories like silk scarves and luxury watches, presented with high-resolution imagery and elegant typography. The background of the phone screen is a soft cream, with large primary green buttons for ordering. Professional lighting and minimalist UI design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3zhUfjulB-NvWZr3zsBwoKdhtN7Ybe809Tpywj39-vWHM0WaGmh-v5ZJ0GYlPBZ9AOJUkX7A3a9AKjXvg37YodxrT2Awb8Uu_WYxeA45Sn2OppXRMfuaCjQ_uMFsY32nL0wMtxrxE2R-LROYwjK-u8PEbJZKo3Jly_HBMeH35fvW0XS8po2mw9BSx8GRDRVfaBpT0ttMNfuweGaVBOfJMf-lmT7PgDb9MsqKgXdVcnV_s3U6tMg01iAbxZ_h2DMylb_JTRmrLXVw"/>
+</div>
+</div>
+<div class="order-1 md:order-2">
+<h2 class="font-headline-xl-mobile text-headline-xl-mobile md:font-headline-xl md:text-headline-xl text-primary mb-6">
+                        Professional Look
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8">
+                        Ditch the messy PDF catalogs. Give your customers a premium browsing experience with an automated web-store that syncs perfectly with your WhatsApp business.
+                    </p>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md">High-speed catalog loading</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md">Custom brand colors &amp; logos</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md">Optimized for mobile shoppers</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Outcome Section 2: Zero Lost Orders -->
+<section class="bg-white py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter">
+<div class="max-w-container-max-width mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="font-headline-xl-mobile text-headline-xl-mobile md:font-headline-xl md:text-headline-xl text-primary mb-6">
+                        Zero Lost Orders
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8">
+                        Stop hunting through chat history to find order details. Ondar organizes every sale, address, and payment status in one central dashboard.
+                    </p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface p-6 rounded-3xl atmospheric-shadow border border-outline-variant/30">
+<span class="text-headline-md font-headline-md text-primary">100%</span>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Capture Rate</p>
+</div>
+<div class="bg-surface p-6 rounded-3xl atmospheric-shadow border border-outline-variant/30">
+<span class="text-headline-md font-headline-md text-primary">24/7</span>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Auto-Reply</p>
+</div>
+</div>
+</div>
+<div>
+<div class="bg-primary p-12 rounded-[40px] text-white">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined">inventory</span>
+</div>
+<h3 class="text-headline-md font-headline-md">Inventory Sync</h3>
+</div>
+<p class="text-body-lg mb-8 opacity-90">Real-time stock tracking prevents you from selling items you no longer have in stock.</p>
+<img class="w-full h-auto rounded-2xl shadow-xl" data-alt="A professional data dashboard on a tablet showing sales analytics and inventory levels for a retail business. The UI is clean, with dark forest green charts and white background. The setting is a bright, modern home office with soft morning light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy0B64MP-XBDBvv9LqeMkU6w60gIHkS0xwT3VKWYXhuQI6F32_T0vlQvECc7cs9Bxdd4yie2NhXapBXfU-HxV_UP_UfJKN7gV4WJwSj7dIXRzqvIPST-B0RNd72wbQjcsaCe63MLW_aDWaNybmDwAvnbAdqkS0SzZKf34FCoC22X3t4rlHXn7uYd-ruvGJhgA2__y_x7A2i2wdclrTOSlkd7tfF_3xsJHxZseXnoWSPuiqwQf2LBaErw4a6dPuEdM-x81t3YzQFYo"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Outcome Section 3: Instant WhatsApp Handoff -->
+<section class="bg-surface-lavender py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter">
+<div class="max-w-container-max-width mx-auto text-center">
+<h2 class="font-headline-xl-mobile text-headline-xl-mobile md:font-headline-xl md:text-headline-xl text-primary mb-6">
+                    Instant WhatsApp Handoff
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-16 max-w-[700px] mx-auto">
+                    Customers browse your catalog on the web and checkout directly to your WhatsApp. No confusing multi-step processesΓÇöjust seamless communication and conversion.
+                </p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+<div class="bg-white p-10 rounded-[32px] atmospheric-shadow atmospheric-shadow-hover transition-all duration-300">
+<div class="w-14 h-14 bg-surface-lavender rounded-2xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl">shopping_cart</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-3">Customer Shops</h4>
+<p class="text-body-md text-on-surface-variant">They visit your Ondar link and select items for their cart.</p>
+</div>
+<div class="bg-white p-10 rounded-[32px] atmospheric-shadow atmospheric-shadow-hover transition-all duration-300">
+<div class="w-14 h-14 bg-surface-lavender rounded-2xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl">chat</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-3">Direct to Chat</h4>
+<p class="text-body-md text-on-surface-variant">The order is sent as a pre-filled WhatsApp message to your phone.</p>
+</div>
+<div class="bg-white p-10 rounded-[32px] atmospheric-shadow atmospheric-shadow-hover transition-all duration-300">
+<div class="w-14 h-14 bg-surface-lavender rounded-2xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl">payments</span>
+</div>
+<h4 class="font-headline-md text-headline-md text-primary mb-3">Instant Payment</h4>
+<p class="text-body-md text-on-surface-variant">Confirm order and accept payment directly through secure links.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="bg-primary py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter relative overflow-hidden">
+<div class="absolute inset-0 opacity-10">
+<div class="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+<div class="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+</div>
+<div class="max-w-container-max-width mx-auto text-center relative z-10">
+<h2 class="font-display-lg-mobile text-display-lg-mobile md:font-headline-xl md:text-headline-xl text-white mb-8">
+                    Ready to scale your business?
+                </h2>
+<p class="text-on-primary-container text-xl mb-12 max-w-[600px] mx-auto">
+                    Join over 5,000 Nigerian vendors using Ondar to automate their WhatsApp sales.
+                </p>
+<button class="bg-white text-primary px-16 py-6 rounded-full font-headline-md text-headline-md hover:scale-105 active:scale-95 transition-all duration-200 shadow-2xl">
+                    Get Started for Free
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary dark:bg-deep-onyx w-full">
+<div class="w-full py-section-gap-mobile md:py-section-gap-desktop px-6 md:px-gutter max-w-container-max-width mx-auto flex flex-col md:flex-row justify-between gap-12">
+<div class="md:w-1/3">
+<span class="text-headline-md font-headline-md font-black text-white mb-6 block">Ondar</span>
+<p class="text-on-primary-container font-body-md mb-8 max-w-xs">
+                    Professional WhatsApp Commerce for high-growth African businesses.
+                </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-8 md:w-2/3">
+<div>
+<h4 class="text-white font-bold mb-6">Product</h4>
+<ul class="space-y-4">
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Features</a></li>
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Pricing</a></li>
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">How it Works</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold mb-6">Company</h4>
+<ul class="space-y-4">
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">About Us</a></li>
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Contact</a></li>
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Careers</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold mb-6">Legal</h4>
+<ul class="space-y-4">
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="text-on-primary-container hover:text-white transition-colors" href="#">Terms of Service</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="border-t border-white/10 py-8 px-6 text-center">
+<p class="text-on-primary-container text-label-caps font-label-caps">┬⌐ 2024 Ondar. Professional WhatsApp Commerce. All Rights Reserved.</p>
+</div>
+</footer>
+<script>
+        // Simple scroll reveal or micro-interactions can go here
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.style.transform = 'scale(0.95)');
+            btn.addEventListener('mouseup', () => btn.style.transform = 'scale(1)');
+            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+        });
+
+        // Mobile menu toggle logic
+        const mobileToggle = document.querySelector('nav button.md\\:hidden');
+        mobileToggle?.addEventListener('click', () => {
+            // Placeholder for menu modal
+            alert('Mobile menu clicked');
+        });
+    </script>
+</body></html>

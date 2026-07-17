@@ -99,7 +99,7 @@ export function CartDrawer({ store }: { store: any }) {
               customer_name: name,
               customer_phone: phone,
               customer_instagram: instagram || null,
-              delivery_address: address,
+              delivery_address: `[${checkoutMode.toUpperCase()}] ${address}`,
               status: 'PENDING'
             })
             .select()
@@ -263,7 +263,7 @@ export function CartDrawer({ store }: { store: any }) {
                       checkoutMode === 'direct' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
                     }`}
                   >
-                    <Laptop className="w-3.5 h-3.5" /> Direct Checkout (Beta)
+                    <Laptop className="w-3.5 h-3.5" /> Direct Checkout <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ml-0.5 ${checkoutMode === 'direct' ? 'bg-[#00A859]/10 text-[#00A859]' : 'bg-neutral-200 text-neutral-400'}`}>Beta</span>
                   </button>
                   <button
                     type="button"

@@ -190,7 +190,7 @@ export default function DashboardOrdersPage() {
           orders.map((order) => {
             const isDirect = order.delivery_address?.startsWith('[DIRECT]');
             const isWhatsApp = order.delivery_address?.startsWith('[WHATSAPP]');
-            const checkoutMode = isDirect ? 'Direct' : (isWhatsApp ? 'Conversational' : 'Direct');
+            const checkoutMode = isDirect ? 'Direct' : (isWhatsApp ? 'Conversational' : null);
             const cleanAddress = order.delivery_address?.replace(/^\[(DIRECT|WHATSAPP)\]\s*/i, '') || '';
 
             return (
@@ -210,22 +210,26 @@ export default function DashboardOrdersPage() {
                 </div>
                 
                 {/* Checkout Mode Badge */}
-                <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${checkoutMode === 'Direct' ? 'bg-purple-100 text-purple-700' : 'bg-[#25D366]/10 text-[#25D366]'}`}>
-                    {checkoutMode === 'Direct' ? <Laptop className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
-                    {checkoutMode} Checkout
-                  </span>
-                  
-                  {checkoutMode === 'Direct' && (
-                    <button 
-                      onClick={() => handleCopyDetails(order, cleanAddress)}
-                      className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-md text-[10px] font-bold transition-colors"
-                    >
-                      {copiedOrderId === order.id ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-                      {copiedOrderId === order.id ? 'Copied!' : 'Copy Details'}
-                    </button>
-                  )}
-                </div>
+                {(checkoutMode || isDirect) && (
+                  <div className="flex items-center gap-2">
+                    {checkoutMode && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${checkoutMode === 'Direct' ? 'bg-purple-100 text-purple-700' : 'bg-[#25D366]/10 text-[#25D366]'}`}>
+                        {checkoutMode === 'Direct' ? <Laptop className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
+                        {checkoutMode} Checkout
+                      </span>
+                    )}
+                    
+                    {checkoutMode === 'Direct' && (
+                      <button 
+                        onClick={() => handleCopyDetails(order, cleanAddress)}
+                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-md text-[10px] font-bold transition-colors"
+                      >
+                        {copiedOrderId === order.id ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                        {copiedOrderId === order.id ? 'Copied!' : 'Copy Details'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-border text-sm space-y-2">

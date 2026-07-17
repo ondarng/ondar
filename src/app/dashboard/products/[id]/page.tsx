@@ -58,14 +58,16 @@ export default function EditProductPage() {
         return
       }
 
+      const productId = Array.isArray(id) ? id[0] : id;
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('id', id)
-        .eq('store_id', storeData.id)
+        .eq('id', productId)
         .maybeSingle()
       
       if (error || !data) {
+        console.error('Fetch product error:', error)
         router.push('/dashboard/products')
         return
       }
@@ -204,7 +206,10 @@ export default function EditProductPage() {
       if (error) throw error
 
       setMessage({ type: 'success', text: 'Product updated successfully!' })
-      setTimeout(() => router.push('/dashboard/products'), 1500)
+      setTimeout(() => {
+        router.refresh()
+        router.push('/dashboard/products')
+      }, 1500)
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message })
     } finally {

@@ -82,40 +82,53 @@ export function CartDrawer({ store }: { store: any }) {
     setSubmitting(true)
 
     try {
-      // 1. Create client & capture custom details in DB
-      // We will loop and create an order in Supabase for each cart item
       const orderIds: string[] = []
+      let dbFailed = false
+      let errorMessage = ''
       
-      for (const item of cart) {
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            store_id: store.id,
-            product_id: item.id,
-            quantity: item.quantity,
-            total_price: item.price * item.quantity,
-            specification: item.variantName || undefined,
-            customer_name: name,
-            customer_phone: phone,
-            customer_instagram: instagram || undefined,
-            delivery_address: address,
-            status: 'PENDING'
-          })
-          .select()
-          .single()
+      try {
+        for (const item of cart) {
+          const { data: orderData, error: orderError } = await supabase
+            .from('orders')
+            .insert({
+              store_id: store.id,
+              product_id: item.id,
+              quantity: item.quantity,
+              total_price: item.price * item.quantity,
+              specification: item.variantName || null,
+              customer_name: name,
+              customer_phone: phone,
+              customer_instagram: instagram || null,
+              delivery_address: address,
+              status: 'PENDING'
+            })
+            .select()
+            .single()
 
-        if (orderError) throw orderError
-        if (orderData) orderIds.push(orderData.id)
+          if (orderError) throw orderError
+          if (orderData) orderIds.push(orderData.id)
+        }
+
+        // Add customer to CRM (ignore error if already exists)
+        const { error: custError } = await supabase.from('customers').insert({
+          store_id: store.id,
+          name: name,
+          phone: phone,
+          instagram: instagram || null,
+          address: address
+        })
+        if (custError) console.warn("Customer insert warning (likely duplicate):", custError)
+
+      } catch (dbError: any) {
+        console.error("DB Error:", dbError)
+        dbFailed = true
+        errorMessage = dbError.message || 'Database error'
       }
 
-      // 2. Add customer to CRM/customers table if not already captured
-      await supabase.from('customers').insert({
-        store_id: store.id,
-        name: name,
-        phone: phone,
-        instagram: instagram || undefined,
-        address: address
-      }).select() // Ignore duplicate key errors if index allows, or handle gracefully
+      // If DB failed and it's direct checkout, we must stop here because we need an Order ID to show success.
+      if (dbFailed && checkoutMode === 'direct') {
+        throw new Error(errorMessage || "Failed to record order. Please try WhatsApp checkout instead.")
+      }
 
       // Clear Cart
       saveCart([])
@@ -250,7 +263,7 @@ export function CartDrawer({ store }: { store: any }) {
                       checkoutMode === 'direct' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
                     }`}
                   >
-                    <Laptop className="w-3.5 h-3.5" /> Direct Checkout
+                    <Laptop className="w-3.5 h-3.5" /> Direct Checkout (Beta)
                   </button>
                   <button
                     type="button"

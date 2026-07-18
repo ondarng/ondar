@@ -146,6 +146,37 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
             </p>
           </div>
 
+          {/* BANK ACCOUNT DETAILS */}
+          {store.bank_account_number && (
+            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-left space-y-3 text-xs">
+              <p className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Make Payment via Bank Transfer</p>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Bank Name</p>
+                <p className="text-xs font-bold text-neutral-200">{store.bank_name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Account Number</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-mono font-bold text-neutral-200">{store.bank_account_number}</p>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(store.bank_account_number);
+                      alert("Account number copied!");
+                    }}
+                    className="text-[10px] font-bold text-primary-400 hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Account Name</p>
+                <p className="text-xs font-bold text-neutral-200">{store.bank_account_name}</p>
+              </div>
+              <p className="text-[10px] text-neutral-400 italic mt-2">Please make the transfer of ₦{order.total_price.toLocaleString()} and keep your receipt for delivery verification.</p>
+            </div>
+          )}
+
           <div className="border-t border-white/10 pt-4">
             <p className="text-xs text-neutral-500">
               Reference Code: <span className="font-mono font-bold text-neutral-300">#{order.id.slice(0, 8).toUpperCase()}</span>

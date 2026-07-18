@@ -16,9 +16,19 @@ interface CartItem {
 export function CartDrawer({ store }: { store: any }) {
   const [isOpen, setIsOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
+  const directEnabled = store.enable_direct_checkout !== false
+  const whatsappEnabled = store.enable_whatsapp_checkout !== false
+
   const [checkoutMode, setCheckoutMode] = useState<'whatsapp' | 'direct'>('direct')
-  
-  // Checkout Form State
+
+  useEffect(() => {
+    if (!directEnabled && whatsappEnabled) {
+      setCheckoutMode('whatsapp')
+    } else if (directEnabled) {
+      setCheckoutMode('direct')
+    }
+  }, [directEnabled, whatsappEnabled, isOpen])
+
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
@@ -166,6 +176,38 @@ export function CartDrawer({ store }: { store: any }) {
             <h3 className="text-xl font-bold text-neutral-900">Order Confirmed!</h3>
             <p className="text-sm text-neutral-500">Your order has been recorded directly. Reference: <span className="font-mono font-bold text-neutral-800">#{orderSuccess.toUpperCase()}</span></p>
           </div>
+
+          {/* Bank Transfer Details displayed to user if direct checkout */}
+          {checkoutMode === 'direct' && store.bank_account_number && (
+            <div className="bg-slate-50 p-4 rounded-2xl border border-neutral-100 text-left space-y-3">
+              <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Make Payment via Bank Transfer</p>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Bank Name</p>
+                <p className="text-xs font-bold text-neutral-800">{store.bank_name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Account Number</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-mono font-bold text-neutral-850">{store.bank_account_number}</p>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(store.bank_account_number);
+                      alert("Account number copied!");
+                    }}
+                    className="text-[10px] font-bold text-primary-600 hover:underline"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] text-neutral-400">Account Name</p>
+                <p className="text-xs font-bold text-neutral-800">{store.bank_account_name}</p>
+              </div>
+              <p className="text-[10px] text-neutral-400 italic mt-2">Please make the transfer of ₦{subtotal.toLocaleString()} and keep your receipt for delivery verification.</p>
+            </div>
+          )}
+
           <button 
             onClick={() => {
               setOrderSuccess(null)
@@ -255,29 +297,38 @@ export function CartDrawer({ store }: { store: any }) {
                 </div>
 
                 {/* Checkout Mode Toggle */}
-                <div className="grid grid-cols-2 gap-2 bg-neutral-100 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setCheckoutMode('direct')}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      checkoutMode === 'direct' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
-                    }`}
-                  >
-                    <Laptop className="w-3.5 h-3.5" /> Direct Checkout <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ml-0.5 ${checkoutMode === 'direct' ? 'bg-[#00A859]/10 text-[#00A859]' : 'bg-neutral-200 text-neutral-400'}`}>Beta</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCheckoutMode('whatsapp')}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      checkoutMode === 'whatsapp' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
-                    }`}
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" /> WhatsApp DM
-                  </button>
-                </div>
+                {!directEnabled && !whatsappEnabled ? (
+                  <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-center text-xs font-bold">
+                    This store is currently not accepting orders.
+                  </div>
+                ) : (
+                  directEnabled && whatsappEnabled && (
+                    <div className="grid grid-cols-2 gap-2 bg-neutral-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutMode('direct')}
+                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                          checkoutMode === 'direct' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
+                        }`}
+                      >
+                        <Laptop className="w-3.5 h-3.5" /> Direct Checkout <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider ml-0.5 ${checkoutMode === 'direct' ? 'bg-[#00A859]/10 text-[#00A859]' : 'bg-neutral-200 text-neutral-400'}`}>Beta</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutMode('whatsapp')}
+                        className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                          checkoutMode === 'whatsapp' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-500'
+                        }`}
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" /> WhatsApp DM
+                      </button>
+                    </div>
+                  )
+                )}
 
                 {/* Checkout Details Form */}
-                <form onSubmit={handleCheckout} className="space-y-3">
+                {(directEnabled || whatsappEnabled) && (
+                  <form onSubmit={handleCheckout} className="space-y-3">
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
@@ -321,6 +372,7 @@ export function CartDrawer({ store }: { store: any }) {
                     {submitting ? 'Placing Order...' : checkoutMode === 'whatsapp' ? 'Submit & Order on WhatsApp' : 'Place Order Now'}
                   </button>
                 </form>
+                )}
               </div>
             )}
           </div>

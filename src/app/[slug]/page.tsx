@@ -174,7 +174,7 @@ export default async function PublicStorePage(props: {
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
 
     return (
-      <div className="min-h-screen bg-[#F5F5F5] font-sans pb-16">
+      <div className="min-h-screen bg-slate-50 font-sans pb-16 antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -193,14 +193,14 @@ export default async function PublicStorePage(props: {
         {store.announcement_text && (
           <div 
             style={{ backgroundColor: store.accent_color || '#00A859' }} 
-            className="text-white text-xs font-bold py-2.5 px-4 text-center select-none shadow-sm sticky top-0 z-50 flex items-center justify-center gap-2"
+            className="text-white text-[11px] uppercase tracking-wider font-extrabold py-2 px-4 text-center select-none shadow-sm sticky top-0 z-50 flex items-center justify-center gap-2"
           >
             <span>{store.announcement_text}</span>
           </div>
         )}
 
         {/* ── TOP HEADER ── */}
-        <header className="bg-white px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-neutral-100">
+        <header className="bg-white/80 backdrop-blur-md px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-slate-200/40">
           {/* Row 1: Logo + Name + Settings */}
           <div className="flex items-center gap-3">
             {/* Avatar */}
@@ -254,21 +254,21 @@ export default async function PublicStorePage(props: {
         <div className="max-w-2xl mx-auto px-3 md:px-4">
 
           {/* ── SEARCH BAR ── */}
-          <form action={`/${slug}`} method="GET" className="mt-3 mb-3">
+          <form action={`/${slug}`} method="GET" className="mt-4 mb-3">
             {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input
                 type="search"
                 name="q"
                 defaultValue={searchQuery}
                 placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
-                className="w-full bg-white border border-neutral-200 rounded-full pl-10 pr-10 py-2.5 text-[13px] text-neutral-800 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#00A859]/30 focus:border-[#00A859] transition-all"
+                className="w-full bg-white border border-slate-200/80 rounded-full pl-11 pr-10 py-3 text-[13px] text-slate-800 placeholder-slate-450 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:border-slate-850 shadow-sm focus:shadow"
               />
               {searchQuery && (
                 <Link
                   href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-neutral-500 hover:text-neutral-800 bg-neutral-100 hover:bg-neutral-200 rounded-full transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
                 >
                   <X className="w-3 h-3" />
                 </Link>
@@ -279,17 +279,19 @@ export default async function PublicStorePage(props: {
           {/* ── CATEGORY PILLS ── */}
           {categories.length > 1 && (
             <div className="overflow-x-auto hide-scrollbar mb-4">
-              <div className="flex items-center gap-2 w-max">
+              <div className="flex items-center gap-2 w-max py-1">
                 {categories.map((cat: string) => {
                   const isActive = activeCategory === cat
                   return (
                     <Link
                       key={cat}
                       href={`/${slug}${cat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(cat)}${searchQuery ? `&q=${searchQuery}` : ''}`}`}
-                      className={`px-4 py-1.5 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all ${
-                        isActive
-                          ? 'bg-[#00A859] text-white'
-                          : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+                      style={{ 
+                        backgroundColor: isActive ? (store.accent_color || '#00A859') : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : '#475569'
+                      }}
+                      className={`px-4.5 py-2 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all shadow-sm border border-slate-200/40 hover:border-slate-300 ${
+                        isActive ? 'shadow-md border-transparent scale-102' : ''
                       }`}
                     >
                       {cat}
@@ -342,15 +344,15 @@ export default async function PublicStorePage(props: {
                   return (
                     <div
                       key={product.id}
-                      className="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm"
+                      className="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 border border-slate-200/40"
                     >
                       {/* Image */}
                       <Link href={`/${slug}/product/${product.id}`} className="relative block">
-                        <div className="w-full aspect-square bg-neutral-100 overflow-hidden">
+                        <div className="w-full aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="w-full h-full object-contain p-2"
+                            className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-500"
                             loading="lazy"
                           />
                         </div>
@@ -360,8 +362,8 @@ export default async function PublicStorePage(props: {
 
                         {/* Sold-out overlay */}
                         {product.stock_quantity <= 0 && (
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                            <span className="bg-white/95 text-neutral-900 text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest rotate-[-12deg] shadow-lg">
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                            <span className="bg-white/95 text-neutral-900 text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-wider shadow-lg">
                               Sold Out
                             </span>
                           </div>
@@ -370,16 +372,19 @@ export default async function PublicStorePage(props: {
                       </Link>
 
                       {/* Card Body */}
-                      <Link href={`/${slug}/product/${product.id}`} className="p-3 flex flex-col gap-0.5">
-                        <h3 className="text-[13px] font-bold text-neutral-800 leading-snug line-clamp-2">
+                      <Link href={`/${slug}/product/${product.id}`} className="p-3.5 flex flex-col gap-0.5">
+                        <h3 className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2">
                           {product.name}
                         </h3>
                         {variantHint && (
-                          <p className="text-[11px] text-neutral-400 truncate">
+                          <p className="text-[10px] text-slate-400 truncate">
                             {variantHint}
                           </p>
                         )}
-                        <p className="text-[15px] font-extrabold text-neutral-900 mt-1 tracking-tight">
+                        <p 
+                          style={{ color: store.accent_color || '#00A859' }} 
+                          className="text-[15px] font-extrabold mt-1.5 tracking-tight"
+                        >
                           ₦{Number(product.price).toLocaleString()}
                         </p>
                       </Link>

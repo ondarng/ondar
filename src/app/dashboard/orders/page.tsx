@@ -21,6 +21,29 @@ export default function DashboardOrdersPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const playChime = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12) // A5
+      
+      gain.gain.setValueAtTime(0.2, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35)
+      
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      
+      osc.start()
+      osc.stop(ctx.currentTime + 0.35)
+    } catch (e) {
+      console.warn("Chime play error:", e)
+    }
+  }
+
   useEffect(() => {
     async function fetchOrders() {
 
@@ -60,6 +83,53 @@ export default function DashboardOrdersPage() {
     }
     fetchOrders()
   }, [])
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+
+    if (!storeInfo?.id) return
+
+    const channel = supabase
+      .channel('dashboard-orders-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `store_id=eq.${storeInfo.id}`
+        },
+        async (payload) => {
+          // Play chime
+          playChime()
+
+          // Browser notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`New Order Placed! 🛍️`, {
+              body: `An order of ₦${payload.new.total_price.toLocaleString()} has been received!`,
+              icon: '/icon.png'
+            })
+          }
+
+          // Fetch product name for the list item
+          const { data: prod } = await supabase.from('products').select('name').eq('id', payload.new.product_id).single()
+          const orderWithProduct = {
+            ...payload.new,
+            products: prod ? { name: prod.name } : null
+          }
+
+          // Prepend new order
+          setOrders(prev => [orderWithProduct, ...prev])
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [storeInfo?.id])
 
   const handleCopyDetails = (order: any, cleanAddress: string) => {
     const details = `Order #${order.id.slice(0, 8)}\nItem: ${order.quantity}x ${order.products?.name} ${order.specification ? `(${order.specification})` : ''}\nTotal: ₦${order.total_price.toLocaleString()}\n\nCustomer: ${order.customer_name}\nPhone: ${order.customer_phone}\nInstagram: ${order.customer_instagram || 'N/A'}\nAddress: ${cleanAddress}`;
@@ -195,79 +265,76 @@ export default function DashboardOrdersPage() {
 
             return (
             <div key={order.id} className="bg-white p-5 rounded-2xl border border-border shadow-sm space-y-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-bold text-primary-900">{order.products?.name}</h3>
-                    <p className="text-xs text-secondary mt-0.5">
-                      Order #{order.id.slice(0, 8)} • {new Date(order.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 shrink-0 ${getStatusColor(order.status)}`}>
-                    {getStatusIcon(order.status)}
-                    {order.status === 'SHIPPED' ? 'ASSIGNED' : order.status}
+              <Link href={`/dashboard/orders/${order.id}`} className="block hover:opacity-80 active:opacity-95 transition-opacity space-y-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-bold text-primary-900">{order.products?.name}</h3>
+                      <p className="text-xs text-secondary mt-0.5">
+                        Order #{order.id.slice(0, 8)} • {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 shrink-0 ${getStatusColor(order.status)}`}>
+                      {getStatusIcon(order.status)}
+                      {order.status === 'SHIPPED' ? 'ASSIGNED' : order.status}
+                    </div>
                   </div>
                 </div>
-                
-                {/* Checkout Mode Badge */}
-                {(checkoutMode || isDirect) && (
-                  <div className="flex items-center gap-2">
-                    {checkoutMode && (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${checkoutMode === 'Direct' ? 'bg-purple-100 text-purple-700' : 'bg-[#25D366]/10 text-[#25D366]'}`}>
-                        {checkoutMode === 'Direct' ? <Laptop className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
-                        {checkoutMode} Checkout
-                      </span>
-                    )}
-                    
-                    {checkoutMode === 'Direct' && (
-                      <button 
-                        onClick={() => handleCopyDetails(order, cleanAddress)}
-                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-md text-[10px] font-bold transition-colors"
-                      >
-                        {copiedOrderId === order.id ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-                        {copiedOrderId === order.id ? 'Copied!' : 'Copy Details'}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-border text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-secondary">Quantity</span>
-                  <span className="font-medium text-primary-900">{order.quantity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Total Price</span>
-                  <span className="font-bold text-primary-900">₦{order.total_price.toLocaleString()}</span>
-                </div>
-                {order.specification && (
-                  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-                    <span className="text-secondary">Specification</span>
-                    <span className="font-bold text-primary-900 text-right text-xs max-w-[200px]">{order.specification}</span>
+                <div className="bg-slate-50 p-3 rounded-xl border border-border text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-secondary">Quantity</span>
+                    <span className="font-medium text-primary-900">{order.quantity}</span>
                   </div>
-                )}
-                <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-                  <span className="text-secondary">Customer</span>
-                  <span className="font-medium text-primary-900 text-right">
-                    {order.customer_name}<br/>
-                    <span className="text-xs text-blue-600"><a href={`tel:${order.customer_phone}`}>{order.customer_phone}</a></span>
-                    {order.customer_instagram && (
-                      <span className="block text-[#E1306C] font-bold text-[10px]">
-                        @{order.customer_instagram.replace('@', '')}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                {cleanAddress && (
+                  <div className="flex justify-between">
+                    <span className="text-secondary">Total Price</span>
+                    <span className="font-bold text-primary-900">₦{order.total_price.toLocaleString()}</span>
+                  </div>
+                  {order.specification && (
+                    <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+                      <span className="text-secondary">Specification</span>
+                      <span className="font-bold text-primary-900 text-right text-xs max-w-[200px]">{order.specification}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
-                    <span className="text-secondary">Address</span>
-                    <span className="font-medium text-primary-900 text-right text-xs max-w-[200px]">
-                      {cleanAddress}
+                    <span className="text-secondary">Customer</span>
+                    <span className="font-medium text-primary-900 text-right">
+                      {order.customer_name}<br/>
+                      <span className="text-xs text-blue-600">{order.customer_phone}</span>
                     </span>
                   </div>
-                )}
-              </div>
+                  {cleanAddress && (
+                    <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
+                      <span className="text-secondary">Address</span>
+                      <span className="font-medium text-primary-900 text-right text-xs max-w-[200px] truncate">
+                        {cleanAddress}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              {/* Checkout Mode Badge */}
+              {(checkoutMode || isDirect) && (
+                <div className="flex items-center gap-2">
+                  {checkoutMode && (
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${checkoutMode === 'Direct' ? 'bg-purple-100 text-purple-700' : 'bg-[#25D366]/10 text-[#25D366]'}`}>
+                      {checkoutMode === 'Direct' ? <Laptop className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
+                      {checkoutMode} Checkout
+                    </span>
+                  )}
+                  
+                  {checkoutMode === 'Direct' && (
+                    <button 
+                      onClick={() => handleCopyDetails(order, cleanAddress)}
+                      className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-md text-[10px] font-bold transition-colors"
+                    >
+                      {copiedOrderId === order.id ? <CheckCircle2 className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedOrderId === order.id ? 'Copied!' : 'Copy Details'}
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="pt-2 border-t border-border flex flex-wrap gap-2">
                 {order.status === 'PENDING' && (

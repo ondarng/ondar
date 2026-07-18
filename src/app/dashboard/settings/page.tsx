@@ -26,6 +26,11 @@ export default function DashboardSettingsPage() {
   const [facebook, setFacebook] = useState('')
   const [twitter, setTwitter] = useState('')
   const [announcementText, setAnnouncementText] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [bankAccountNumber, setBankAccountNumber] = useState('')
+  const [bankAccountName, setBankAccountName] = useState('')
+  const [enableDirectCheckout, setEnableDirectCheckout] = useState(true)
+  const [enableWhatsappCheckout, setEnableWhatsappCheckout] = useState(true)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -65,6 +70,11 @@ export default function DashboardSettingsPage() {
       setFacebook(storeData.facebook_handle || '')
       setTwitter(storeData.twitter_handle || '')
       setAnnouncementText(storeData.announcement_text || '')
+      setBankName(storeData.bank_name || '')
+      setBankAccountNumber(storeData.bank_account_number || '')
+      setBankAccountName(storeData.bank_account_name || '')
+      setEnableDirectCheckout(storeData.enable_direct_checkout !== false)
+      setEnableWhatsappCheckout(storeData.enable_whatsapp_checkout !== false)
       if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
         setTrustBadges(storeData.trust_badges.join(', '))
       }
@@ -94,7 +104,12 @@ export default function DashboardSettingsPage() {
         instagram_handle: instagram,
         facebook_handle: facebook,
         twitter_handle: twitter,
-        announcement_text: announcementText
+        announcement_text: announcementText,
+        bank_name: bankName,
+        bank_account_number: bankAccountNumber,
+        bank_account_name: bankAccountName,
+        enable_direct_checkout: enableDirectCheckout,
+        enable_whatsapp_checkout: enableWhatsappCheckout
       })
       .eq('id', store.id)
 
@@ -317,6 +332,79 @@ export default function DashboardSettingsPage() {
                 onChange={(e) => setTwitter(e.target.value)}
                 placeholder="e.g. https://x.com/yourstore"
                 className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Checkout Options */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-border space-y-4">
+            <h2 className="text-sm uppercase tracking-widest text-secondary font-bold mb-2">Checkout Options</h2>
+            
+            <div className="flex items-center justify-between py-2 border-b border-neutral-100">
+              <div>
+                <label className="text-xs font-bold text-primary-900">Enable Direct Checkout</label>
+                <p className="text-[10px] text-secondary">Allow customers to order directly with bank details</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={enableDirectCheckout}
+                onChange={(e) => setEnableDirectCheckout(e.target.checked)}
+                className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <label className="text-xs font-bold text-primary-900">Enable WhatsApp DM Checkout</label>
+                <p className="text-[10px] text-secondary">Allow customers to send order carts straight to WhatsApp</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={enableWhatsappCheckout}
+                onChange={(e) => setEnableWhatsappCheckout(e.target.checked)}
+                className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Bank Transfer Details */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-border space-y-4">
+            <h2 className="text-sm uppercase tracking-widest text-secondary font-bold mb-2">Bank Details (Direct Checkout)</h2>
+            <p className="text-[10px] text-secondary leading-relaxed">
+              These details will be shown to customers choosing "Direct Checkout" to transfer payment.
+            </p>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Bank Name</label>
+              <input
+                type="text"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder="e.g. GTBank, Kuda, Access Bank"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Account Number</label>
+              <input
+                type="text"
+                value={bankAccountNumber}
+                onChange={(e) => setBankAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="10-digit Account Number"
+                maxLength={10}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-xs font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary-900">Account Name</label>
+              <input
+                type="text"
+                value={bankAccountName}
+                onChange={(e) => setBankAccountName(e.target.value)}
+                placeholder="Official Account Name"
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-border focus:ring-2 focus:ring-primary-500 outline-none transition-all text-xs"
               />
             </div>
           </div>

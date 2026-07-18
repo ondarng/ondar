@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ondar Interactive Masterclass & Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#00A859',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .mockup-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 168, 89, 0.15), 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary-100 selection:text-primary-900 overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-slate-200/50">
+        <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-xl tracking-tight text-slate-900">Ondar Masterclass</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#why-ondar" class="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors hidden md:block">Why Ondar?</a>
+                <a href="#features" class="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors hidden md:block">Features</a>
+                <a href="#step-1" class="bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-slate-800 transition-colors">Start Tour</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-40 pb-20 px-6 max-w-4xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-sm font-bold mb-6">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-600"></span>
+            </span>
+            Everything You Need To Know
+        </div>
+        <h1 class="text-5xl md:text-7xl font-display font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-6">
+            The Ultimate Guide<br>To Selling With <span class="text-primary-600">Ondar.</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Welcome to your interactive tour. Below, we've broken down exactly how Ondar works, why it beats traditional storefronts like Bumpa or Shopify, and how you can run your entire business from your phone.
+        </p>
+    </section>
+
+    <!-- Why Ondar Section -->
+    <section id="why-ondar" class="py-20 px-6 bg-white border-y border-slate-100">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-display font-extrabold text-center text-slate-900 mb-12">Traditional Storefronts vs. Ondar</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- The Old Way -->
+                <div class="bg-red-50/50 border border-red-100 rounded-3xl p-8 space-y-4">
+                    <div class="w-10 h-10 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-display font-bold text-xl text-red-950">The Old, Chaotic Way</h3>
+                    <p class="text-sm text-red-800 leading-relaxed">
+                        Customers DM you asking "is this available?". You reply with pictures, copy-paste your bank details, wait for credit alerts, manually write down delivery addresses, and lose track of inventory. It is slow, unprofessional, and eats up your entire day.
+                    </p>
+                </div>
+                <!-- The Ondar Way -->
+                <div class="bg-primary-50/50 border border-primary-100 rounded-3xl p-8 space-y-4">
+                    <div class="w-10 h-10 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-display font-bold text-xl text-primary-950">The Ondar Way</h3>
+                    <p class="text-sm text-primary-800 leading-relaxed">
+                        You send a single Link-in-Bio storefront link. Customers browse your live catalog, select their sizes, fill their delivery details, and checkout. The order details are instantly formatted, paid for, and waiting on your dashboard.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Master List -->
+    <section id="features" class="py-20 bg-slate-50 px-6">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-display font-extrabold text-center text-slate-900 mb-16">Ondar's Core Feature Suite</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i data-lucide="smartphone" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">Instant Storefront</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Your own custom site under `ondar.shop/yourstore`. Updates stock instantly when you sell items.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center"><i data-lucide="laptop" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">Direct Checkout</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Accept payments directly online via Paystack card or bank transfer. Clean order logs are generated instantly.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">WhatsApp Checkout</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Perfect for negotiation. Compiles the cart items, totals, and address, then sends it to your WhatsApp in one click.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i data-lucide="users" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">Customer Memory CRM</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Ondar remembers everyone who buys from you. Search customers by name, see their address, phone, and IG handles instantly.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center"><i data-lucide="image" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">Digital Receipt Download</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Need to send proof of payment? Click "Receipt" and Ondar automatically generates a beautiful PNG receipt you can send over.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"><i data-lucide="copy" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-slate-900">1-Click Dispatch Copy</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">Direct Checkout orders have a copy button that copies the customer's name, phone, item, and address formatted for dispatch riders.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Step 1: The Storefront -->
+    <section id="step-1" class="py-24 px-6 bg-white border-t border-slate-100">
+        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div class="order-2 lg:order-1 relative">
+                <div class="absolute -inset-4 bg-gradient-to-tr from-primary-100 to-transparent opacity-50 rounded-3xl blur-2xl"></div>
+                <!-- Mobile Mockup -->
+                <div class="relative mx-auto w-[320px] bg-slate-50 rounded-[2.5rem] p-2 mockup-shadow border-4 border-slate-900">
+                    <div class="bg-[#F5F5F5] rounded-[2rem] overflow-hidden h-[600px] flex flex-col relative font-sans">
+                        
+                        <!-- Top Header matching real code -->
+                        <header class="bg-white px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-neutral-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                                    <span class="text-white text-sm font-extrabold">C</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h1 class="text-[14px] font-extrabold text-neutral-900 leading-tight truncate">Chic Boutique</h1>
+                                    <p class="text-[10px] text-neutral-500 leading-tight truncate">Premium Fashion • Lagos</p>
+                                </div>
+                                <span class="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400">
+                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                </span>
+                            </div>
+
+                            <!-- Search bar matching real code -->
+                            <div class="relative mt-3">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400"></i>
+                                <input type="text" placeholder="Search Chic Boutique products..." class="w-full bg-slate-50 border border-neutral-200 rounded-full pl-9 pr-4 py-2 text-[11px] outline-none" readonly />
+                            </div>
+
+                            <!-- Category Pills matching real code -->
+                            <div class="overflow-x-auto hide-scrollbar mt-3">
+                                <div class="flex items-center gap-1.5 w-max">
+                                    <span class="px-3.5 py-1 rounded-full text-[10px] font-bold bg-primary-600 text-white">All</span>
+                                    <span class="px-3.5 py-1 rounded-full text-[10px] font-bold bg-white text-neutral-600 border border-neutral-200">Denim</span>
+                                    <span class="px-3.5 py-1 rounded-full text-[10px] font-bold bg-white text-neutral-600 border border-neutral-200">Silk</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <!-- Available Inventory Heading matching real code -->
+                        <div class="px-3 pt-4 pb-2 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-[12px] font-extrabold text-neutral-900">Available Inventory</h2>
+                                <p class="text-[9px] text-neutral-400">2 items available</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1 text-[9px] font-bold text-neutral-500 bg-white border border-neutral-200 px-2 py-0.5 rounded-full">
+                                Nationwide Delivery
+                            </span>
+                        </div>
+
+                        <!-- Product Grid matching real code -->
+                        <div class="flex-1 overflow-y-auto px-3 pb-20">
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <!-- Card 1 -->
+                                <div class="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm">
+                                    <div class="w-full aspect-square bg-neutral-100 flex items-center justify-center p-2">
+                                        <i data-lucide="image" class="w-8 h-8 text-neutral-300"></i>
+                                    </div>
+                                    <div class="p-2.5 flex flex-col gap-0.5">
+                                        <h3 class="text-[11px] font-bold text-neutral-800 leading-snug truncate">Vintage Denim</h3>
+                                        <p class="text-[12px] font-extrabold text-neutral-900 mt-0.5">₦25,000</p>
+                                    </div>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm">
+                                    <div class="w-full aspect-square bg-neutral-100 flex items-center justify-center p-2">
+                                        <i data-lucide="image" class="w-8 h-8 text-neutral-300"></i>
+                                    </div>
+                                    <div class="p-2.5 flex flex-col gap-0.5">
+                                        <h3 class="text-[11px] font-bold text-neutral-800 leading-snug truncate">Silk Blouse</h3>
+                                        <p class="text-[12px] font-extrabold text-neutral-900 mt-0.5">₦15,000</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Cart Button matching real code -->
+                        <div class="absolute bottom-4 right-4 z-50 p-3 bg-primary-600 rounded-full text-white shadow-2xl flex items-center gap-2">
+                            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                            <span class="bg-white text-neutral-950 font-black text-[10px] px-1.5 py-0.5 rounded-full min-w-4 text-center">1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 mb-6">
+                    <span class="font-display font-extrabold text-xl">1</span>
+                </div>
+                <h2 class="text-3xl font-display font-extrabold text-slate-900">Your Storefront Link-in-Bio</h2>
+                <p class="text-slate-500 text-lg leading-relaxed font-sans">
+                    Setup takes less than 60 seconds. Ondar creates a custom mobile-first website where your followers can instantly see what you have in stock without asking "is this available?" in the DMs.
+                </p>
+                <div class="space-y-4 pt-2">
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm shrink-0">A</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">Automated Categories</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Products are instantly grouped into categories. Your customers can filter exactly what they want in one tap.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm shrink-0">B</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">Custom Accent Branding</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Upload your own store logo and choose your brand color. Your storefront will look professional and uniquely yours.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Step 2: The Cart Drawer -->
+    <section class="py-24 px-6 bg-slate-50">
+        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-6">
+                <div class="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 mb-6">
+                    <span class="font-display font-extrabold text-xl">2</span>
+                </div>
+                <h2 class="text-3xl font-display font-extrabold text-slate-900">The Slide-over Cart & Checkout</h2>
+                <p class="text-slate-500 text-lg leading-relaxed">
+                    When customers add items, a sleek drawer slides in. They select how they want to buy. Direct online payment or WhatsApp discussion—Ondar supports both.
+                </p>
+                <div class="space-y-4 pt-2">
+                    <div class="flex gap-3 bg-white p-4 rounded-xl border border-slate-200">
+                        <i data-lucide="laptop" class="w-5 h-5 text-purple-600 shrink-0"></i>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Direct Checkout (Paystack)</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Perfect for buyers who just want to pay and wait for delivery. Integrates with bank transfer and card payment.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 bg-white p-4 rounded-xl border border-slate-200">
+                        <i data-lucide="message-square" class="w-5 h-5 text-[#25D366] shrink-0"></i>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">WhatsApp DM Checkout</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Ideal if you want to negotiate delivery prices or answer custom specifications before they pay.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute -inset-4 bg-gradient-to-tr from-purple-100 to-transparent opacity-50 rounded-3xl blur-2xl"></div>
+                <!-- Cart Mockup matching real code -->
+                <div class="relative mx-auto w-[320px] bg-slate-50 rounded-[2.5rem] p-2 mockup-shadow border-4 border-slate-900">
+                    <div class="bg-white rounded-[2rem] overflow-hidden h-[600px] flex flex-col relative font-sans">
+                        
+                        <!-- Header -->
+                        <div class="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="shopping-bag" class="w-4 h-4 text-neutral-800"></i>
+                                <h2 class="font-bold text-neutral-900 text-sm">Your Cart</h2>
+                            </div>
+                            <i data-lucide="x" class="w-4 h-4 text-neutral-400"></i>
+                        </div>
+
+                        <!-- Cart Items -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                            <div class="flex gap-3 p-2.5 bg-neutral-50 rounded-xl border border-neutral-100">
+                                <div class="w-10 h-10 bg-white rounded-lg border border-neutral-100 overflow-hidden flex items-center justify-center">
+                                    <i data-lucide="image" class="w-6 h-6 text-neutral-300"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-[10px] text-neutral-900 truncate">Silk Blouse</h4>
+                                    <p class="text-[9px] text-neutral-400">Size M</p>
+                                    <p class="font-bold text-[10px] text-neutral-950 mt-0.5">₦15,000</p>
+                                </div>
+                                <div class="flex items-center gap-1.5 self-center">
+                                    <span class="text-xs font-bold px-2">1</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form & Checkout Options matching real code -->
+                        <div class="border-t border-neutral-100 p-4 bg-slate-50/50 space-y-3">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-neutral-500 text-[11px] font-medium">Subtotal</span>
+                                <span class="text-sm font-black text-neutral-950">₦15,000</span>
+                            </div>
+
+                            <!-- Checkout Mode Toggle -->
+                            <div class="grid grid-cols-2 gap-1.5 bg-neutral-100 p-0.5 rounded-lg">
+                                <button class="py-1.5 rounded-md text-[9px] font-bold bg-white text-neutral-950 shadow-sm flex items-center justify-center gap-1">
+                                    <i data-lucide="laptop" class="w-3 h-3"></i> Direct <span class="px-1 py-0.25 bg-[#00A859]/10 text-[#00A859] rounded text-[6px] uppercase font-bold">Beta</span>
+                                </button>
+                                <button class="py-1.5 rounded-md text-[9px] font-bold text-neutral-500 flex items-center justify-center gap-1">
+                                    <i data-lucide="message-square" class="w-3 h-3"></i> WhatsApp DM
+                                </button>
+                            </div>
+
+                            <!-- Form Fields -->
+                            <div class="space-y-2">
+                                <div class="relative">
+                                    <i data-lucide="user" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400"></i>
+                                    <input type="text" placeholder="Your Full Name" value="Jane Doe" class="w-full pl-8 pr-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-[10px]" readonly />
+                                </div>
+                                <div class="relative">
+                                    <i data-lucide="phone" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400"></i>
+                                    <input type="tel" placeholder="WhatsApp Number" value="08012345678" class="w-full pl-8 pr-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-[10px]" readonly />
+                                </div>
+                                <div class="relative">
+                                    <i data-lucide="map-pin" class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-neutral-400"></i>
+                                    <textarea placeholder="Delivery Address" class="w-full pl-8 pr-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-[10px] h-10 resize-none" readonly>123 Admiralty Way, Lekki</textarea>
+                                </div>
+                            </div>
+
+                            <button class="w-full bg-primary-600 text-white font-extrabold py-2.5 rounded-lg text-xs hover:opacity-90 transition-all shadow-md">
+                                Place Order Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Step 3: The Orders Dashboard -->
+    <section class="py-24 px-6 bg-white border-t border-slate-100">
+        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            
+            <div class="relative order-2 lg:order-1">
+                <div class="absolute -inset-4 bg-gradient-to-tr from-green-100 to-transparent opacity-50 rounded-3xl blur-2xl"></div>
+                <!-- Mobile Dashboard Mockup matching real code -->
+                <div class="relative mx-auto w-[320px] bg-slate-50 rounded-[2.5rem] p-2 mockup-shadow border-4 border-slate-900">
+                    <div class="bg-slate-50 rounded-[2rem] overflow-hidden h-[600px] flex flex-col relative font-sans">
+                        
+                        <!-- Header matching real code -->
+                        <header class="bg-white border-b border-border sticky top-0 z-10 px-4 py-3 flex items-center gap-3">
+                            <i data-lucide="arrow-left" class="w-4 h-4 text-primary-900"></i>
+                            <span class="font-bold text-primary-900 text-sm">Manage Orders</span>
+                        </header>
+
+                        <!-- Order list container matching real code -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                            
+                            <!-- Order Card: Direct Checkout -->
+                            <div class="bg-white p-4 rounded-2xl border border-border shadow-sm space-y-3 text-xs">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h3 class="font-bold text-primary-900 text-[12px]">Silk Blouse</h3>
+                                        <p class="text-[9px] text-slate-400 mt-0.5">Order #8a9b2c • Today</p>
+                                    </div>
+                                    <div class="px-2 py-0.5 rounded-full text-[9px] font-bold border flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                                        <i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i> PAID
+                                    </div>
+                                </div>
+
+                                <!-- Real Badge matching what we just wrote -->
+                                <div class="flex items-center gap-1.5">
+                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
+                                        <i data-lucide="laptop" class="w-2.5 h-2.5"></i> Direct Checkout
+                                    </span>
+                                    <button class="ml-auto inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 rounded text-[8px] font-bold">
+                                        <i data-lucide="copy" class="w-2.5 h-2.5"></i> Copy Details
+                                    </button>
+                                </div>
+
+                                <!-- Body Info Grid matching real code -->
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-border space-y-1.5 text-[10px]">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Quantity</span>
+                                        <span class="font-medium text-slate-900">1</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Total Price</span>
+                                        <span class="font-bold text-slate-900">₦15,000</span>
+                                    </div>
+                                    <div class="flex justify-between border-t border-slate-200 pt-1.5">
+                                        <span class="text-slate-400">Customer</span>
+                                        <span class="font-medium text-slate-900 text-right">
+                                            Jane Doe<br/>
+                                            <span class="text-blue-600">08012345678</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between border-t border-slate-200 pt-1.5">
+                                        <span class="text-slate-400">Address</span>
+                                        <span class="font-medium text-slate-900 text-right w-36 truncate">123 Admiralty Way, Lekki</span>
+                                    </div>
+                                </div>
+
+                                <!-- Actions matching real code -->
+                                <div class="pt-2 border-t border-border flex gap-1.5">
+                                    <button class="flex-1 bg-purple-50 text-purple-700 py-1.5 rounded-lg font-bold text-[10px]">Assign Delivery</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6 order-1 lg:order-2">
+                <div class="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 mb-6">
+                    <span class="font-display font-extrabold text-xl">3</span>
+                </div>
+                <h2 class="text-3xl font-display font-extrabold text-slate-900">The Mobile Order Dashboard</h2>
+                <p class="text-slate-500 text-lg leading-relaxed">
+                    Designed to work on any mobile browser. Manage your pending payments, assign deliveries, and view detailed customer specs without losing control of your shop.
+                </p>
+                <div class="space-y-4 pt-2">
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm shrink-0"><i data-lucide="copy" class="w-4 h-4"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">1-Click Copy Details</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Tapping "Copy Details" extracts customer name, items, phone, and delivery address. You can paste it directly to a logistics app (like Bolt, Fez, or GIG) in one tap.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm shrink-0"><i data-lucide="image" class="w-4 h-4"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm">Clean Receipt Downloads</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Generate a styled digital image receipt matching your order specs so you can easily forward it to customers on WhatsApp.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 4: Customer CRM -->
+    <section class="py-24 px-6 bg-slate-50 border-t border-slate-100">
+        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-6">
+                <div class="w-12 h-12 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 mb-6">
+                    <span class="font-display font-extrabold text-xl">4</span>
+                </div>
+                <h2 class="text-3xl font-display font-extrabold text-slate-900">Automated Customer Memory (CRM)</h2>
+                <p class="text-slate-500 text-lg leading-relaxed">
+                    Stop asking repeat customers for their phone numbers, delivery addresses, or Instagram handles. Ondar automatically builds a database of your buyers every time they checkout.
+                </p>
+                <div class="space-y-4 pt-2">
+                    <div class="flex gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <i data-lucide="search" class="w-5 h-5 text-slate-400 shrink-0"></i>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Searchable Contact List</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Type any buyer's name on your dashboard to instantly look up their billing history, active orders, and social handles.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative">
+                <div class="absolute -inset-4 bg-gradient-to-tr from-blue-100 to-transparent opacity-50 rounded-3xl blur-2xl"></div>
+                <!-- Customer Memory Mockup -->
+                <div class="relative mx-auto w-[320px] bg-slate-50 rounded-[2.5rem] p-2 mockup-shadow border-4 border-slate-900">
+                    <div class="bg-white rounded-[2rem] overflow-hidden h-[600px] flex flex-col relative font-sans">
+                        
+                        <!-- Header -->
+                        <header class="bg-white border-b border-border sticky top-0 z-10 px-4 py-3 flex items-center gap-3">
+                            <i data-lucide="arrow-left" class="w-4 h-4 text-primary-900"></i>
+                            <span class="font-bold text-primary-900 text-sm">Customer Memory</span>
+                        </header>
+
+                        <!-- Search Box -->
+                        <div class="p-4 bg-slate-50 border-b border-neutral-100">
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input type="text" value="Jane Doe" class="w-full pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs outline-none" readonly />
+                            </div>
+                        </div>
+
+                        <!-- Customer List -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
+                            <div class="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-extrabold text-neutral-900">Jane Doe</h4>
+                                    <span class="text-[9px] text-[#E1306C] font-bold">@janedoe</span>
+                                </div>
+                                <p class="text-[10px] text-neutral-500">08012345678</p>
+                                <p class="text-[10px] text-neutral-400 border-t border-neutral-100 pt-2 mt-2">123 Admiralty Way, Lekki, Lagos</p>
+                                <div class="flex justify-between items-center text-[9px] text-primary-600 font-bold pt-1.5">
+                                    <span>2 Orders placed</span>
+                                    <span>Spent: ₦30,000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Step 5: Onboarding & Setup -->
+    <section class="py-24 px-6 bg-white border-t border-slate-100">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-display font-extrabold text-center text-slate-900 mb-16">Setting Up Ondar in 3 Steps</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Step A -->
+                <div class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 space-y-4">
+                    <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center font-bold">1</div>
+                    <h3 class="font-display font-bold text-lg">Create Your Store</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Input your business name, logo, brand accent color, and your active WhatsApp phone number.
+                    </p>
+                </div>
+                <!-- Step B -->
+                <div class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 space-y-4">
+                    <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center font-bold">2</div>
+                    <h3 class="font-display font-bold text-lg">Add Your Inventory</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Add product images, names, prices, custom specifications (e.g. sizes, colors), and stock quantities.
+                    </p>
+                </div>
+                <!-- Step C -->
+                <div class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 space-y-4">
+                    <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center font-bold">3</div>
+                    <h3 class="font-display font-bold text-lg">Link on Instagram</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Copy your store url (e.g., `ondar.shop/chic`) and paste it in your bio. Let customers checkout seamlessly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="py-20 bg-slate-900 text-center px-6">
+        <h2 class="text-3xl md:text-4xl font-display font-extrabold text-white mb-6">Ready to upgrade your business?</h2>
+        <p class="text-slate-400 text-lg mb-8 max-w-xl mx-auto">Get your instant storefront and start accepting professional orders via Direct Checkout and WhatsApp.</p>
+        <div class="bg-white/10 p-6 rounded-2xl max-w-sm mx-auto border border-white/10 mb-8 backdrop-blur-sm">
+            <div class="text-5xl font-display font-extrabold text-white mb-2">₦750<span class="text-lg text-slate-400 font-sans font-normal">/month</span></div>
+            <p class="text-sm text-slate-300 font-medium mb-6">Flat pricing. No hidden fees.</p>
+            <a href="https://ondar.shop/signup" target="_blank" class="block w-full bg-primary-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20">
+                Start Selling Today
+            </a>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

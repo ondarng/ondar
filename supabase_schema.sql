@@ -176,3 +176,8 @@ CREATE POLICY "Vendors can insert vents" ON vents
     FOR INSERT TO authenticated WITH CHECK (auth.uid() = vendor_id);
 CREATE POLICY "Vendors can view their own vents" ON vents
     FOR SELECT TO authenticated USING (auth.uid() = vendor_id);
+
+-- 8. EXTENSIONS & MIGRATIONS (V1.1)
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_direct_checkout BOOLEAN DEFAULT true;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_whatsapp_checkout BOOLEAN DEFAULT true;
+

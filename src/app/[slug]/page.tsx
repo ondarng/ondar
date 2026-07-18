@@ -199,59 +199,81 @@ export default async function PublicStorePage(props: {
           </div>
         )}
 
-        {/* ── TOP HEADER ── */}
-        <header className="bg-white/80 backdrop-blur-md px-4 pt-4 pb-3 sticky top-0 z-40 border-b border-slate-200/40">
-          {/* Row 1: Logo + Name + Settings */}
-          <div className="flex items-center gap-3">
-            {/* Avatar */}
-            {store.logo_url ? (
-              <img
-                src={store.logo_url}
-                alt={store.store_name}
-                className="w-9 h-9 rounded-full object-cover shrink-0 border border-neutral-200"
-              />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-[#00A859] flex items-center justify-center shrink-0">
-                <span className="text-white text-sm font-extrabold">{store.store_name.charAt(0)}</span>
-              </div>
-            )}
+        {/* ── COVER BANNER ── */}
+        <div className="h-24 w-full bg-gradient-to-br from-slate-900 via-neutral-900 to-slate-850 relative overflow-hidden select-none">
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '12px 12px' }} />
+          <div className="absolute right-0 top-0 w-32 h-32 rounded-full blur-[60px] opacity-40" style={{ backgroundColor: store.accent_color || '#00A859' }} />
+        </div>
 
-            {/* Name + Description */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-[16px] font-extrabold text-neutral-900 leading-tight truncate">
-                {store.store_name}
-              </h1>
-              {(store.description) && (
-                <p className="text-[12px] text-neutral-500 leading-tight truncate">
-                  {store.description}
-                </p>
+        {/* ── STORE HEADER CARD ── */}
+        <div className="max-w-2xl mx-auto px-4 -mt-8 relative z-10">
+          <div className="bg-white rounded-3xl border border-slate-200/50 p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-4">
+              {/* Logo / Avatar */}
+              {store.logo_url ? (
+                <img
+                  src={store.logo_url}
+                  alt={store.store_name}
+                  className="w-16 h-16 rounded-2xl object-cover shrink-0 border-2 border-white shadow-md bg-white"
+                />
+              ) : (
+                <div 
+                  style={{ backgroundColor: store.accent_color || '#00A859' }} 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-md text-white text-xl font-extrabold"
+                >
+                  {store.store_name.charAt(0)}
+                </div>
+              )}
+
+              {/* Name & Description */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-[18px] font-black text-slate-900 leading-tight">
+                  {store.store_name}
+                </h1>
+                {store.description && (
+                  <p className="text-[12px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                    {store.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Share/Dashboard Actions */}
+              {isOwner ? (
+                <Link
+                  href="/dashboard"
+                  style={{ color: store.accent_color || '#00A859', borderColor: (store.accent_color || '#00A859') + '25' }}
+                  className="shrink-0 px-3.5 py-2 bg-slate-50 border rounded-xl text-[11px] font-extrabold hover:bg-slate-105 transition-all active:scale-95"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name}: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share store"
+                  className="shrink-0 w-9 h-9 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-700 transition-colors"
+                >
+                  <Share2 className="w-4.5 h-4.5" />
+                </a>
               )}
             </div>
 
-            {/* Settings icon or Admin link */}
-            {isOwner ? (
-              <Link
-                href="/dashboard"
-                className="shrink-0 px-3 py-1.5 bg-[#00A859]/10 text-[#00A859] rounded-full text-[12px] font-extrabold hover:bg-[#00A859]/20 transition-colors"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name}: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Share store"
-                className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
-              >
-                <Share2 className="w-5 h-5" />
-              </a>
+            {/* Micro badges: Trust Badges */}
+            {trustBadges.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-slate-100 mt-2">
+                {trustBadges.map((badge: string, i: number) => (
+                  <span key={i} className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-550 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100/50">
+                    <svg style={{ color: store.accent_color || '#00A859' }} className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                    {badge}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
+        </div>
 
-        </header>
-
-        <div className="max-w-2xl mx-auto px-3 md:px-4">
+        <div className="max-w-2xl mx-auto px-4">
 
           {/* ── SEARCH BAR ── */}
           <form action={`/${slug}`} method="GET" className="mt-4 mb-3">
@@ -303,31 +325,21 @@ export default async function PublicStorePage(props: {
           )}
 
           {/* ── INVENTORY HEADER ── */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mt-6 mb-4">
             <div>
-              <h2 className="text-[15px] font-extrabold text-neutral-900">
+              <h2 className="text-[16px] font-black text-slate-900 tracking-tight">
                 {searchQuery ? `Results for "${searchQuery}"` : 'Available Inventory'}
               </h2>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] text-slate-400 mt-0.5">
                 {products && products.length > 0 ? `${products.length} item${products.length !== 1 ? 's' : ''}` : 'Updated just now'}
               </p>
             </div>
-            {!searchQuery && trustBadges.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {trustBadges.map((badge: string, i: number) => (
-                  <span key={i} className="inline-flex items-center gap-1 text-[10px] font-bold text-neutral-500 bg-white border border-neutral-200 px-2.5 py-1 rounded-full">
-                    <svg className="w-3 h-3 text-[#00A859]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                    {badge}
-                  </span>
-                ))}
-              </div>
-            )}
             {searchQuery && (
               <Link
                 href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                className="text-[12px] font-bold text-neutral-500 border border-neutral-200 bg-white px-3 py-1.5 rounded-full"
+                className="text-[12px] font-bold text-slate-500 border border-slate-200 bg-white px-3.5 py-1.5 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
               >
-                Clear
+                Clear Search
               </Link>
             )}
           </div>

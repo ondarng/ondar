@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS leads (
 -- STORES: Vendors can only view/edit their own store
 ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Vendors can manage their own store" ON stores
-    FOR ALL USING (auth.uid() = vendor_id);
+    FOR ALL USING (auth.uid() = vendor_id)
+    WITH CHECK (auth.uid() = vendor_id);
 CREATE POLICY "Public can view stores" ON stores
     FOR SELECT USING (true);
 
@@ -94,14 +95,28 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Vendors can manage their own products" ON products
     FOR ALL USING (
         EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.vendor_id = auth.uid())
+    )
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.vendor_id = auth.uid())
     );
 CREATE POLICY "Public can view products" ON products
     FOR SELECT USING (true);
 
--- ORDERS: Vendors view their store's orders; public can create
+-- ORDERS: Vendors view/manage their store's orders; public can create
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Vendors can view their store's orders" ON orders
     FOR SELECT USING (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.vendor_id = auth.uid())
+    );
+CREATE POLICY "Vendors can update their store's orders" ON orders
+    FOR UPDATE USING (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.vendor_id = auth.uid())
+    )
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.vendor_id = auth.uid())
+    );
+CREATE POLICY "Vendors can delete their store's orders" ON orders
+    FOR DELETE USING (
         EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.vendor_id = auth.uid())
     );
 CREATE POLICY "Public can create orders" ON orders

@@ -31,8 +31,20 @@ export default function DashboardPage() {
   const [ventSubmitted, setVentSubmitted] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    }
+  }, [])
 
   useEffect(() => {
     async function fetchData() {
@@ -329,8 +341,15 @@ export default function DashboardPage() {
             </p>
           </div>
           <button 
-            onClick={() => {
-              alert('To install the app:\n\n📱 iOS (iPhone):\nTap the Share button at the bottom of Safari, then scroll down and tap "Add to Home Screen".\n\n🤖 Android:\nTap the 3 dots menu at the top right of Chrome, then tap "Add to Home screen".')
+            onClick={async () => {
+              if (deferredPrompt) {
+                deferredPrompt.prompt()
+                const { outcome } = await deferredPrompt.userChoice
+                console.log(`User installation decision: ${outcome}`)
+                setDeferredPrompt(null)
+              } else {
+                alert('To install the app:\n\n📱 iOS (iPhone):\nTap the Share button at the bottom of Safari, then scroll down and tap "Add to Home Screen".\n\n🤖 Android / Chrome:\nTap the 3 dots menu at the top right of Chrome, then tap "Add to Home screen" or "Install App".')
+              }
             }}
             className="bg-white text-primary-900 text-[11px] font-extrabold px-4 py-2 rounded-xl shadow-sm active:scale-95 transition-all whitespace-nowrap relative z-10"
           >

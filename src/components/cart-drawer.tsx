@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ShoppingBag, X, Plus, Minus, Trash2, MapPin, User, Phone, CheckCircle, MessageSquare, Laptop } from 'lucide-react'
-import { createClient } from '@/lib/supabase'
+
 
 interface CartItem {
   id: string
@@ -36,7 +36,7 @@ export function CartDrawer({ store }: { store: any }) {
   const [submitting, setSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null)
 
-  const supabase = createClient()
+
 
   // Load cart from localStorage
   useEffect(() => {
@@ -97,42 +97,37 @@ export function CartDrawer({ store }: { store: any }) {
       let errorMessage = ''
       
       try {
-        for (const item of cart) {
-          const { data: orderData, error: orderError } = await supabase
-            .from('orders')
-            .insert({
-              store_id: store.id,
+        // Server-side validated checkout — prices are verified against the database
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            store_id: store.id,
+            items: cart.map(item => ({
               product_id: item.id,
               quantity: item.quantity,
-              total_price: item.price * item.quantity,
-              specification: item.variantName || null,
-              customer_name: name,
-              customer_phone: phone,
-              customer_instagram: instagram || null,
-              delivery_address: `[${checkoutMode.toUpperCase()}] ${address}`,
-              status: 'PENDING'
-            })
-            .select()
-            .single()
+              variant_name: item.variantName || null,
+            })),
+            customer_name: name,
+            customer_phone: phone,
+            customer_instagram: instagram || null,
+            delivery_address: `[${checkoutMode.toUpperCase()}] ${address}`,
+            checkout_mode: checkoutMode,
+          })
+        })
 
-          if (orderError) throw orderError
-          if (orderData) orderIds.push(orderData.id)
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Checkout failed')
         }
 
-        // Add customer to CRM (ignore error if already exists)
-        const { error: custError } = await supabase.from('customers').insert({
-          store_id: store.id,
-          name: name,
-          phone: phone,
-          instagram: instagram || null,
-          address: address
-        })
-        if (custError) console.warn("Customer insert warning (likely duplicate):", custError)
+        orderIds.push(...(result.order_ids || []))
 
       } catch (dbError: any) {
-        console.error("DB Error:", dbError)
+        console.error("Checkout Error:", dbError)
         dbFailed = true
-        errorMessage = dbError.message || 'Database error'
+        errorMessage = dbError.message || 'Checkout error'
       }
 
       // If DB failed and it's direct checkout, we must stop here because we need an Order ID to show success.

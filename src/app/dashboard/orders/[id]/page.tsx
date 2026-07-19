@@ -17,6 +17,8 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false)
   const [receiptDownloading, setReceiptDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [vendorNotes, setVendorNotes] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
   
   const receiptRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -52,6 +54,7 @@ export default function OrderDetailPage() {
 
         setOrder(orderData)
         setStoreInfo(orderData.stores)
+        setVendorNotes(orderData.vendor_notes || '')
       } catch (err) {
         console.error(err)
       } finally {
@@ -71,6 +74,23 @@ export default function OrderDetailPage() {
     navigator.clipboard.writeText(details);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true)
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ vendor_notes: vendorNotes })
+        .eq('id', order.id)
+      
+      if (error) throw error
+      alert('Notes saved successfully!')
+    } catch (err: any) {
+      alert("Error saving notes: " + err.message)
+    } finally {
+      setSavingNotes(false)
+    }
   }
 
   const handleStatusUpdate = async (newStatus: string) => {
@@ -244,11 +264,20 @@ export default function OrderDetailPage() {
               <span className="text-slate-400 font-medium">Name</span>
               <span className="font-bold text-slate-800">{order.customer_name}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-50">
+            <div className="flex justify-between py-2 border-b border-slate-50 items-center">
               <span className="text-slate-400 font-medium">WhatsApp Phone</span>
-              <span className="font-bold text-blue-600 hover:underline">
-                <a href={`tel:${order.customer_phone}`}>{order.customer_phone}</a>
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-800">{order.customer_phone}</span>
+                <a 
+                  href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, '').replace(/^0/, '234')}?text=${encodeURIComponent(`Hi ${order.customer_name}, this is ${storeInfo?.store_name}. We've received your order for ${order.products?.name}! Just reaching out to confirm...`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#25D366]/10 text-[#25D366] px-2 py-1 rounded text-[10px] font-bold hover:bg-[#25D366]/20 transition-colors flex items-center gap-1"
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  Message
+                </a>
+              </div>
             </div>
             {order.customer_instagram && (
               <div className="flex justify-between py-1 border-b border-slate-50">
@@ -261,6 +290,26 @@ export default function OrderDetailPage() {
               <span className="font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-border mt-1">{cleanAddress || 'No address provided'}</span>
             </div>
           </div>
+        </div>
+
+        {/* Private Vendor Notes */}
+        <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-3">
+          <h4 className="text-xs uppercase tracking-widest text-slate-400 font-bold">Private Notes</h4>
+          <p className="text-[10px] text-slate-400">Add reminders or delivery details. Customers cannot see this.</p>
+          <textarea
+            value={vendorNotes}
+            onChange={e => setVendorNotes(e.target.value)}
+            placeholder="e.g. Call before delivery, payment received from different account..."
+            rows={3}
+            className="w-full text-xs p-3 rounded-xl border border-border bg-slate-50 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none"
+          />
+          <button
+            onClick={handleSaveNotes}
+            disabled={savingNotes}
+            className="w-full bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-200 transition-colors flex items-center justify-center"
+          >
+            {savingNotes ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Notes'}
+          </button>
         </div>
 
         {/* Status Actions Form */}

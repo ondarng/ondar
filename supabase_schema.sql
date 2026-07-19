@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS orders (
     delivery_address TEXT,
     specification TEXT,
     status TEXT CHECK (status IN ('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED')) DEFAULT 'PENDING',
+    vendor_notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -204,10 +205,9 @@ ALTER TABLE stores ADD COLUMN IF NOT EXISTS announcement_text TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_instagram TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS specification TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS vendor_notes TEXT;
 
 
 -- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW
 -- Run this query to extend/reset all existing stores to a 7-day trial:
--- UPDATE stores SET subscription_status = 'TRIAL', trial_ends_at = NOW() + INTERVAL '7 days';
-
 

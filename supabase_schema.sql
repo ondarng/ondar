@@ -61,6 +61,9 @@ CREATE TABLE IF NOT EXISTS orders (
     total_price DECIMAL(12, 2) NOT NULL,
     customer_name TEXT,
     customer_phone TEXT,
+    customer_instagram TEXT,
+    delivery_address TEXT,
+    specification TEXT,
     status TEXT CHECK (status IN ('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED')) DEFAULT 'PENDING',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -182,6 +185,11 @@ CREATE POLICY "Vendors can view their own vents" ON vents
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_direct_checkout BOOLEAN DEFAULT true;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_whatsapp_checkout BOOLEAN DEFAULT true;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS announcement_text TEXT;
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_instagram TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS specification TEXT;
+
 
 -- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW
 -- Run this query to extend/reset all existing stores to a 7-day trial:

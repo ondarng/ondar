@@ -181,3 +181,7 @@ CREATE POLICY "Vendors can view their own vents" ON vents
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_direct_checkout BOOLEAN DEFAULT true;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_whatsapp_checkout BOOLEAN DEFAULT true;
 
+-- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW
+-- Run this query to extend/reset all existing stores to a 7-day trial:
+-- UPDATE stores SET subscription_status = 'TRIAL', trial_ends_at = NOW() + INTERVAL '7 days';
+

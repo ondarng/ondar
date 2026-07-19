@@ -12,6 +12,8 @@ type ImageAsset =
 
 export default function EditProductPage() {
   const { id } = useParams()
+  const productId = Array.isArray(id) ? id[0] : id
+  
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null)
@@ -22,7 +24,7 @@ export default function EditProductPage() {
   const [description, setDescription] = useState('')
   const [stock, setStock] = useState('0')
   const [variants, setVariants] = useState<{name: string, price: string | number | null}[]>([])
-
+ 
   const addVariant = () => setVariants([...variants, { name: '', price: '' }])
   const removeVariant = (index: number) => setVariants(variants.filter((_, i) => i !== index))
   const updateVariant = (index: number, field: 'name' | 'price', value: string) => {
@@ -37,7 +39,7 @@ export default function EditProductPage() {
   
   const router = useRouter()
   const supabase = createClient()
-
+ 
   useEffect(() => {
     async function fetchProduct() {
       // Verify ownership: get user, then their store, then the product scoped to that store
@@ -46,20 +48,18 @@ export default function EditProductPage() {
         router.push('/login')
         return
       }
-
+ 
       const { data: storeData } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', user.id)
         .maybeSingle()
-
+ 
       if (!storeData) {
         router.push('/onboarding/create-store')
         return
       }
-
-      const productId = Array.isArray(id) ? id[0] : id;
-
+ 
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -201,8 +201,8 @@ export default function EditProductPage() {
           category: category ? category.trim() : null,
           variants: variants.filter(v => v.name.trim() !== '').map(v => ({ name: v.name.trim(), price: v.price ? parseFloat(v.price as string) : null }))
         })
-        .eq('id', id)
-
+        .eq('id', productId)
+ 
       if (error) throw error
 
       setMessage({ type: 'success', text: 'Product updated successfully!' })

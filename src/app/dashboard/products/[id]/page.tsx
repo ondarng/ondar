@@ -48,27 +48,43 @@ export default function EditProductPage() {
         router.push('/login')
         return
       }
- 
+
       const { data: storeData } = await supabase
         .from('stores')
         .select('id')
         .eq('vendor_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle()
- 
+
       if (!storeData) {
         router.push('/onboarding/create-store')
         return
       }
- 
+
+      if (!productId) {
+        setMessage({ type: 'error', text: 'Invalid product ID.' })
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('id', productId)
+        .eq('store_id', storeData.id)
         .maybeSingle()
       
-      if (error || !data) {
+      if (error) {
         console.error('Fetch product error:', error)
-        router.push('/dashboard/products')
+        setMessage({ type: 'error', text: `Failed to load product: ${error.message}` })
+        setLoading(false)
+        return
+      }
+
+      if (!data) {
+        setMessage({ type: 'error', text: 'Product not found or you do not have access to it.' })
+        setLoading(false)
         return
       }
 
@@ -89,7 +105,7 @@ export default function EditProductPage() {
       setLoading(false)
     }
     fetchProduct()
-  }, [id])
+  }, [productId])
 
   // Auto-Categorization Logic
   useEffect(() => {
@@ -217,7 +233,7 @@ export default function EditProductPage() {
     }
   }
 
-  if (loading) {
+  if (loading && !message) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />

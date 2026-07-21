@@ -31,6 +31,9 @@ export default function DashboardSettingsPage() {
   const [bankAccountName, setBankAccountName] = useState('')
   const [enableDirectCheckout, setEnableDirectCheckout] = useState(true)
   const [enableWhatsappCheckout, setEnableWhatsappCheckout] = useState(true)
+  const [requireSenderName, setRequireSenderName] = useState(false)
+  const [receiptSendWhatsapp, setReceiptSendWhatsapp] = useState(true)
+  const [receiptSendEmail, setReceiptSendEmail] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   const router = useRouter()
@@ -75,6 +78,9 @@ export default function DashboardSettingsPage() {
       setBankAccountName(storeData.bank_account_name || '')
       setEnableDirectCheckout(storeData.enable_direct_checkout !== false)
       setEnableWhatsappCheckout(storeData.enable_whatsapp_checkout !== false)
+      setRequireSenderName(storeData.require_sender_name === true)
+      setReceiptSendWhatsapp(storeData.receipt_send_whatsapp !== false)
+      setReceiptSendEmail(storeData.receipt_send_email === true)
       if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
         setTrustBadges(storeData.trust_badges.join(', '))
       }
@@ -109,7 +115,10 @@ export default function DashboardSettingsPage() {
         bank_account_number: bankAccountNumber,
         bank_account_name: bankAccountName,
         enable_direct_checkout: enableDirectCheckout,
-        enable_whatsapp_checkout: enableWhatsappCheckout
+        enable_whatsapp_checkout: enableWhatsappCheckout,
+        require_sender_name: requireSenderName,
+        receipt_send_whatsapp: receiptSendWhatsapp,
+        receipt_send_email: receiptSendEmail
       })
       .eq('id', store.id)
 
@@ -353,7 +362,7 @@ export default function DashboardSettingsPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between py-2">
+            <div className="flex items-center justify-between py-2 border-b border-neutral-100">
               <div>
                 <label className="text-xs font-bold text-primary-900">Enable WhatsApp DM Checkout</label>
                 <p className="text-[10px] text-secondary">Allow customers to send order carts straight to WhatsApp</p>
@@ -362,6 +371,45 @@ export default function DashboardSettingsPage() {
                 type="checkbox"
                 checked={enableWhatsappCheckout}
                 onChange={(e) => setEnableWhatsappCheckout(e.target.checked)}
+                className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-neutral-100">
+              <div>
+                <label className="text-xs font-bold text-primary-900">Require Transfer Sender Name</label>
+                <p className="text-[10px] text-secondary">Ask customers to type in the name on the bank account they paid from</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={requireSenderName}
+                onChange={(e) => setRequireSenderName(e.target.checked)}
+                className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-neutral-100">
+              <div>
+                <label className="text-xs font-bold text-primary-900">Send Receipts on WhatsApp</label>
+                <p className="text-[10px] text-secondary">Auto-suggest sending generated receipt image to customer via WhatsApp</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={receiptSendWhatsapp}
+                onChange={(e) => setReceiptSendWhatsapp(e.target.checked)}
+                className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <label className="text-xs font-bold text-primary-900">Send Receipts on Email</label>
+                <p className="text-[10px] text-secondary">Send automated PDF receipt to customer email (Requires setup)</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={receiptSendEmail}
+                onChange={(e) => setReceiptSendEmail(e.target.checked)}
                 className="w-5 h-5 accent-primary-600 rounded cursor-pointer"
               />
             </div>

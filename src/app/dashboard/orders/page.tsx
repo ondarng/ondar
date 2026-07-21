@@ -303,6 +303,12 @@ export default function DashboardOrdersPage() {
                       <span className="text-xs text-blue-600">{order.customer_phone}</span>
                     </span>
                   </div>
+                  {order.sender_name && (
+                    <div className="flex justify-between border-t border-slate-200 pt-2 mt-2 bg-amber-50/50 p-1.5 rounded-lg">
+                      <span className="text-amber-800 text-xs font-bold">Transfer Sender</span>
+                      <span className="font-extrabold text-amber-950 text-right text-xs truncate max-w-[150px]">{order.sender_name}</span>
+                    </div>
+                  )}
                   {cleanAddress && (
                     <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
                       <span className="text-secondary">Address</span>

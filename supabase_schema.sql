@@ -220,11 +220,15 @@ CREATE POLICY "Vendors can view their own vents" ON vents
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_direct_checkout BOOLEAN DEFAULT true;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS enable_whatsapp_checkout BOOLEAN DEFAULT true;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS announcement_text TEXT;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS require_sender_name BOOLEAN DEFAULT false;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS receipt_send_whatsapp BOOLEAN DEFAULT true;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS receipt_send_email BOOLEAN DEFAULT false;
 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_instagram TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS specification TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS vendor_notes TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_name TEXT;
 
 
 -- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW

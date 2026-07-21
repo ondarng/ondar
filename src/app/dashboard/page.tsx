@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0)
   const router = useRouter()
   const supabase = createClient()
 
@@ -158,6 +159,7 @@ export default function DashboardPage() {
               ...prev,
               orders: prev.orders + 1,
             }))
+            setPendingOrdersCount(prev => prev + 1)
           }
         )
         .subscribe()
@@ -323,9 +325,24 @@ export default function DashboardPage() {
             >
               Upgrade
             </button>
-
           </div>
         </div>
+      )}
+
+      {/* Pending Orders Alert Banner */}
+      {pendingOrdersCount > 0 && (
+        <Link 
+          href="/dashboard/orders" 
+          className="bg-red-50 hover:bg-red-100 border-b border-red-200 px-6 py-3 flex items-center justify-between transition-colors shadow-sm"
+        >
+          <div className="flex items-center gap-2 text-red-800 text-xs font-bold">
+            <span className="text-sm">🚨</span>
+            <span>You have {pendingOrdersCount} pending order(s) waiting for confirmation!</span>
+          </div>
+          <span className="text-red-600 text-[10px] font-extrabold hover:underline">
+            Manage Orders ➔
+          </span>
+        </Link>
       )}
 
       <main className="flex-1 px-6 py-8 space-y-8 max-w-md mx-auto w-full pb-24">

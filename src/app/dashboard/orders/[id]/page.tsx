@@ -287,6 +287,12 @@ export default function OrderDetailPage() {
                 <span className="font-bold text-[#E1306C]">@{order.customer_instagram.replace('@', '')}</span>
               </div>
             )}
+            {order.sender_name && (
+              <div className="flex justify-between py-1.5 border-b border-amber-100 bg-amber-50/30 px-2 rounded-lg items-center">
+                <span className="text-amber-800 font-bold text-[10px] uppercase">Bank Account Name</span>
+                <span className="font-extrabold text-amber-950 text-xs">{order.sender_name}</span>
+              </div>
+            )}
             <div className="flex flex-col py-1 space-y-1">
               <span className="text-slate-400 font-medium">Delivery Address</span>
               <span className="font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-border mt-1">{cleanAddress || 'No address provided'}</span>

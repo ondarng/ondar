@@ -23,6 +23,7 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [instagram, setInstagram] = useState('')
+  const [senderName, setSenderName] = useState('')
 
   const supabase = createClient()
   const router = useRouter()
@@ -57,6 +58,7 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
         setPhone(orderData.customer_phone || '')
         setAddress(orderData.delivery_address || '')
         setInstagram(orderData.customer_instagram || '')
+        setSenderName(orderData.sender_name || '')
       } catch (err) {
         console.error(err)
       } finally {
@@ -81,6 +83,7 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
           customer_phone: phone,
           customer_instagram: instagram || null,
           delivery_address: address,
+          sender_name: senderName || null,
           status: 'PENDING' // Ensure it's active
         })
         .eq('id', order.id)
@@ -292,6 +295,26 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
                 />
               </div>
             </div>
+
+            {store.require_sender_name && (
+              <div className="space-y-1 bg-amber-50/50 p-4 rounded-xl border border-amber-100/50 mt-4">
+                <label className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+                  <span>💰</span> Bank Account Name (For Payment Verification)
+                </label>
+                <p className="text-[10px] text-amber-600 mb-2">Type the exact name on the bank account you paid from so the vendor can confirm your payment.</p>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. John Doe"
+                    value={senderName}
+                    onChange={e => setSenderName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-amber-400 text-neutral-800"
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

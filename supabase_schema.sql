@@ -163,9 +163,28 @@ FOR SELECT TO authenticated USING (
 
 -- Allow authenticated vendors to update their store's orders
 CREATE POLICY "Allow vendors to update orders" ON public.orders
-FOR UPDATE TO authenticated USING (
-  store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid())
-);
+    FOR UPDATE TO authenticated USING (
+      store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid())
+    );
+
+-- Allow anonymous customers to update pending orders via checkout link
+CREATE POLICY "Allow anonymous to update pending orders" ON public.orders
+    FOR UPDATE TO anon, authenticated
+    USING (status = 'PENDING')
+    WITH CHECK (status = 'PENDING');
+
+-- CRM CUSTOMERS table RLS policies
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anonymous to create customers" ON public.customers
+    FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Allow vendors to view their customers" ON public.customers
+    FOR SELECT TO authenticated USING (
+      store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid())
+    );
+CREATE POLICY "Allow vendors to manage their customers" ON public.customers
+    FOR ALL TO authenticated 
+    USING (store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid()))
+    WITH CHECK (store_id IN (SELECT id FROM public.stores WHERE vendor_id = auth.uid()));
 
 -- LEADS: Vendors view their store's leads; public can create
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;

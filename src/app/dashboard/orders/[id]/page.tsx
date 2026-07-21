@@ -175,7 +175,7 @@ export default function OrderDetailPage() {
     }
   }
 
-  if (loading) {
+  if (loading || !order) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
@@ -267,16 +267,18 @@ export default function OrderDetailPage() {
             <div className="flex justify-between py-2 border-b border-slate-50 items-center">
               <span className="text-slate-400 font-medium">WhatsApp Phone</span>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-800">{order.customer_phone}</span>
-                <a 
-                  href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, '').replace(/^0/, '234')}?text=${encodeURIComponent(`Hi ${order.customer_name}, this is ${storeInfo?.store_name}. We've received your order for ${order.products?.name}! Just reaching out to confirm...`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-[#25D366]/10 text-[#25D366] px-2 py-1 rounded text-[10px] font-bold hover:bg-[#25D366]/20 transition-colors flex items-center gap-1"
-                >
-                  <MessageSquare className="w-3 h-3" />
-                  Message
-                </a>
+                <span className="font-bold text-slate-800">{order.customer_phone || 'N/A'}</span>
+                {order.customer_phone && (
+                  <a 
+                    href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, '').replace(/^0/, '234')}?text=${encodeURIComponent(`Hi ${order.customer_name || 'there'}, this is ${storeInfo?.store_name || 'our store'}. We've received your order for ${order.products?.name}! Just reaching out to confirm...`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#25D366]/10 text-[#25D366] px-2 py-1 rounded text-[10px] font-bold hover:bg-[#25D366]/20 transition-colors flex items-center gap-1"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    Message
+                  </a>
+                )}
               </div>
             </div>
             {order.customer_instagram && (

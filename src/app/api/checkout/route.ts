@@ -29,12 +29,27 @@ export async function POST(request: NextRequest) {
     const body: CheckoutRequest = await request.json()
 
     // 1. Validate required fields
-    if (!body.store_id || !body.items?.length || !body.customer_name || !body.customer_phone || !body.delivery_address) {
+    if (!body.store_id || !body.items?.length) {
       return NextResponse.json(
-        { error: 'Missing required fields: store_id, items, customer_name, customer_phone, delivery_address' },
+        { error: 'Missing required fields: store_id, items' },
         { status: 400 }
       )
     }
+
+    const isWhatsAppCheckout = body.checkout_mode === 'whatsapp'
+    
+    // For direct checkout, we require full customer details
+    if (!isWhatsAppCheckout && (!body.customer_name || !body.customer_phone || !body.delivery_address)) {
+      return NextResponse.json(
+        { error: 'Missing required customer details: customer_name, customer_phone, delivery_address' },
+        { status: 400 }
+      )
+    }
+
+    // Assign safe defaults for conversational/WhatsApp checkouts
+    const customerName = body.customer_name || 'WhatsApp Customer'
+    const customerPhone = body.customer_phone || 'WhatsApp Checkout'
+    const deliveryAddress = body.delivery_address || '[WHATSAPP] To Be Decided'
 
     if (body.items.some(item => !item.product_id || !item.quantity || item.quantity < 1)) {
       return NextResponse.json(
@@ -141,10 +156,10 @@ export async function POST(request: NextRequest) {
           quantity: item.quantity,
           total_price: item.total_price,
           specification: item.specification,
-          customer_name: body.customer_name,
-          customer_phone: body.customer_phone,
+          customer_name: customerName,
+          customer_phone: customerPhone,
           customer_instagram: body.customer_instagram || null,
-          delivery_address: body.delivery_address,
+          delivery_address: deliveryAddress,
           status: 'PENDING'
         })
         .select('id')
@@ -174,10 +189,10 @@ export async function POST(request: NextRequest) {
     // 8. Add customer to CRM (best effort, ignore duplicate errors)
     await supabase.from('customers').insert({
       store_id: body.store_id,
-      name: body.customer_name,
-      phone: body.customer_phone,
+      name: customerName,
+      phone: customerPhone,
       instagram: body.customer_instagram || null,
-      address: body.delivery_address
+      address: deliveryAddress
     })
 
     // 9. Return verified order data

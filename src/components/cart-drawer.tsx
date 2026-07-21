@@ -145,8 +145,18 @@ export function CartDrawer({ store }: { store: any }) {
           return `• ${item.quantity}x ${item.name}${spec} - ₦${(item.price * item.quantity).toLocaleString()}`
         }).join('\n')
 
+        const deliveryDetails = []
+        if (name) deliveryDetails.push(`Name: ${name}`)
+        if (phone) deliveryDetails.push(`Phone: ${phone}`)
+        if (address) deliveryDetails.push(`Address: ${address}`)
+        if (instagram) deliveryDetails.push(`Instagram: @${instagram}`)
+
+        const deliverySection = deliveryDetails.length > 0 
+          ? `\n\n*Delivery/Contact Info:*\n${deliveryDetails.join('\n')}` 
+          : '\n\n*(I will provide delivery details directly in this chat)*'
+
         const cleanPhone = store.whatsapp_number.replace(/[^0-9]/g, '').replace(/^0/, '234')
-        const message = `Hi ${store.store_name}! I would like to place an order:\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}\n\n*Delivery Details:*\nName: ${name}\nPhone: ${phone}\nAddress: ${address}${instagram ? `\nInstagram: @${instagram}` : ''}`
+        const message = `Hi ${store.store_name}! I would like to place an order:\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}${deliverySection}`
         
         setIsOpen(false)
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
@@ -328,8 +338,8 @@ export function CartDrawer({ store }: { store: any }) {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="text"
-                      required
-                      placeholder="Your Full Name"
+                      required={checkoutMode === 'direct'}
+                      placeholder="Your Full Name (Optional for WhatsApp)"
                       value={name}
                       onChange={e => setName(e.target.value)}
                       className="w-full pl-9 pr-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400"
@@ -339,8 +349,8 @@ export function CartDrawer({ store }: { store: any }) {
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="tel"
-                      required
-                      placeholder="WhatsApp Number"
+                      required={checkoutMode === 'direct'}
+                      placeholder="WhatsApp Number (Optional for WhatsApp)"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
                       className="w-full pl-9 pr-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400"
@@ -349,9 +359,9 @@ export function CartDrawer({ store }: { store: any }) {
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3.5 w-4 h-4 text-neutral-400" />
                     <textarea
-                      required
+                      required={checkoutMode === 'direct'}
                       rows={2}
-                      placeholder="Delivery Address"
+                      placeholder="Delivery Address (Optional for WhatsApp)"
                       value={address}
                       onChange={e => setAddress(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400 resize-none"

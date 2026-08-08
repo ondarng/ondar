@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Search, Package, Share2, X } from 'lucide-react'
+import { Search, Package, Share2, X, Sparkles, ShieldCheck, Clock, ArrowUpRight } from 'lucide-react'
 import { CartDrawer } from '@/components/cart-drawer'
 import type { Metadata } from 'next'
 
@@ -174,7 +174,7 @@ export default async function PublicStorePage(props: {
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
 
     return (
-      <div className="min-h-screen bg-slate-50 font-sans pb-16 antialiased">
+      <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24 antialiased selection:bg-primary-500 selection:text-white">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -193,47 +193,124 @@ export default async function PublicStorePage(props: {
         {store.announcement_text && (
           <div 
             style={{ backgroundColor: store.accent_color || '#00A859' }} 
-            className="text-white text-[11px] uppercase tracking-wider font-extrabold py-2 px-4 text-center select-none shadow-sm sticky top-0 z-50 flex items-center justify-center gap-2"
+            className="text-white text-[11px] uppercase tracking-wider font-extrabold py-2 px-4 text-center select-none shadow-sm sticky top-0 z-50 flex items-center justify-center gap-2 backdrop-blur-md bg-opacity-95"
           >
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
             <span>{store.announcement_text}</span>
           </div>
         )}
 
-        {/* ── COVER BANNER ── */}
-        <div className="h-24 w-full bg-gradient-to-br from-slate-900 via-neutral-900 to-slate-850 relative overflow-hidden select-none">
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '12px 12px' }} />
-          <div className="absolute right-0 top-0 w-32 h-32 rounded-full blur-[60px] opacity-40" style={{ backgroundColor: store.accent_color || '#00A859' }} />
-        </div>
+        {/* ── STORE HERO BANNER ── */}
+        {store.hero_banner_url ? (
+          <div className="w-full max-w-2xl mx-auto px-4 pt-4">
+            {store.hero_banner_link ? (
+              <a 
+                href={store.hero_banner_link}
+                target={store.hero_banner_link.startsWith('http') ? '_blank' : '_self'}
+                rel="noopener noreferrer"
+                className="block relative rounded-3xl overflow-hidden shadow-lg border border-slate-200/60 aspect-[2.6/1] md:aspect-[3.2/1] group transition-transform active:scale-[0.99]"
+              >
+                <img 
+                  src={store.hero_banner_url} 
+                  alt={store.hero_title || store.store_name} 
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" 
+                />
+                {(store.hero_title || store.hero_subtitle || store.hero_button_text) && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent p-4 md:p-6 flex flex-col justify-end text-white space-y-1">
+                    {store.hero_title && <h3 className="font-black text-sm md:text-lg leading-tight tracking-tight">{store.hero_title}</h3>}
+                    {store.hero_subtitle && <p className="text-[11px] md:text-xs text-slate-200 line-clamp-1">{store.hero_subtitle}</p>}
+                    {store.hero_button_text && (
+                      <span 
+                        style={{ backgroundColor: store.accent_color || '#00A859' }}
+                        className="inline-flex items-center gap-1 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider text-white w-fit shadow-md mt-1"
+                      >
+                        {store.hero_button_text} ➔
+                      </span>
+                    )}
+                  </div>
+                )}
+              </a>
+            ) : (
+              <div className="relative rounded-3xl overflow-hidden shadow-lg border border-slate-200/60 aspect-[2.6/1] md:aspect-[3.2/1]">
+                <img 
+                  src={store.hero_banner_url} 
+                  alt={store.hero_title || store.store_name} 
+                  className="w-full h-full object-cover" 
+                />
+                {(store.hero_title || store.hero_subtitle || store.hero_button_text) && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent p-4 md:p-6 flex flex-col justify-end text-white space-y-1">
+                    {store.hero_title && <h3 className="font-black text-sm md:text-lg leading-tight tracking-tight">{store.hero_title}</h3>}
+                    {store.hero_subtitle && <p className="text-[11px] md:text-xs text-slate-200 line-clamp-1">{store.hero_subtitle}</p>}
+                    {store.hero_button_text && (
+                      <span 
+                        style={{ backgroundColor: store.accent_color || '#00A859' }}
+                        className="inline-flex items-center gap-1 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider text-white w-fit shadow-md mt-1"
+                      >
+                        {store.hero_button_text}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="h-32 md:h-40 w-full bg-slate-950 relative overflow-hidden select-none">
+            <div 
+              className="absolute inset-0 opacity-20" 
+              style={{ 
+                backgroundImage: 'radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.4) 1px, transparent 0)', 
+                backgroundSize: '16px 16px' 
+              }} 
+            />
+            <div 
+              className="absolute -right-10 -top-10 w-64 h-64 rounded-full blur-[90px] opacity-40 transition-all duration-700" 
+              style={{ backgroundColor: store.accent_color || '#00A859' }} 
+            />
+            <div 
+              className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full blur-[70px] opacity-20 bg-indigo-500" 
+            />
+          </div>
+        )}
 
         {/* ── STORE HEADER CARD ── */}
-        <div className="max-w-2xl mx-auto px-4 -mt-8 relative z-10">
-          <div className="bg-white rounded-3xl border border-slate-200/50 p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-4">
+        <div className="max-w-2xl mx-auto px-4 -mt-12 relative z-10">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-slate-200/60 p-5 md:p-6 shadow-xl shadow-slate-200/40 space-y-4">
+            <div className="flex items-start gap-4">
               {/* Logo / Avatar */}
               {store.logo_url ? (
                 <img
                   src={store.logo_url}
                   alt={store.store_name}
-                  className="w-16 h-16 rounded-2xl object-cover shrink-0 border-2 border-white shadow-md bg-white"
+                  className="w-18 h-18 md:w-20 md:h-20 rounded-2xl object-cover shrink-0 ring-4 ring-white shadow-lg bg-white"
                 />
               ) : (
                 <div 
                   style={{ backgroundColor: store.accent_color || '#00A859' }} 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-md text-white text-xl font-extrabold"
+                  className="w-18 h-18 md:w-20 md:h-20 rounded-2xl flex items-center justify-center shrink-0 ring-4 ring-white shadow-lg text-white text-2xl font-black"
                 >
                   {store.store_name.charAt(0)}
                 </div>
               )}
 
               {/* Name & Description */}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-[18px] font-black text-slate-900 leading-tight">
-                  {store.store_name}
-                </h1>
+              <div className="flex-1 min-w-0 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight truncate">
+                    {store.store_name}
+                  </h1>
+                  <ShieldCheck style={{ color: store.accent_color || '#00A859' }} className="w-5 h-5 shrink-0" />
+                </div>
                 {store.description && (
-                  <p className="text-[12px] text-slate-500 mt-1 leading-snug line-clamp-2">
+                  <p className="text-[13px] text-slate-500 mt-1 leading-relaxed line-clamp-2 font-normal">
                     {store.description}
                   </p>
+                )}
+                {store.response_time && (
+                  <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1.5">
+                    <Clock className="w-3 h-3 text-slate-400" />
+                    <span>Replies in {store.response_time}</span>
+                  </div>
                 )}
               </div>
 
@@ -241,30 +318,30 @@ export default async function PublicStorePage(props: {
               {isOwner ? (
                 <Link
                   href="/dashboard"
-                  style={{ color: store.accent_color || '#00A859', borderColor: (store.accent_color || '#00A859') + '25' }}
-                  className="shrink-0 px-3.5 py-2 bg-slate-50 border rounded-xl text-[11px] font-extrabold hover:bg-slate-105 transition-all active:scale-95"
+                  style={{ color: store.accent_color || '#00A859', borderColor: (store.accent_color || '#00A859') + '30' }}
+                  className="shrink-0 px-4 py-2 bg-slate-50 border rounded-xl text-xs font-bold hover:bg-slate-100 transition-all active:scale-95 shadow-xs"
                 >
                   Dashboard
                 </Link>
               ) : (
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name}: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name} on Ondar: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Share store"
-                  className="shrink-0 w-9 h-9 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-700 transition-colors"
+                  className="shrink-0 w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-200/80 rounded-2xl text-slate-500 hover:text-slate-900 transition-colors shadow-xs active:scale-95"
                 >
-                  <Share2 className="w-4.5 h-4.5" />
+                  <Share2 className="w-4 h-4" />
                 </a>
               )}
             </div>
 
             {/* Micro badges: Trust Badges */}
             {trustBadges.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-slate-100 mt-2">
+              <div className="flex flex-wrap gap-1.5 pt-3.5 border-t border-slate-100/80 mt-2">
                 {trustBadges.map((badge: string, i: number) => (
-                  <span key={i} className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-550 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100/50">
-                    <svg style={{ color: store.accent_color || '#00A859' }} className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                  <span key={i} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50/80 px-3 py-1 rounded-full border border-slate-200/60 shadow-2xs">
+                    <span style={{ color: store.accent_color || '#00A859' }}>✓</span>
                     {badge}
                   </span>
                 ))}
@@ -276,23 +353,23 @@ export default async function PublicStorePage(props: {
         <div className="max-w-2xl mx-auto px-4">
 
           {/* ── SEARCH BAR ── */}
-          <form action={`/${slug}`} method="GET" className="mt-4 mb-3">
+          <form action={`/${slug}`} method="GET" className="mt-5 mb-4">
             {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 pointer-events-none" />
               <input
                 type="search"
                 name="q"
                 defaultValue={searchQuery}
                 placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
-                className="w-full bg-white border border-slate-200/80 rounded-full pl-11 pr-10 py-3 text-[13px] text-slate-800 placeholder-slate-450 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:border-slate-850 shadow-sm focus:shadow"
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-10 py-3.5 text-xs md:text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 shadow-sm"
               />
               {searchQuery && (
                 <Link
                   href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </Link>
               )}
             </div>
@@ -300,7 +377,7 @@ export default async function PublicStorePage(props: {
 
           {/* ── CATEGORY PILLS ── */}
           {categories.length > 1 && (
-            <div className="overflow-x-auto hide-scrollbar mb-4">
+            <div className="overflow-x-auto hide-scrollbar mb-5">
               <div className="flex items-center gap-2 w-max py-1">
                 {categories.map((cat: string) => {
                   const isActive = activeCategory === cat
@@ -312,8 +389,8 @@ export default async function PublicStorePage(props: {
                         backgroundColor: isActive ? (store.accent_color || '#00A859') : '#FFFFFF',
                         color: isActive ? '#FFFFFF' : '#475569'
                       }}
-                      className={`px-4.5 py-2 rounded-full text-[12px] font-bold tracking-wide whitespace-nowrap transition-all shadow-sm border border-slate-200/40 hover:border-slate-300 ${
-                        isActive ? 'shadow-md border-transparent scale-102' : ''
+                      className={`px-4.5 py-2 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-all shadow-xs border border-slate-200/80 hover:border-slate-300 ${
+                        isActive ? 'shadow-md border-transparent scale-102 font-extrabold' : ''
                       }`}
                     >
                       {cat}
@@ -327,17 +404,17 @@ export default async function PublicStorePage(props: {
           {/* ── INVENTORY HEADER ── */}
           <div className="flex items-center justify-between mt-6 mb-4">
             <div>
-              <h2 className="text-[16px] font-black text-slate-900 tracking-tight">
-                {searchQuery ? `Results for "${searchQuery}"` : 'Available Inventory'}
+              <h2 className="text-base md:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>{searchQuery ? `Results for "${searchQuery}"` : 'Featured Inventory'}</span>
               </h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                {products && products.length > 0 ? `${products.length} item${products.length !== 1 ? 's' : ''}` : 'Updated just now'}
+              <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                {products && products.length > 0 ? `${products.length} product${products.length !== 1 ? 's' : ''} available` : 'Updated live'}
               </p>
             </div>
             {searchQuery && (
               <Link
                 href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                className="text-[12px] font-bold text-slate-500 border border-slate-200 bg-white px-3.5 py-1.5 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+                className="text-xs font-bold text-slate-600 border border-slate-200 bg-white px-3.5 py-1.5 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-2xs"
               >
                 Clear Search
               </Link>
@@ -345,79 +422,90 @@ export default async function PublicStorePage(props: {
           </div>
 
           {/* ── PRODUCT GRID ── */}
-          <main className="pb-10">
+          <main className="pb-12">
             {products && products.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3.5 md:gap-4">
                 {products.map((product) => {
-                  // Derive first variant hint for subtitle (e.g. "256GB • Titanium Grey")
                   const variants: { name: string; price?: number | null }[] = Array.isArray(product.variants) ? product.variants : []
                   const variantHint = variants.length > 0 ? variants.map(v => v.name).join(' • ') : null
 
                   return (
                     <div
                       key={product.id}
-                      className="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5 border border-slate-200/40"
+                      className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 border border-slate-200/70 relative"
                     >
-                      {/* Image */}
-                      <Link href={`/${slug}/product/${product.id}`} className="relative block">
-                        <div className="w-full aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
+                      {/* Image Container */}
+                      <Link href={`/${slug}/product/${product.id}`} className="relative block overflow-hidden">
+                        <div className="w-full aspect-square bg-slate-50 flex items-center justify-center relative p-3">
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="w-full h-full object-contain p-2 hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
                             loading="lazy"
                           />
                         </div>
 
-                        {/* Availability badge — top left */}
+                        {/* Availability badge */}
                         <AvailabilityBadge qty={product.stock_quantity ?? 0} />
 
                         {/* Sold-out overlay */}
                         {product.stock_quantity <= 0 && (
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                            <span className="bg-white/95 text-neutral-900 text-[10px] font-black px-3 py-1.5 rounded uppercase tracking-wider shadow-lg">
-                              Sold Out
+                          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex items-center justify-center">
+                            <span className="bg-white/95 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-xl">
+                              Out of Stock
                             </span>
                           </div>
                         )}
-
                       </Link>
 
-                      {/* Card Body */}
-                      <Link href={`/${slug}/product/${product.id}`} className="p-3.5 flex flex-col gap-0.5">
-                        <h3 className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2">
-                          {product.name}
-                        </h3>
-                        {variantHint && (
-                          <p className="text-[10px] text-slate-400 truncate">
-                            {variantHint}
+                      {/* Card Content */}
+                      <Link href={`/${slug}/product/${product.id}`} className="p-4 flex flex-col justify-between flex-1 gap-2">
+                        <div className="space-y-1">
+                          <h3 className="text-xs md:text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-slate-700 transition-colors">
+                            {product.name}
+                          </h3>
+                          {variantHint && (
+                            <p className="text-[10px] text-slate-400 font-medium truncate">
+                              {variantHint}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <p 
+                            style={{ color: store.accent_color || '#00A859' }} 
+                            className="text-base md:text-lg font-black tracking-tight"
+                          >
+                            ₦{Number(product.price).toLocaleString()}
                           </p>
-                        )}
-                        <p 
-                          style={{ color: store.accent_color || '#00A859' }} 
-                          className="text-[15px] font-extrabold mt-1.5 tracking-tight"
-                        >
-                          ₦{Number(product.price).toLocaleString()}
-                        </p>
+                          
+                          <span className="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-slate-900 text-slate-400 group-hover:text-white flex items-center justify-center transition-colors">
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
                       </Link>
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border border-neutral-100 shadow-inner mb-2">
-                  <Package className="w-8 h-8 text-neutral-300" />
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-center bg-white rounded-3xl border border-slate-200/60 p-8 shadow-xs">
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shadow-inner mb-1">
+                  <Package className="w-8 h-8 text-slate-300" />
                 </div>
-                <p className="text-[15px] text-neutral-900 font-bold">
-                  {allProds?.length === 0 ? "This store is getting ready." : (searchQuery ? `No results for "${searchQuery}"` : 'No products in this category.')}
+                <p className="text-sm text-slate-900 font-bold">
+                  {allProds?.length === 0 ? "This store is updating inventory." : (searchQuery ? `No items match "${searchQuery}"` : 'No products in this category.')}
                 </p>
-                <p className="text-[13px] text-neutral-500 max-w-[250px]">
-                  {allProds?.length === 0 ? "The vendor hasn't added any products yet. Check back later!" : "Try adjusting your filters or search term."}
+                <p className="text-xs text-slate-500 max-w-[260px] leading-relaxed">
+                  {allProds?.length === 0 ? "The merchant will list products soon. Check back shortly!" : "Try adjusting your search terms or filter categories."}
                 </p>
                 {searchQuery && (
-                  <Link href={`/${slug}`} className="text-[13px] font-bold text-[#00A859] underline underline-offset-2">
-                    Clear search
+                  <Link 
+                    href={`/${slug}`} 
+                    style={{ color: store.accent_color || '#00A859' }}
+                    className="text-xs font-bold underline underline-offset-4 mt-1"
+                  >
+                    Clear search filter
                   </Link>
                 )}
               </div>
@@ -425,15 +513,13 @@ export default async function PublicStorePage(props: {
           </main>
         </div>
 
-
-
         {/* Floating WhatsApp Contact Seller Button */}
         {waPhone && (
           <a
             href={`https://wa.me/${waPhone}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
+            className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
             aria-label="Contact seller on WhatsApp"
           >
             <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -441,6 +527,17 @@ export default async function PublicStorePage(props: {
             </svg>
           </a>
         )}
+
+        {/* Footer Attribution */}
+        <footer className="text-center pt-8 pb-4">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <span>Powered by</span>
+            <span className="font-black text-slate-700 tracking-tight">Ondar</span>
+          </Link>
+        </footer>
 
         {/* Persistent Cart Drawer component */}
         <CartDrawer store={store} />

@@ -34,7 +34,13 @@ export default function DashboardSettingsPage() {
   const [requireSenderName, setRequireSenderName] = useState(false)
   const [receiptSendWhatsapp, setReceiptSendWhatsapp] = useState(true)
   const [receiptSendEmail, setReceiptSendEmail] = useState(false)
+  const [heroBannerUrl, setHeroBannerUrl] = useState('')
+  const [heroTitle, setHeroTitle] = useState('')
+  const [heroSubtitle, setHeroSubtitle] = useState('')
+  const [heroBannerLink, setHeroBannerLink] = useState('')
+  const [heroButtonText, setHeroButtonText] = useState('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
 
   const router = useRouter()
   const supabase = createClient()
@@ -78,9 +84,14 @@ export default function DashboardSettingsPage() {
       setBankAccountName(storeData.bank_account_name || '')
       setEnableDirectCheckout(storeData.enable_direct_checkout !== false)
       setEnableWhatsappCheckout(storeData.enable_whatsapp_checkout !== false)
-      setRequireSenderName(storeData.require_sender_name === true)
+      setRequireSenderName(!!storeData.require_sender_name)
       setReceiptSendWhatsapp(storeData.receipt_send_whatsapp !== false)
-      setReceiptSendEmail(storeData.receipt_send_email === true)
+      setReceiptSendEmail(!!storeData.receipt_send_email)
+      setHeroBannerUrl(storeData.hero_banner_url || '')
+      setHeroTitle(storeData.hero_title || '')
+      setHeroSubtitle(storeData.hero_subtitle || '')
+      setHeroBannerLink(storeData.hero_banner_link || '')
+      setHeroButtonText(storeData.hero_button_text || '')
       if (storeData.trust_badges && Array.isArray(storeData.trust_badges)) {
         setTrustBadges(storeData.trust_badges.join(', '))
       }
@@ -118,7 +129,12 @@ export default function DashboardSettingsPage() {
         enable_whatsapp_checkout: enableWhatsappCheckout,
         require_sender_name: requireSenderName,
         receipt_send_whatsapp: receiptSendWhatsapp,
-        receipt_send_email: receiptSendEmail
+        receipt_send_email: receiptSendEmail,
+        hero_banner_url: heroBannerUrl,
+        hero_title: heroTitle,
+        hero_subtitle: heroSubtitle,
+        hero_banner_link: heroBannerLink,
+        hero_button_text: heroButtonText
       })
       .eq('id', store.id)
 
@@ -143,9 +159,7 @@ export default function DashboardSettingsPage() {
     try {
       // Delete orders first (foreign key constraints)
       await supabase.from('orders').delete().eq('store_id', store.id)
-      // Delete products
       await supabase.from('products').delete().eq('store_id', store.id)
-      // Delete store
       await supabase.from('stores').delete().eq('id', store.id)
       
       await supabase.auth.signOut()
@@ -190,6 +204,43 @@ export default function DashboardSettingsPage() {
       alert(error.message)
     } finally {
       setUploadingLogo(false)
+    }
+  }
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingBanner(true)
+      if (!e.target.files || e.target.files.length === 0) {
+        throw new Error('You must select a banner image to upload.')
+      }
+
+      const file = e.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `banner-${store.id}-${Math.random()}.${fileExt}`
+      const filePath = `${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath)
+
+      setHeroBannerUrl(publicUrl)
+
+      // Auto-save banner
+      const { error: dbError } = await supabase.from('stores').update({ hero_banner_url: publicUrl }).eq('id', store.id)
+      if (dbError) throw dbError
+      
+      setMessage({ type: 'success', text: 'Banner graphic uploaded and saved!' })
+      setTimeout(() => setMessage(null), 3000)
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setUploadingBanner(false)
     }
   }
 
@@ -486,6 +537,89 @@ export default function DashboardSettingsPage() {
                   <p className="text-[10px] text-secondary mt-1">Recommended size: 256x256px (Square)</p>
                 </div>
               </div>
+            </div>
+
+            {/* Storefront Hero Banner Uploader */}
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-primary-900">Storefront Hero Banner Graphic</label>
+                {heroBannerUrl && (
+                  <button 
+                    type="button" 
+                    onClick={() => setHeroBannerUrl('')} 
+                    className="text-[10px] font-bold text-red-500 hover:underline"
+                  >
+                    Remove Banner
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className="w-full h-28 rounded-2xl border-2 border-dashed border-border bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                  {heroBannerUrl ? (
+                    <img src={heroBannerUrl} alt="Storefront Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-secondary">
+                      <ImageIcon className="w-6 h-6" />
+                      <span className="text-[11px] font-medium">No banner uploaded yet</span>
+                    </div>
+                  )}
+                </div>
+
+                <label className="bg-white border border-border px-4 py-2 rounded-xl text-xs font-bold text-primary-900 flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors w-full">
+                  {uploadingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  {uploadingBanner ? 'Uploading Banner...' : (heroBannerUrl ? 'Change Banner Graphic' : 'Upload Custom Banner Graphic')}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                  />
+                </label>
+                <p className="text-[10px] text-secondary">Recommended aspect ratio: 3:1 (e.g. 1200x400px image banner).</p>
+              </div>
+
+              {/* Banner Click Link & Text Overlay Controls */}
+              {heroBannerUrl && (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3 mt-2">
+                  <span className="text-[11px] font-extrabold text-primary-900 uppercase tracking-wider block">Banner Upgrades & Actions</span>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-700">Banner Click Destination (Optional Link)</label>
+                    <input
+                      type="text"
+                      value={heroBannerLink}
+                      onChange={(e) => setHeroBannerLink(e.target.value)}
+                      placeholder="e.g. ?category=T-Shirts or https://wa.me/..."
+                      className="w-full px-3 py-2 bg-white rounded-lg border border-border text-xs outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                    <p className="text-[9px] text-secondary">When customers tap the banner, they will be taken to this link.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">Text Headline (Optional)</label>
+                      <input
+                        type="text"
+                        value={heroTitle}
+                        onChange={(e) => setHeroTitle(e.target.value)}
+                        placeholder="e.g. BASED ON LOVE"
+                        className="w-full px-3 py-2 bg-white rounded-lg border border-border text-xs outline-none focus:ring-1 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-slate-700">Button Label (Optional)</label>
+                      <input
+                        type="text"
+                        value={heroButtonText}
+                        onChange={(e) => setHeroButtonText(e.target.value)}
+                        placeholder="e.g. SHOP NOW"
+                        className="w-full px-3 py-2 bg-white rounded-lg border border-border text-xs outline-none focus:ring-1 focus:ring-primary-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">

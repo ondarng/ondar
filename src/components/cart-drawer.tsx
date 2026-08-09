@@ -338,15 +338,16 @@ export function CartDrawer({ store }: { store: any }) {
 
   return (
     <>
-      {/* Floating Cart Button */}
+      {/* Floating Tiny Cart Button (positioned right above WhatsApp button) */}
       {totalItems > 0 && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           style={{ backgroundColor: store.accent_color || '#00A859' }}
-          className="fixed bottom-6 right-6 z-50 p-4 rounded-full text-white shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+          className="fixed bottom-22 right-5 z-40 w-13 h-13 rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center relative"
+          aria-label="Open shopping cart"
         >
           <ShoppingBag className="w-6 h-6" />
-          <span className="bg-white text-slate-900 font-black text-xs px-2 py-0.5 rounded-full min-w-5 text-center">
+          <span className="absolute -top-1 -right-1 bg-white text-slate-900 font-black text-[10px] rounded-full w-5 h-5 flex items-center justify-center shadow-md border border-slate-200">
             {totalItems}
           </span>
         </button>
@@ -456,11 +457,14 @@ export function CartDrawer({ store }: { store: any }) {
                     </div>
 
                     <button
-                      onClick={() => setStep('details')}
+                      onClick={() => {
+                        setIsOpen(false)
+                        window.location.href = `/${store.slug}/checkout`
+                      }}
                       style={{ backgroundColor: store.accent_color || '#00A859' }}
                       className="w-full text-white font-extrabold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-98 transition-all shadow-md"
                     >
-                      Proceed to Delivery Details →
+                      Proceed to Checkout (₦{subtotal.toLocaleString()}) →
                     </button>
                   </div>
                 )}

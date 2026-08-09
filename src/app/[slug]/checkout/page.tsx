@@ -3,62 +3,121 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { CheckCircle, Clock, MapPin, User, Phone, ArrowLeft, Loader2 } from 'lucide-react'
+import {
+  CheckCircle,
+  Building2,
+  Copy,
+  Check,
+  Upload,
+  X,
+  User,
+  Phone,
+  MapPin,
+  FileText,
+  ArrowLeft,
+  ShoppingBag,
+  MessageSquare,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-react'
 import Link from 'next/link'
 
-export default function CustomCheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  imageUrl: string
+  quantity: number
+  variantName: string | null
+}
+
+export default function DedicatedCheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order_id')
-  
-  const [order, setOrder] = useState<any>(null)
-  const [product, setProduct] = useState<any>(null)
-  const [store, setStore] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
 
-  // Form State
+  const [store, setStore] = useState<any>(null)
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Single order fallback mode (for negotiated checkout links)
+  const [legacyOrder, setLegacyOrder] = useState<any>(null)
+  const [legacyProduct, setLegacyProduct] = useState<any>(null)
+
+  // Form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [instagram, setInstagram] = useState('')
-  const [senderName, setSenderName] = useState('')
+  const [customerNote, setCustomerNote] = useState('')
+
+  // Checkout Mode & Payment
+  const [checkoutMode, setCheckoutMode] = useState<'direct' | 'whatsapp'>('direct')
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
+  const [copiedAccount, setCopiedAccount] = useState(false)
+
+  const [submitting, setSubmitting] = useState(false)
+  const [completedOrder, setCompletedOrder] = useState<{ id: string; ref: string } | null>(null)
 
   const supabase = createClient()
   const router = useRouter()
 
+  // Load saved customer details
   useEffect(() => {
-    if (!orderId) {
-      setLoading(false)
-      return
+    try {
+      const saved = localStorage.getItem('ondar-saved-customer')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.name) setName(parsed.name)
+        if (parsed.phone) setPhone(parsed.phone)
+        if (parsed.address) setAddress(parsed.address)
+        if (parsed.instagram) setInstagram(parsed.instagram)
+      }
+    } catch (e) {
+      console.error(e)
     }
+  }, [])
 
-    async function fetchOrderData() {
+  // Load Store & Cart / Legacy Order
+  useEffect(() => {
+    async function loadData() {
       try {
-        // Fetch order
-        const { data: orderData, error: orderErr } = await supabase
-          .from('orders')
-          .select('*, products(*), stores(*)')
-          .eq('id', orderId)
+        setLoading(true)
+
+        // 1. Fetch store
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('*')
+          .eq('slug', slug)
           .single()
 
-        if (orderErr || !orderData) {
-          console.error(orderErr)
-          setLoading(false)
-          return
+        if (storeData) setStore(storeData)
+
+        // 2. If legacy order_id in query string
+        if (orderId) {
+          const { data: orderData } = await supabase
+            .from('orders')
+            .select('*, products(*), stores(*)')
+            .eq('id', orderId)
+            .single()
+
+          if (orderData) {
+            setLegacyOrder(orderData)
+            setLegacyProduct(orderData.products)
+            if (orderData.stores) setStore(orderData.stores)
+          }
         }
 
-        setOrder(orderData)
-        setProduct(orderData.products)
-        setStore(orderData.stores)
-        
-        // Pre-fill form if customer already existed in order
-        setName(orderData.customer_name || '')
-        setPhone(orderData.customer_phone || '')
-        setAddress(orderData.delivery_address || '')
-        setInstagram(orderData.customer_instagram || '')
-        setSenderName(orderData.sender_name || '')
+        // 3. Load cart items from localStorage
+        const storedCart = localStorage.getItem(`ondar-cart-${slug}`)
+        if (storedCart) {
+          try {
+            setCart(JSON.parse(storedCart))
+          } catch (e) {
+            console.error(e)
+          }
+        }
       } catch (err) {
         console.error(err)
       } finally {
@@ -66,42 +125,127 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
       }
     }
 
-    fetchOrderData()
-  }, [orderId])
+    loadData()
+  }, [slug, orderId])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const subtotal = legacyOrder
+    ? Number(legacyOrder.total_price)
+    : cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
+
+  const totalItems = legacyOrder
+    ? legacyOrder.quantity
+    : cart.reduce((acc, item) => acc + item.quantity, 0)
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setReceiptFile(file)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setReceiptDataUrl(ev.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const copyAccountNumber = () => {
+    if (!store?.bank_account_number) return
+    navigator.clipboard.writeText(store.bank_account_number)
+    setCopiedAccount(true)
+    setTimeout(() => setCopiedAccount(false), 2000)
+  }
+
+  const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!order) return
+    if (!name || !phone || !address) {
+      alert('Please fill in your name, phone number, and delivery address.')
+      return
+    }
+
+    // Save details for next session
+    try {
+      localStorage.setItem('ondar-saved-customer', JSON.stringify({ name, phone, address, instagram }))
+    } catch {}
+
     setSubmitting(true)
 
     try {
-      // 1. Update order with customer details
-      const { error: updateErr } = await supabase
-        .from('orders')
-        .update({
-          customer_name: name,
-          customer_phone: phone,
-          customer_instagram: instagram || null,
-          delivery_address: address,
-          sender_name: senderName || null,
-          status: 'PENDING' // Ensure it's active
-        })
-        .eq('id', order.id)
+      if (checkoutMode === 'whatsapp') {
+        // WhatsApp order flow
+        const cleanPhone = store?.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
+        const ref = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-      if (updateErr) throw updateErr
+        const itemsList = legacyOrder
+          ? `• ${legacyOrder.quantity}x ${legacyProduct?.name || 'Item'} - ₦${Number(legacyOrder.total_price).toLocaleString()}`
+          : cart
+              .map((item) => `• ${item.quantity}x ${item.name}${item.variantName ? ` (${item.variantName})` : ''} - ₦${(item.price * item.quantity).toLocaleString()}`)
+              .join('\n')
 
-      // 2. Log/Update customer in CRM (customers table)
-      await supabase.from('customers').insert({
-        store_id: store.id,
-        name: name,
-        phone: phone,
-        instagram: instagram || undefined,
-        address: address
-      }).select()
+        const message = `Hi ${store?.store_name}! I would like to place order #${ref}:\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}\n\n*Delivery Info:*\nName: ${name}\nPhone: ${phone}\nAddress: ${address}${customerNote ? `\nNote: ${customerNote}` : ''}`
 
-      setSuccess(true)
+        // Clear Cart
+        localStorage.removeItem(`ondar-cart-${slug}`)
+        window.dispatchEvent(new Event('ondar-cart-updated'))
+
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
+        router.push(`/${slug}`)
+      } else {
+        // Direct Checkout flow
+        if (legacyOrder) {
+          // Update legacy order
+          await supabase
+            .from('orders')
+            .update({
+              customer_name: name,
+              customer_phone: phone,
+              delivery_address: address,
+              customer_instagram: instagram || null,
+              customer_note: customerNote || null,
+              payment_receipt_url: receiptDataUrl || null,
+              status: 'PENDING',
+            })
+            .eq('id', legacyOrder.id)
+
+          const ref = legacyOrder.id.slice(0, 8).toUpperCase()
+          setCompletedOrder({ id: legacyOrder.id, ref })
+        } else {
+          // Send to API
+          const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              store_id: store.id,
+              items: cart.map((item) => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                variant_name: item.variantName || null,
+              })),
+              customer_name: name,
+              customer_phone: phone,
+              customer_instagram: instagram || null,
+              delivery_address: address,
+              checkout_mode: 'direct',
+              customer_note: customerNote || null,
+              payment_receipt_url: receiptDataUrl || null,
+              payment_method: 'bank_transfer',
+            }),
+          })
+
+          const result = await response.json()
+          if (!response.ok) throw new Error(result.error || 'Checkout failed')
+
+          const firstId = result.order_ids?.[0] || 'SUCCESS'
+          const ref = firstId.slice(0, 8).toUpperCase()
+
+          // Clear Cart
+          localStorage.removeItem(`ondar-cart-${slug}`)
+          window.dispatchEvent(new Event('ondar-cart-updated'))
+
+          setCompletedOrder({ id: firstId, ref })
+        }
+      }
     } catch (err: any) {
-      alert("Error confirming checkout: " + err.message)
+      alert('Checkout error: ' + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -109,261 +253,325 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
       </div>
     )
   }
 
-  if (!orderId || !order) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-6 text-center space-y-4">
-        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center">
-          <XCircleIcon className="w-8 h-8" />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-neutral-900">Checkout Link Invalid</h2>
-          <p className="text-sm text-neutral-500 mt-1">This checkout link is broken or does not exist.</p>
-        </div>
-        <Link href={`/${slug}`} className="bg-neutral-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm">
-          Go to Storefront
-        </Link>
-      </div>
+  if (completedOrder) {
+    const cleanPhone = store?.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
+    const waText = encodeURIComponent(
+      `Hi ${store?.store_name}, I just placed order #${completedOrder.ref} (₦${subtotal.toLocaleString()}). Please confirm delivery!`
     )
-  }
 
-  if (success) {
     return (
-      <div className="min-h-screen bg-[#0A0D14] flex flex-col justify-center items-center px-6 text-center text-white relative overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-600/10 rounded-full blur-[120px] -z-10" />
-        
-        <div className="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
-          <div className="w-16 h-16 bg-green-500/25 text-green-400 rounded-2xl flex items-center justify-center mx-auto border border-green-500/30 animate-pulse">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-md p-8 rounded-3xl text-center space-y-6 shadow-xl border border-slate-200/80">
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle className="w-8 h-8" />
           </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-xl font-bold text-white">Order Details Captured!</h2>
-            <p className="text-sm text-neutral-400 leading-relaxed">
-              Your details have been successfully sent to <span className="font-bold text-white">{store.store_name}</span>. The merchant has been notified and will verify your transfer shortly.
+
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-black text-slate-900">Order Confirmed!</h2>
+            <p className="text-xs text-slate-500">
+              Reference:{' '}
+              <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                #{completedOrder.ref}
+              </span>
             </p>
           </div>
 
-          {/* BANK ACCOUNT DETAILS */}
-          {store.bank_account_number && (
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-left space-y-3 text-xs">
-              <p className="text-xs font-bold text-neutral-300 uppercase tracking-wider">Make Payment via Bank Transfer</p>
-              <div className="space-y-1">
-                <p className="text-[10px] text-neutral-400">Bank Name</p>
-                <p className="text-xs font-bold text-neutral-200">{store.bank_name}</p>
+          {/* Bank Transfer Details */}
+          {store?.bank_account_number && (
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-left space-y-2.5 text-xs">
+              <p className="font-black text-slate-700 uppercase tracking-wider text-[10px]">Bank Transfer Details</p>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Bank:</span>
+                <span className="font-bold text-slate-900">{store.bank_name}</span>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] text-neutral-400">Account Number</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-mono font-bold text-neutral-200">{store.bank_account_number}</p>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(store.bank_account_number);
-                      alert("Account number copied!");
-                    }}
-                    className="text-[10px] font-bold text-primary-400 hover:underline"
-                  >
-                    Copy
-                  </button>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Account No:</span>
+                <span className="font-mono font-bold text-slate-900 text-sm">{store.bank_account_number}</span>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] text-neutral-400">Account Name</p>
-                <p className="text-xs font-bold text-neutral-200">{store.bank_account_name}</p>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Account Name:</span>
+                <span className="font-bold text-slate-900">{store.bank_account_name}</span>
               </div>
-              <p className="text-[10px] text-neutral-400 italic mt-2">Please make the transfer of ₦{order.total_price.toLocaleString()} and keep your receipt for delivery verification.</p>
             </div>
           )}
 
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-xs text-neutral-500">
-              Reference Code: <span className="font-mono font-bold text-neutral-300">#{order.id.slice(0, 8).toUpperCase()}</span>
-            </p>
-          </div>
+          {receiptFile && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-center gap-2 text-xs text-emerald-800 font-bold">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Receipt uploaded successfully!</span>
+            </div>
+          )}
 
-          <Link 
-            href={`/${slug}`}
-            className="block w-full bg-neutral-800 text-neutral-300 py-3.5 rounded-2xl font-bold text-xs border border-white/5 hover:bg-neutral-700 transition-all"
-          >
-            Return to Store
-          </Link>
+          <div className="space-y-2 pt-2">
+            {cleanPhone && (
+              <a
+                href={`https://wa.me/${cleanPhone}?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#25D366] text-white font-extrabold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-98 transition-all shadow-md"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Notify Vendor on WhatsApp
+              </a>
+            )}
+
+            <Link
+              href={`/${slug}`}
+              className="block w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl text-xs hover:bg-black transition-all"
+            >
+              Return to Store
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
-  const cleanPhone = store.whatsapp_number.replace(/[^0-9]/g, '').replace(/^0/, '234')
-
   return (
-    <div className="min-h-screen bg-[#F5F5F5] font-sans pb-16 flex flex-col">
-      {/* Announcement banner — same as storefront */}
-      {store.announcement_text && (
-        <div
-          style={{ backgroundColor: store.accent_color || '#00A859' }}
-          className="text-white text-[11px] uppercase tracking-wider font-extrabold py-2 px-4 text-center select-none shadow-sm flex items-center justify-center gap-2"
-        >
-          <span>✦</span>
-          <span>{store.announcement_text}</span>
+    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+      {/* Top Header */}
+      <header className="bg-white border-b border-slate-200/80 px-4 py-3 sticky top-0 z-30 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/${slug}`}
+            className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <h1 className="font-black text-slate-900 text-sm tracking-tight">{store?.store_name || 'Store'}</h1>
+            <p className="text-[10px] text-slate-500">Secure Checkout</p>
+          </div>
         </div>
-      )}
 
-      {/* Hero banner */}
-      {store.hero_banner_url && (
-        <div className="w-full max-w-md mx-auto px-4 pt-3">
-          <img
-            src={store.hero_banner_url}
-            alt="Store banner"
-            className="w-full rounded-2xl object-cover shadow-sm border border-slate-200/60"
-            style={{ maxHeight: '100px', objectPosition: 'center' }}
-          />
+        <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 font-bold">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Encrypted</span>
         </div>
-      )}
-
-      <header className="bg-white border-b border-neutral-100 px-4 py-3.5 sticky top-0 z-10 flex items-center gap-3">
-        <Link href={`/${slug}`} className="p-2 -ml-2 rounded-full hover:bg-neutral-50 text-neutral-800 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <span className="font-bold text-neutral-900 text-sm">Checkout</span>
       </header>
 
-      <main className="flex-1 max-w-md mx-auto w-full px-4 py-6 space-y-6">
-        
-        {/* Negotiated Pricing & Product Card */}
-        <div className="bg-white p-5 rounded-2xl border border-neutral-100 shadow-sm space-y-4">
-          <div className="flex gap-4">
-            <div className="w-16 h-16 bg-neutral-50 rounded-lg border border-neutral-100 overflow-hidden shrink-0">
-              <img src={product?.image_url} alt={product?.name} className="w-full h-full object-cover p-1" />
+      {/* Main Content */}
+      <main className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+        {/* ── 1. ORDER SUMMARY ── */}
+        <section className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <ShoppingBag className="w-4 h-4 text-slate-600" />
+              <span>Order Summary ({totalItems} item{totalItems !== 1 ? 's' : ''})</span>
+            </h2>
+            <Link href={`/${slug}`} className="text-[11px] font-bold text-slate-500 hover:text-slate-900 underline">
+              Edit Cart
+            </Link>
+          </div>
+
+          {legacyOrder ? (
+            <div className="flex gap-3 items-center py-1">
+              <div className="w-12 h-12 bg-slate-50 rounded-xl border border-slate-200 overflow-hidden shrink-0">
+                <img src={legacyProduct?.image_url} alt={legacyProduct?.name} className="w-full h-full object-cover p-1" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-xs text-slate-900 truncate">{legacyProduct?.name}</h4>
+                <p className="text-[11px] text-slate-500 font-bold mt-0.5">₦{subtotal.toLocaleString()}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <span className="bg-amber-50 text-amber-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-amber-100">Special Discount Price</span>
-              <h4 className="font-bold text-sm text-neutral-900 truncate mt-1.5">{product?.name}</h4>
-              {order.specification && <p className="text-xs text-neutral-500 mt-0.5">{order.specification}</p>}
+          ) : cart.length > 0 ? (
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {cart.map((item, i) => (
+                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <span className="font-black text-slate-400 text-[11px]">{item.quantity}x</span>
+                    <span className="font-bold text-slate-800 truncate">
+                      {item.name} {item.variantName ? `(${item.variantName})` : ''}
+                    </span>
+                  </div>
+                  <span className="font-bold text-slate-900 shrink-0">₦{(item.price * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-xs text-slate-500 py-2 text-center">Your cart is empty. <Link href={`/${slug}`} className="underline font-bold">Return to store</Link></p>
+          )}
 
-          <div className="flex justify-between items-baseline border-t border-neutral-100 pt-3">
-            <span className="text-xs text-neutral-500 font-medium">Negotiated Price ({order.quantity}x)</span>
-            <span className="text-lg font-black text-neutral-950">₦{order.total_price.toLocaleString()}</span>
+          <div className="border-t border-slate-100 pt-2.5 flex justify-between items-baseline font-black text-sm">
+            <span className="text-slate-600 text-xs">Total Amount</span>
+            <span className="text-slate-900 text-base">₦{subtotal.toLocaleString()}</span>
           </div>
-        </div>
+        </section>
 
-        {/* Customer Information Form */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-100 space-y-4">
-          <div className="space-y-1">
-            <h3 className="font-bold text-neutral-900 text-sm">Delivery Information</h3>
-            <p className="text-[11px] text-neutral-500 leading-relaxed">Fill in your exact details. The storefront vendor will use this to dispatch your items and issue a receipt.</p>
+        {/* ── 2. CHECKOUT METHOD TOGGLE ── */}
+        <section className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
+          <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">Select Checkout Method</h2>
+          <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setCheckoutMode('direct')}
+              className={`py-2.5 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                checkoutMode === 'direct' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              <Building2 className="w-4 h-4 text-emerald-600" />
+              <span>Direct Bank Transfer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCheckoutMode('whatsapp')}
+              className={`py-2.5 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                checkoutMode === 'whatsapp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4 text-[#25D366]" />
+              <span>WhatsApp DM</span>
+            </button>
           </div>
+        </section>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-neutral-800">Your Full Name</label>
+        {/* ── 3. CUSTOMER DETAILS FORM ── */}
+        <form onSubmit={handleCompleteOrder} className="space-y-4">
+          <section className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
+            <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider">Delivery Information</h2>
+
+            <div className="space-y-2.5">
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Simi Cole"
+                  placeholder="Your Full Name *"
                   value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400"
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-medium"
                 />
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-neutral-800">Phone Number (WhatsApp)</label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. 08031234567"
+                  placeholder="WhatsApp Phone Number *"
                   value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400"
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-medium"
                 />
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-neutral-800">Instagram Handle (Optional)</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-semibold">@</span>
-                <input
-                  type="text"
-                  placeholder="e.g. simi_cole"
-                  value={instagram}
-                  onChange={e => setInstagram(e.target.value.replace('@', ''))}
-                  className="w-full pl-8 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-neutral-800">Delivery Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-neutral-400" />
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <textarea
                   required
-                  rows={3}
-                  placeholder="Street Address, City, State"
+                  rows={2}
+                  placeholder="Delivery Address *"
                   value={address}
-                  onChange={e => setAddress(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-neutral-400 resize-none"
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-medium resize-none"
+                />
+              </div>
+
+              <div className="relative">
+                <FileText className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <textarea
+                  rows={2}
+                  placeholder="Note to Seller (Optional, e.g. deliver after 2pm)"
+                  value={customerNote}
+                  onChange={(e) => setCustomerNote(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-medium resize-none"
                 />
               </div>
             </div>
+          </section>
 
-            {store.require_sender_name && (
-              <div className="space-y-1 bg-amber-50/50 p-4 rounded-xl border border-amber-100/50 mt-4">
-                <label className="text-[11px] font-bold text-amber-900 flex items-center gap-1">
-                  <span>💰</span> Bank Account Name (For Payment Verification)
-                </label>
-                <p className="text-[10px] text-amber-600 mb-2">Type the exact name on the bank account you paid from so the vendor can confirm your payment.</p>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. John Doe"
-                    value={senderName}
-                    onChange={e => setSenderName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-amber-400 text-neutral-800"
-                  />
-                </div>
+          {/* ── 4. BANK DETAILS & PROOF UPLOAD (IF DIRECT CHECKOUT) ── */}
+          {checkoutMode === 'direct' && (
+            <section className="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">Bank Transfer Details</h2>
+                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
+                  Direct Payment
+                </span>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{ backgroundColor: store.accent_color || '#00A859' }}
-              className="w-full text-white font-extrabold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md mt-4"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Order Details'}
-            </button>
-          </form>
-        </div>
+              {store?.bank_account_number ? (
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Bank:</span>
+                    <span className="font-bold text-white">{store.bank_name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Account Number:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-emerald-400 text-sm">{store.bank_account_number}</span>
+                      <button
+                        type="button"
+                        onClick={copyAccountNumber}
+                        className="p-1 text-slate-400 hover:text-white bg-slate-800 rounded-md transition-colors"
+                        title="Copy Account Number"
+                      >
+                        {copiedAccount ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Account Name:</span>
+                    <span className="font-bold text-white">{store.bank_account_name}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-300">Merchant will provide bank account details upon order confirmation.</p>
+              )}
 
+              {/* Upload Proof */}
+              <div className="border-t border-slate-800 pt-3 space-y-2">
+                <label className="block text-[11px] font-black text-slate-300 uppercase tracking-wider">
+                  Upload Payment Proof (Optional)
+                </label>
+                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-700 hover:border-slate-500 bg-slate-800/60 rounded-xl cursor-pointer transition-colors">
+                  <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                  <span className="text-xs font-bold text-slate-200">
+                    {receiptFile ? receiptFile.name : 'Tap to attach receipt image'}
+                  </span>
+                  <input type="file" accept="image/*" onChange={handleReceiptUpload} className="hidden" />
+                </label>
+
+                {receiptDataUrl && (
+                  <div className="relative rounded-xl overflow-hidden border border-slate-700 aspect-[3/1] bg-black flex items-center justify-center">
+                    <img src={receiptDataUrl} alt="Receipt preview" className="h-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReceiptFile(null)
+                        setReceiptDataUrl(null)
+                      }}
+                      className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full text-xs"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{ backgroundColor: store?.accent_color || '#00A859' }}
+            className="w-full text-white font-extrabold py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-98 transition-all shadow-md disabled:opacity-50"
+          >
+            {submitting
+              ? 'Processing Order...'
+              : checkoutMode === 'whatsapp'
+              ? 'Submit & Order via WhatsApp DM →'
+              : `Confirm & Submit Order (₦${subtotal.toLocaleString()}) →`}
+          </button>
+        </form>
       </main>
     </div>
-  )
-}
-
-function XCircleIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      {...props}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
   )
 }

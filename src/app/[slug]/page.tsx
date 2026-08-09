@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Package, Share2, X, Sparkles, ShieldCheck, Star } from 'lucide-react'
 import { CartDrawer } from '@/components/cart-drawer'
-import { CartBar, CartBadge } from '@/components/cart-bar'
+import { CartBadge } from '@/components/cart-bar'
 import { StorefrontFilters } from '@/components/storefront-filters'
 import { StorefrontProductCard } from '@/components/storefront-product-card'
 import { StorefrontFooter } from '@/components/storefront-footer'
@@ -511,7 +511,7 @@ export default async function PublicStorePage(props: {
             href={`https://wa.me/${waPhone}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-28 right-4 z-50 w-13 h-13 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
+            className="fixed bottom-6 right-5 z-40 w-13 h-13 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
             aria-label="Contact seller on WhatsApp"
           >
             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -519,9 +519,6 @@ export default async function PublicStorePage(props: {
             </svg>
           </a>
         )}
-
-        {/* Sticky View Cart bar — slides up when cart has items */}
-        <CartBar accentColor={accentColor} storeSlug={store.slug} />
 
         {/* Persistent Cart Drawer component */}
         <CartDrawer store={store} />

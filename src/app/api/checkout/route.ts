@@ -151,25 +151,42 @@ export async function POST(request: NextRequest) {
     const orderIds: string[] = []
 
     for (const item of validatedItems) {
-      const { data: orderData, error: orderError } = await supabase
+      const basePayload: any = {
+        store_id: body.store_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        total_price: item.total_price,
+        specification: item.specification,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_instagram: body.customer_instagram || null,
+        delivery_address: deliveryAddress,
+        status: 'PENDING'
+      }
+
+      // Try inserting with extended columns first
+      let { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
-          store_id: body.store_id,
-          product_id: item.product_id,
-          quantity: item.quantity,
-          total_price: item.total_price,
-          specification: item.specification,
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          customer_instagram: body.customer_instagram || null,
-          delivery_address: deliveryAddress,
+          ...basePayload,
           payment_receipt_url: body.payment_receipt_url || null,
           customer_note: body.customer_note || null,
           payment_method: body.payment_method || 'bank_transfer',
-          status: 'PENDING'
         })
         .select('id')
         .single()
+
+      // If failed due to missing columns in schema, retry with base payload
+      if (orderError && (orderError.message?.includes('customer_note') || orderError.message?.includes('column'))) {
+        console.warn('Extended columns missing in orders schema, retrying with base payload:', orderError.message)
+        const retryResult = await supabase
+          .from('orders')
+          .insert(basePayload)
+          .select('id')
+          .single()
+        orderData = retryResult.data
+        orderError = retryResult.error
+      }
 
       if (orderError) {
         console.error('Order insert error:', orderError)

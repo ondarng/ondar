@@ -31,17 +31,19 @@ interface StorefrontFooterProps {
     website_url?: string | null
     return_policy?: string | null
     accent_color?: string | null
+    footer_bg_color?: string | null
   }
 }
 
 export function StorefrontFooter({ store }: StorefrontFooterProps) {
   const accent = store.accent_color || '#00A859'
+  const bgColor = store.footer_bg_color || '#090D16'
   const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
 
   const hasSocials = store.instagram_handle || store.twitter_handle || store.facebook_url || store.website_url
 
   return (
-    <footer className="bg-slate-950 text-slate-400 mt-6">
+    <footer className="text-slate-400 mt-6" style={{ backgroundColor: bgColor }}>
       <div className="max-w-2xl mx-auto px-4 pt-8 pb-6 space-y-6">
 
         {/* Store identity row */}

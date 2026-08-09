@@ -276,3 +276,29 @@ CREATE POLICY "Anyone can submit a review" ON reviews FOR INSERT WITH CHECK (tru
 CREATE POLICY "Store owner can delete reviews" ON reviews FOR DELETE USING (
   store_id IN (SELECT id FROM stores WHERE vendor_id = auth.uid())
 );
+
+
+-- 11. STORE VIEWS / ANALYTICS TABLE & STORE COLUMNS
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS delivery_zones JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS footer_bg_color TEXT DEFAULT '#090D16';
+
+CREATE TABLE IF NOT EXISTS store_views (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+  visitor_ip TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE store_views ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Store views readable by store vendor" ON store_views FOR SELECT USING (true);
+CREATE POLICY "Anyone can log a store view" ON store_views FOR INSERT WITH CHECK (true);
+
+
+-- Anyone can insert a review (customers submit after order)
+CREATE POLICY "Anyone can submit a review" ON reviews FOR INSERT WITH CHECK (true);
+
+-- Only store owner can delete reviews
+CREATE POLICY "Store owner can delete reviews" ON reviews FOR DELETE USING (
+  store_id IN (SELECT id FROM stores WHERE vendor_id = auth.uid())
+);

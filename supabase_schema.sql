@@ -66,8 +66,17 @@ CREATE TABLE IF NOT EXISTS orders (
     specification TEXT,
     status TEXT CHECK (status IN ('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED')) DEFAULT 'PENDING',
     vendor_notes TEXT,
+    payment_receipt_url TEXT,
+    customer_note TEXT,
+    payment_method TEXT DEFAULT 'bank_transfer',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migrations for existing orders table:
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_receipt_url TEXT;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_note TEXT;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'bank_transfer';
+
 
 -- 4. LEADS TABLE (CRM)
 CREATE TABLE IF NOT EXISTS leads (

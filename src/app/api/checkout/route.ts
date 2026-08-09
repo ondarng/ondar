@@ -22,6 +22,9 @@ interface CheckoutRequest {
   customer_instagram?: string
   delivery_address: string
   checkout_mode: 'direct' | 'whatsapp'
+  payment_receipt_url?: string
+  customer_note?: string
+  payment_method?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -160,6 +163,9 @@ export async function POST(request: NextRequest) {
           customer_phone: customerPhone,
           customer_instagram: body.customer_instagram || null,
           delivery_address: deliveryAddress,
+          payment_receipt_url: body.payment_receipt_url || null,
+          customer_note: body.customer_note || null,
+          payment_method: body.payment_method || 'bank_transfer',
           status: 'PENDING'
         })
         .select('id')

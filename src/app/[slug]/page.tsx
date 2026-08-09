@@ -8,6 +8,7 @@ import { CartDrawer } from '@/components/cart-drawer'
 import { CartBar, CartBadge } from '@/components/cart-bar'
 import { StorefrontFilters } from '@/components/storefront-filters'
 import { StorefrontProductCard } from '@/components/storefront-product-card'
+import { StorefrontFooter } from '@/components/storefront-footer'
 import type { Metadata } from 'next'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
@@ -500,6 +501,9 @@ export default async function PublicStorePage(props: {
             </div>
           </section>
         </div>
+
+        {/* ── FOOTER ── */}
+        <StorefrontFooter store={store} />
 
         {/* Floating WhatsApp Contact Seller Button */}
         {waPhone && (

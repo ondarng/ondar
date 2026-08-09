@@ -201,11 +201,34 @@ export default function CustomCheckoutPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] font-sans pb-16 flex flex-col">
+      {/* Announcement banner — same as storefront */}
+      {store.announcement_text && (
+        <div
+          style={{ backgroundColor: store.accent_color || '#00A859' }}
+          className="text-white text-[11px] uppercase tracking-wider font-extrabold py-2 px-4 text-center select-none shadow-sm flex items-center justify-center gap-2"
+        >
+          <span>✦</span>
+          <span>{store.announcement_text}</span>
+        </div>
+      )}
+
+      {/* Hero banner */}
+      {store.hero_banner_url && (
+        <div className="w-full max-w-md mx-auto px-4 pt-3">
+          <img
+            src={store.hero_banner_url}
+            alt="Store banner"
+            className="w-full rounded-2xl object-cover shadow-sm border border-slate-200/60"
+            style={{ maxHeight: '100px', objectPosition: 'center' }}
+          />
+        </div>
+      )}
+
       <header className="bg-white border-b border-neutral-100 px-4 py-3.5 sticky top-0 z-10 flex items-center gap-3">
         <Link href={`/${slug}`} className="p-2 -ml-2 rounded-full hover:bg-neutral-50 text-neutral-800 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <span className="font-bold text-neutral-900 text-sm">Negotiated Checkout</span>
+        <span className="font-bold text-neutral-900 text-sm">Checkout</span>
       </header>
 
       <main className="flex-1 max-w-md mx-auto w-full px-4 py-6 space-y-6">

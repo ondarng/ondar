@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Package, Share2, X, Sparkles, ShieldCheck, Clock, ArrowUpRight } from 'lucide-react'
 import { CartDrawer } from '@/components/cart-drawer'
+import { StorefrontFilters } from '@/components/storefront-filters'
 import type { Metadata } from 'next'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
@@ -332,94 +333,39 @@ export default async function PublicStorePage(props: {
 
         <div className="max-w-2xl mx-auto px-4 mt-4">
 
-          {/* ── BROWSE COLLECTIONS, SEARCH BAR & SORT FILTER ── */}
-          <div className="space-y-3 mb-4">
-            {/* Search Bar */}
-            <form action={`/${slug}`} method="GET">
-              {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
-              {activeSort !== 'newest' && <input type="hidden" name="sort" value={activeSort} />}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={searchQuery}
-                  placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
-                  className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-10 py-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 shadow-2xs"
-                />
-                {searchQuery && (
-                  <Link
-                    href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full"
-                  >
-                    <X className="w-3 h-3" />
-                  </Link>
-                )}
-              </div>
-            </form>
-
-            {/* Category & Sort Filters Row (Feature #2) */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-2xs flex flex-wrap items-center justify-between gap-2">
-              {/* Category Dropdown */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700 shrink-0">Collections:</span>
-                <select
-                  value={activeCategory}
-                  onChange={(e) => {
-                    const newCat = e.target.value
-                    window.location.href = `/${slug}${newCat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(newCat)}${searchQuery ? `&q=${searchQuery}` : ''}`}${activeSort !== 'newest' ? `&sort=${activeSort}` : ''}`
-                  }}
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none cursor-pointer"
+          {/* ── SEARCH BAR ── */}
+          <form action={`/${slug}`} method="GET" className="mb-3">
+            {activeCategory !== 'All' && <input type="hidden" name="category" value={activeCategory} />}
+            {activeSort !== 'newest' && <input type="hidden" name="sort" value={activeSort} />}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="search"
+                name="q"
+                defaultValue={searchQuery}
+                placeholder={`Search ${store.store_name.replace(/['s]$/i, '')} products…`}
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-10 py-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-slate-900/10 shadow-2xs"
+              />
+              {searchQuery && (
+                <Link
+                  href={`/${slug}${activeCategory !== 'All' ? `?category=${encodeURIComponent(activeCategory)}` : ''}`}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full"
                 >
-                  {categories.map((cat: string) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Feature #2: Sort By Dropdown */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700 shrink-0">Sort:</span>
-                <select
-                  value={activeSort}
-                  onChange={(e) => {
-                    const newSort = e.target.value
-                    window.location.href = `/${slug}?${activeCategory !== 'All' ? `category=${encodeURIComponent(activeCategory)}&` : ''}${searchQuery ? `q=${searchQuery}&` : ''}sort=${newSort}`
-                  }}
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none cursor-pointer"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                </select>
-              </div>
+                  <X className="w-3 h-3" />
+                </Link>
+              )}
             </div>
+          </form>
 
-            {/* Category Pills */}
-            {categories.length > 1 && (
-              <div className="overflow-x-auto hide-scrollbar">
-                <div className="flex items-center gap-2 w-max py-0.5">
-                  {categories.map((cat: string) => {
-                    const isActive = activeCategory === cat
-                    return (
-                      <Link
-                        key={cat}
-                        href={`/${slug}${cat === 'All' ? (searchQuery ? `?q=${searchQuery}` : '') : `?category=${encodeURIComponent(cat)}${searchQuery ? `&q=${searchQuery}` : ''}`}${activeSort !== 'newest' ? `&sort=${activeSort}` : ''}`}
-                        style={{ 
-                          backgroundColor: isActive ? (store.accent_color || '#00A859') : '#FFFFFF',
-                          color: isActive ? '#FFFFFF' : '#475569'
-                        }}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wide whitespace-nowrap border border-slate-200/80 transition-all ${
-                          isActive ? 'shadow-sm border-transparent font-extrabold' : ''
-                        }`}
-                      >
-                        {cat}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+          {/* ── COLLECTIONS, SORT & CATEGORY PILLS (Client Component) ── */}
+          <div className="mb-4">
+            <StorefrontFilters
+              slug={slug}
+              categories={categories}
+              activeCategory={activeCategory}
+              activeSort={activeSort}
+              searchQuery={searchQuery}
+            />
           </div>
 
           {/* ── PRODUCT GRID ── */}

@@ -237,5 +237,6 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_name TEXT;
 
 
 -- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW
--- Run this query to extend/reset all existing stores to a 7-day trial:
+-- Run this query in Supabase SQL Editor to extend/reset all existing stores to a 7-day trial:
+UPDATE stores SET trial_ends_at = NOW() + INTERVAL '7 days', subscription_status = 'TRIAL';
 

@@ -3,9 +3,11 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Search, Package, Share2, X, Sparkles, ShieldCheck, Clock, ArrowUpRight } from 'lucide-react'
+import { Search, Package, Share2, X, Sparkles, ShieldCheck, Star } from 'lucide-react'
 import { CartDrawer } from '@/components/cart-drawer'
+import { CartBar, CartBadge } from '@/components/cart-bar'
 import { StorefrontFilters } from '@/components/storefront-filters'
+import { StorefrontProductCard } from '@/components/storefront-product-card'
 import type { Metadata } from 'next'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
@@ -184,8 +186,21 @@ export default async function PublicStorePage(props: {
     const { data: products } = await query
     const safeProducts = products || []
 
+    // Fetch real reviews for this store
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('store_id', store.id)
+      .order('created_at', { ascending: false })
+      .limit(6)
+    const safeReviews = reviews || []
+    const avgRating = safeReviews.length > 0
+      ? (safeReviews.reduce((a, r) => a + r.rating, 0) / safeReviews.length).toFixed(1)
+      : null
+
     const trustBadges: string[] = store.trust_badges || ['Nationwide Delivery', '100% Original', 'Warranty']
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
+    const accentColor = store.accent_color || '#00A859'
 
     return (
       <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24 antialiased selection:bg-primary-500 selection:text-white">
@@ -237,11 +252,11 @@ export default async function PublicStorePage(props: {
             </h1>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {isOwner && (
               <Link
                 href="/dashboard"
-                style={{ color: store.accent_color || '#00A859', borderColor: (store.accent_color || '#00A859') + '40' }}
+                style={{ color: accentColor, borderColor: accentColor + '40' }}
                 className="px-3 py-1.5 bg-slate-50 border rounded-xl text-xs font-bold transition-all active:scale-95 mr-1"
               >
                 Dashboard
@@ -249,13 +264,16 @@ export default async function PublicStorePage(props: {
             )}
 
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name} on Ondar: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name} on Ondar`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-slate-500 hover:text-slate-900 transition-colors"
             >
               <Share2 className="w-5 h-5" />
             </a>
+
+            {/* Cart badge — opens drawer */}
+            <CartBadge accentColor={accentColor} storeSlug={store.slug} />
           </div>
         </header>
 
@@ -372,64 +390,15 @@ export default async function PublicStorePage(props: {
           <main className="pb-8 mt-2">
             {safeProducts.length > 0 ? (
               <div className="grid grid-cols-2 gap-3.5 md:gap-4">
-                {safeProducts.map((product) => {
-                  const variants: { name: string; price?: number | null }[] = Array.isArray(product.variants) ? product.variants : []
-                  const hasVariants = variants.length > 0
-
-                  return (
-                    <div
-                      key={product.id}
-                      className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 border border-slate-200/80"
-                    >
-                      {/* Image Container */}
-                      <Link href={`/${slug}/product/${product.id}`} className="relative block overflow-hidden">
-                        <div className="w-full aspect-square bg-slate-50 flex items-center justify-center p-3 relative">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-contain group-hover:scale-104 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        </div>
-
-                        {/* Availability badge */}
-                        <AvailabilityBadge qty={product.stock_quantity ?? 0} />
-
-                        {/* Sold-out overlay */}
-                        {product.stock_quantity <= 0 && (
-                          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px] flex items-center justify-center">
-                            <span className="bg-white/95 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-lg">
-                              Out of Stock
-                            </span>
-                          </div>
-                        )}
-                      </Link>
-
-                      {/* Card Body */}
-                      <div className="p-3 flex flex-col justify-between flex-1 gap-2">
-                        <div className="space-y-1">
-                          <Link href={`/${slug}/product/${product.id}`} className="block">
-                            <h3 className="text-xs font-black text-slate-900 leading-snug line-clamp-2 uppercase tracking-wide group-hover:text-slate-700 transition-colors">
-                              {product.name}
-                            </h3>
-                          </Link>
-                          <p className="text-sm font-black text-slate-950 tracking-tight">
-                            ₦{Number(product.price).toLocaleString()}
-                          </p>
-                        </div>
-
-                        {/* Action Button: Select options / Add to Cart */}
-                        <Link
-                          href={`/${slug}/product/${product.id}`}
-                          style={{ backgroundColor: store.accent_color || '#00A859' }}
-                          className="w-full text-white text-xs font-bold py-2.5 rounded-xl text-center shadow-2xs hover:opacity-90 active:scale-97 transition-all mt-1"
-                        >
-                          {hasVariants ? 'Select options' : 'Add to Cart'}
-                        </Link>
-                      </div>
-                    </div>
-                  )
-                })}
+                {safeProducts.map((product) => (
+                  <StorefrontProductCard
+                    key={product.id}
+                    product={product}
+                    slug={slug}
+                    accentColor={accentColor}
+                    storeSlug={store.slug}
+                  />
+                ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-3 text-center bg-white rounded-2xl border border-slate-200/80 p-8">
@@ -445,7 +414,7 @@ export default async function PublicStorePage(props: {
                 {searchQuery && (
                   <Link 
                     href={`/${slug}`} 
-                    style={{ color: store.accent_color || '#00A859' }}
+                    style={{ color: accentColor }}
                     className="text-xs font-bold underline underline-offset-4 mt-1"
                   >
                     Clear search filter
@@ -455,47 +424,54 @@ export default async function PublicStorePage(props: {
             )}
           </main>
 
-          {/* ── FEATURE #3: VERIFIED CUSTOMER REVIEWS / SOCIAL PROOF ── */}
-          <section className="mb-8 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-800 flex items-center gap-1.5">
-                <span>⭐ Verified Buyer Experience</span>
-              </h3>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                100% Authentic
-              </span>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-amber-400 text-xs">
-                  <span>⭐⭐⭐⭐⭐</span>
-                  <span className="text-[10px] font-bold text-slate-400">Verified Order</span>
+          {/* ── REAL CUSTOMER REVIEWS ── */}
+          {safeReviews.length > 0 && (
+            <section className="mb-8 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-800">Customer Reviews</h3>
+                  {avgRating && (
+                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      <span className="text-[10px] font-black text-amber-700">{avgRating}</span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                  "Super quick delivery and excellent packaging! Exactly as described on WhatsApp."
-                </p>
-                <p className="text-[10px] font-bold text-slate-500">— Customer in Lagos</p>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                  {safeReviews.length} Review{safeReviews.length !== 1 ? 's' : ''}
+                </span>
               </div>
 
-              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-1">
-                <div className="flex items-center justify-between text-amber-400 text-xs">
-                  <span>⭐⭐⭐⭐⭐</span>
-                  <span className="text-[10px] font-bold text-slate-400">Verified Order</span>
-                </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                  "Smooth transfer checkout process. Reached out on WhatsApp and received tracking right away."
-                </p>
-                <p className="text-[10px] font-bold text-slate-500">— Customer in Abuja</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {safeReviews.slice(0, 4).map((review: any) => (
+                  <div key={review.id} className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={`w-3 h-3 ${s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200 fill-slate-200'}`} />
+                        ))}
+                      </div>
+                      {review.is_verified && (
+                        <span className="text-[9px] font-bold text-slate-400">✓ Verified Order</span>
+                      )}
+                    </div>
+                    {review.comment && (
+                      <p className="text-xs text-slate-700 leading-relaxed font-medium line-clamp-3">
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+                    <p className="text-[10px] font-bold text-slate-500">— {review.customer_name}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
-          {/* ── FEATURE #5: STORE DETAILS & POLICY GUARANTEE ── */}
+          {/* ── STORE DETAILS & POLICY GUARANTEE ── */}
           <section className="mb-10 bg-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-100 flex items-center gap-2">
-                <ShieldCheck style={{ color: store.accent_color || '#00A859' }} className="w-4 h-4" />
+                <ShieldCheck style={{ color: accentColor }} className="w-4 h-4" />
                 <span>About {store.store_name} & Policies</span>
               </h3>
             </div>
@@ -531,14 +507,17 @@ export default async function PublicStorePage(props: {
             href={`https://wa.me/${waPhone}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
+            className="fixed bottom-28 right-4 z-50 w-13 h-13 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl shadow-[#25D366]/30 hover:scale-110 active:scale-95 transition-transform"
             aria-label="Contact seller on WhatsApp"
           >
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
           </a>
         )}
+
+        {/* Sticky View Cart bar — slides up when cart has items */}
+        <CartBar accentColor={accentColor} storeSlug={store.slug} />
 
         {/* Persistent Cart Drawer component */}
         <CartDrawer store={store} />

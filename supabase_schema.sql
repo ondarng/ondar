@@ -240,3 +240,30 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_name TEXT;
 -- Run this query in Supabase SQL Editor to extend/reset all existing stores to a 7-day trial:
 UPDATE stores SET trial_ends_at = NOW() + INTERVAL '7 days', subscription_status = 'TRIAL';
 
+
+-- 10. REVIEWS TABLE (Real customer ratings)
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  customer_name TEXT NOT NULL DEFAULT 'Verified Buyer',
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  is_verified BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+
+-- Public can read all reviews
+CREATE POLICY "Reviews are publicly readable" ON reviews FOR SELECT USING (true);
+
+-- Anyone can insert a review (customers submit after order)
+CREATE POLICY "Anyone can submit a review" ON reviews FOR INSERT WITH CHECK (true);
+
+-- Only store owner can delete reviews
+CREATE POLICY "Store owner can delete reviews" ON reviews FOR DELETE USING (
+  store_id IN (SELECT id FROM stores WHERE vendor_id = auth.uid())
+);

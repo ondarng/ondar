@@ -57,8 +57,16 @@ export function CartDrawer({ store }: { store: any }) {
         setCart(JSON.parse(updated))
       }
     }
+
+    // Allow external components (sticky bar, header badge) to open the drawer
+    const handleOpenCart = () => setIsOpen(true)
+
     window.addEventListener('ondar-cart-updated', handleCartUpdate)
-    return () => window.removeEventListener('ondar-cart-updated', handleCartUpdate)
+    window.addEventListener('ondar-open-cart', handleOpenCart)
+    return () => {
+      window.removeEventListener('ondar-cart-updated', handleCartUpdate)
+      window.removeEventListener('ondar-open-cart', handleOpenCart)
+    }
   }, [store.slug])
 
   const saveCart = (newCart: CartItem[]) => {

@@ -26,10 +26,20 @@ import {
   Search,
   Sun,
   Moon,
+  Upload,
+  Image as ImageIcon,
+  Truck,
+  Building2,
+  ShieldCheck,
+  Globe,
+  Phone,
+  MapPin,
+  Clock,
+  FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default function CleanDashboardPage() {
+export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'design' | 'settings'>('home')
   const [darkMode, setDarkMode] = useState(false)
 
@@ -42,6 +52,10 @@ export default function CleanDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Uploading state for logo & banner
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
 
   // Story Buy Link Generator Modal
   const [showBuyLinkModal, setShowBuyLinkModal] = useState(false)
@@ -77,6 +91,7 @@ export default function CleanDashboardPage() {
   const [responseTime, setResponseTime] = useState('')
   const [returnPolicy, setReturnPolicy] = useState('')
   const [trustBadges, setTrustBadges] = useState<string[]>([])
+  const [newBadge, setNewBadge] = useState('')
 
   // Regional Delivery Zones
   const [deliveryZones, setDeliveryZones] = useState<Array<{ name: string; fee: number }>>([])
@@ -215,6 +230,74 @@ export default function CleanDashboardPage() {
   const pendingOrders = orders.filter((o) => o.status === 'PENDING')
   const completedOrdersCount = orders.filter((o) => o.status === 'DELIVERED' || o.status === 'PAID').length
 
+  // Handle Logo Upload
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !store) return
+    setUploadingLogo(true)
+
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `logos/${store.id}_${Date.now()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) {
+        // Fallback to Data URL if storage bucket fails
+        const reader = new FileReader()
+        reader.onload = (ev) => setLogoUrl(ev.target?.result as string)
+        reader.readAsDataURL(file)
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName)
+        setLogoUrl(publicUrl)
+      }
+    } catch {
+      const reader = new FileReader()
+      reader.onload = (ev) => setLogoUrl(ev.target?.result as string)
+      reader.readAsDataURL(file)
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  // Handle Banner Upload
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !store) return
+    setUploadingBanner(true)
+
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `banners/${store.id}_${Date.now()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) {
+        // Fallback to Data URL
+        const reader = new FileReader()
+        reader.onload = (ev) => setHeroBannerUrl(ev.target?.result as string)
+        reader.readAsDataURL(file)
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName)
+        setHeroBannerUrl(publicUrl)
+      }
+    } catch {
+      const reader = new FileReader()
+      reader.onload = (ev) => setHeroBannerUrl(ev.target?.result as string)
+      reader.readAsDataURL(file)
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
   // Quick Stock adjustment
   const updateProductStock = async (productId: string, delta: number) => {
     const target = products.find((p) => p.id === productId)
@@ -288,6 +371,7 @@ export default function CleanDashboardPage() {
       const { error } = await supabase
         .from('stores')
         .update({
+          store_name: storeName,
           bank_name: bankName,
           bank_account_number: bankAccountNumber,
           bank_account_name: bankAccountName,
@@ -348,37 +432,37 @@ export default function CleanDashboardPage() {
   // Pure Ondar Branding Classes
   const bgClass = darkMode ? 'bg-black text-white' : 'bg-white text-black'
   const cardClass = darkMode ? 'bg-neutral-950 border border-neutral-800' : 'bg-white border border-black'
-  const inputClass = darkMode ? 'bg-neutral-900 border border-neutral-800 text-white' : 'bg-neutral-50 border border-black text-black'
+  const inputClass = darkMode ? 'bg-neutral-900 border border-neutral-800 text-white' : 'bg-neutral-50 border border-black text-black font-medium'
   const subCardClass = darkMode ? 'bg-neutral-900 border border-neutral-800' : 'bg-neutral-50 border border-black'
   const headerClass = darkMode ? 'bg-neutral-950 border-b border-neutral-800' : 'bg-white border-b border-black'
 
   return (
-    <div className={`min-h-screen ${bgClass} font-sans flex flex-col antialiased selection:bg-[#00A859] selection:text-white`}>
+    <div className={`min-h-screen ${bgClass} font-sans flex flex-col antialiased selection:bg-[#00A859] selection:text-white pb-20 md:pb-8`}>
       {/* ── TOP HEADER (BLACK THIN LINE) ── */}
-      <header className={`${headerClass} sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between`}>
-        <div className="flex items-center gap-3">
+      <header className={`${headerClass} sticky top-0 z-40 px-4 md:px-8 py-3 flex items-center justify-between`}>
+        <div className="flex items-center gap-2.5">
           {store?.logo_url ? (
-            <img src={store.logo_url} alt={store.store_name} className="w-9 h-9 rounded-xl object-cover border border-black" />
+            <img src={store.logo_url} alt={store.store_name} className="w-8 h-8 rounded-xl object-cover border border-black" />
           ) : (
-            <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm">
+            <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-black text-xs">
               {store?.store_name?.charAt(0) || 'O'}
             </div>
           )}
-          <div>
-            <h1 className="font-black text-sm tracking-tight leading-none">{store?.store_name}</h1>
+          <div className="min-w-0">
+            <h1 className="font-black text-xs md:text-sm tracking-tight leading-none truncate max-w-[130px] md:max-w-xs">{store?.store_name}</h1>
             <a
               href={`/${store?.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-[#00A859] font-bold hover:underline flex items-center gap-1 mt-0.5"
+              className="text-[10px] md:text-[11px] text-[#00A859] font-bold hover:underline flex items-center gap-1 mt-0.5 truncate"
             >
               <span>ondar.shop/{store?.slug}</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
@@ -390,10 +474,11 @@ export default function CleanDashboardPage() {
 
           <button
             onClick={() => setShowBuyLinkModal(true)}
-            className="px-3.5 py-1.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1.5"
+            className="px-2.5 py-1.5 md:px-3.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Story Buy Link</span>
+            <span className="hidden sm:inline">Story Buy Link</span>
+            <span className="sm:hidden">Buy Link</span>
           </button>
 
           <button
@@ -407,12 +492,12 @@ export default function CleanDashboardPage() {
       </header>
 
       {/* ── MAIN LAYOUT WITH TAB NAVIGATION ── */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-8 py-6 flex flex-col md:flex-row gap-6">
-        {/* ── SIDEBAR / TAB NAVIGATION ── */}
-        <nav className={`w-full md:w-56 shrink-0 flex md:flex-col gap-1.5 p-2 rounded-2xl border ${darkMode ? 'bg-neutral-950 border-neutral-800' : 'bg-white border-black'} overflow-x-auto hide-scrollbar sticky top-20 z-30`}>
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-8 py-4 md:py-6 flex flex-col md:flex-row gap-6">
+        {/* ── DESKTOP SIDEBAR TAB NAVIGATION ── */}
+        <nav className={`hidden md:flex w-56 shrink-0 flex-col gap-1.5 p-2 rounded-2xl border ${darkMode ? 'bg-neutral-950 border-neutral-800' : 'bg-white border-black'} sticky top-20 z-30`}>
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'home'
                 ? 'bg-[#00A859] text-white border border-black'
                 : darkMode
@@ -426,7 +511,7 @@ export default function CleanDashboardPage() {
 
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'inventory'
                 ? 'bg-[#00A859] text-white border border-black'
                 : darkMode
@@ -440,7 +525,7 @@ export default function CleanDashboardPage() {
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'orders'
                 ? 'bg-[#00A859] text-white border border-black'
                 : darkMode
@@ -461,7 +546,7 @@ export default function CleanDashboardPage() {
 
           <button
             onClick={() => setActiveTab('design')}
-            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'design'
                 ? 'bg-[#00A859] text-white border border-black'
                 : darkMode
@@ -475,7 +560,7 @@ export default function CleanDashboardPage() {
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'settings'
                 ? 'bg-[#00A859] text-white border border-black'
                 : darkMode
@@ -488,6 +573,34 @@ export default function CleanDashboardPage() {
           </button>
         </nav>
 
+        {/* ── MOBILE TOP HORIZONTAL TAB SWITCHER ── */}
+        <div className={`md:hidden flex items-center justify-between gap-1 p-1.5 rounded-2xl border ${darkMode ? 'bg-neutral-950 border-neutral-800' : 'bg-white border-black'} overflow-x-auto hide-scrollbar`}>
+          {[
+            { id: 'home', label: 'Home', icon: Home },
+            { id: 'inventory', label: 'Items', icon: Package },
+            { id: 'orders', label: 'Orders', icon: ShoppingBag },
+            { id: 'design', label: 'Design', icon: Palette },
+            { id: 'settings', label: 'Settings', icon: Settings },
+          ].map((t) => {
+            const Icon = t.icon
+            const isSel = activeTab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id as any)}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-[11px] font-extrabold flex items-center justify-center gap-1.5 whitespace-nowrap border ${
+                  isSel
+                    ? 'bg-[#00A859] text-white border-black shadow-xs'
+                    : 'border-transparent text-neutral-500'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{t.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
         {/* ── TAB CONTENTS ── */}
         <main className="flex-1 min-w-0 space-y-6">
 
@@ -495,28 +608,28 @@ export default function CleanDashboardPage() {
           {activeTab === 'home' && (
             <div className="space-y-6 animate-fade-in">
               {/* Analytics Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 <div className={`${cardClass} p-4 rounded-2xl space-y-1`}>
                   <p className="text-xs font-bold opacity-60">Total Sales</p>
-                  <p className="text-xl font-black">₦{totalRevenue.toLocaleString()}</p>
+                  <p className="text-lg md:text-xl font-black">₦{totalRevenue.toLocaleString()}</p>
                   <p className="text-[10px] font-bold opacity-60">{completedOrdersCount} orders completed</p>
                 </div>
 
                 <div className={`${cardClass} p-4 rounded-2xl space-y-1`}>
                   <p className="text-xs font-bold opacity-60">Total Orders</p>
-                  <p className="text-xl font-black">{orders.length}</p>
+                  <p className="text-lg md:text-xl font-black">{orders.length}</p>
                   <p className="text-[10px] font-bold text-[#00A859]">{pendingOrders.length} pending dispatch</p>
                 </div>
 
                 <div className={`${cardClass} p-4 rounded-2xl space-y-1`}>
                   <p className="text-xs font-bold opacity-60">Store Views</p>
-                  <p className="text-xl font-black">{viewsCount}</p>
+                  <p className="text-lg md:text-xl font-black">{viewsCount}</p>
                   <p className="text-[10px] font-bold text-[#00A859]">+{viewsTodayCount} views today</p>
                 </div>
 
                 <div className={`${cardClass} p-4 rounded-2xl space-y-1`}>
                   <p className="text-xs font-bold opacity-60">Active Products</p>
-                  <p className="text-xl font-black">{products.length}</p>
+                  <p className="text-lg md:text-xl font-black">{products.length}</p>
                   <p className="text-[10px] font-bold opacity-60">In your catalog</p>
                 </div>
               </div>
@@ -527,20 +640,20 @@ export default function CleanDashboardPage() {
                   <h3 className="font-black text-sm">Quick Actions</h3>
                   <p className="text-xs opacity-60">Manage your store in seconds</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Link
                     href="/dashboard/products/add"
-                    className="px-4 py-2 bg-black text-white border border-black rounded-xl text-xs font-bold hover:bg-neutral-900 transition-colors flex items-center gap-1.5"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-black text-white border border-black rounded-xl text-xs font-bold hover:bg-neutral-900 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add New Product</span>
                   </Link>
                   <button
                     onClick={() => setShowBuyLinkModal(true)}
-                    className="px-4 py-2 bg-white text-black border border-black rounded-xl text-xs font-bold hover:bg-neutral-100 transition-colors flex items-center gap-1.5"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-white text-black border border-black rounded-xl text-xs font-bold hover:bg-neutral-100 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Share2 className="w-3.5 h-3.5 text-[#00A859]" />
-                    <span>Generate Story Buy Link</span>
+                    <span>Story Buy Link</span>
                   </button>
                 </div>
               </div>
@@ -622,18 +735,18 @@ export default function CleanDashboardPage() {
                   <p className="text-xs opacity-60">View, search, edit stock & prices</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setShowBulkEditor(true)}
-                    className="px-3.5 py-2 bg-white text-black border border-black rounded-xl text-xs font-bold hover:bg-neutral-100 transition-colors flex items-center gap-1.5"
+                    className="flex-1 sm:flex-initial px-3.5 py-2 bg-white text-black border border-black rounded-xl text-xs font-bold hover:bg-neutral-100 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <RefreshCw className="w-3.5 h-3.5 text-[#00A859]" />
-                    <span>Quick Bulk Price & Stock Editor</span>
+                    <span>Bulk Price & Stock Editor</span>
                   </button>
 
                   <Link
                     href="/dashboard/products/add"
-                    className="px-4 py-2 bg-[#00A859] text-white border border-black rounded-xl text-xs font-bold hover:opacity-90 transition-colors flex items-center gap-1.5"
+                    className="flex-1 sm:flex-initial px-4 py-2 bg-[#00A859] text-white border border-black rounded-xl text-xs font-bold hover:opacity-90 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add Product</span>
@@ -654,7 +767,7 @@ export default function CleanDashboardPage() {
               </div>
 
               {/* Product Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {products
                   .filter((p) => p.name.toLowerCase().includes(productSearch.toLowerCase()))
                   .map((p) => (
@@ -714,12 +827,12 @@ export default function CleanDashboardPage() {
                 </div>
 
                 {/* Status Pipeline Filter */}
-                <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
+                <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar w-full sm:w-auto">
                   {['ALL', 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED'].map((st) => (
                     <button
                       key={st}
                       onClick={() => setOrderFilter(st)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border border-black transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border border-black transition-all whitespace-nowrap ${
                         orderFilter === st ? 'bg-black text-white' : 'bg-white text-black hover:bg-neutral-100'
                       }`}
                     >
@@ -811,7 +924,7 @@ export default function CleanDashboardPage() {
               <div className={`${cardClass} flex items-center justify-between p-4 rounded-2xl`}>
                 <div>
                   <h2 className="font-black text-base">Store Design & Branding</h2>
-                  <p className="text-xs opacity-60">Customize how your public storefront looks</p>
+                  <p className="text-xs opacity-60">Upload banners, logos, and customize appearance</p>
                 </div>
 
                 <button
@@ -831,41 +944,93 @@ export default function CleanDashboardPage() {
                 </div>
               )}
 
-              {/* Branding Section */}
+              {/* 1. Media Uploaders (Logo & Hero Banner) */}
               <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
                 <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  1. Brand Media & Banners
+                  1. Brand Logo & Hero Banner Upload
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Logo Image URL</label>
-                    <input
-                      type="text"
-                      placeholder="https://..."
-                      value={logoUrl}
-                      onChange={(e) => setLogoUrl(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none ${inputClass}`}
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                  {/* Logo Upload Box */}
+                  <div className="space-y-2">
+                    <label className="font-bold block">Store Logo</label>
+                    <div className="flex items-center gap-3">
+                      {logoUrl ? (
+                        <div className="relative w-16 h-16 rounded-2xl border-2 border-black overflow-hidden bg-white shrink-0">
+                          <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setLogoUrl('')}
+                            className="absolute top-0.5 right-0.5 bg-black/80 text-white p-0.5 rounded-full"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-black/40 flex items-center justify-center bg-neutral-50 shrink-0">
+                          <ImageIcon className="w-6 h-6 opacity-40" />
+                        </div>
+                      )}
+
+                      <div className="flex-1 space-y-1">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-black text-white text-xs font-bold rounded-xl cursor-pointer border border-black hover:bg-neutral-900 transition-colors">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingLogo ? 'Uploading...' : 'Upload Logo Image'}</span>
+                          <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Or paste image URL..."
+                          value={logoUrl}
+                          onChange={(e) => setLogoUrl(e.target.value)}
+                          className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Hero Banner Image URL</label>
+                  {/* Hero Banner Upload Box */}
+                  <div className="space-y-2">
+                    <label className="font-bold block">Hero Banner Image</label>
+                    {heroBannerUrl ? (
+                      <div className="relative aspect-[3/1] rounded-2xl border-2 border-black overflow-hidden bg-white">
+                        <img src={heroBannerUrl} alt="Hero Banner" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => setHeroBannerUrl('')}
+                          className="absolute top-1.5 right-1.5 bg-black/80 text-white p-1 rounded-full"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center aspect-[3/1] rounded-2xl border-2 border-dashed border-black/40 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors">
+                        <Upload className="w-6 h-6 opacity-40 mb-1" />
+                        <span className="font-bold text-xs">{uploadingBanner ? 'Uploading Banner...' : 'Click to Upload Hero Banner'}</span>
+                        <span className="text-[10px] opacity-60">PNG, JPG up to 5MB</span>
+                        <input type="file" accept="image/*" onChange={handleBannerFileChange} className="hidden" />
+                      </label>
+                    )}
                     <input
                       type="text"
-                      placeholder="https://..."
+                      placeholder="Or paste banner image URL..."
                       value={heroBannerUrl}
                       onChange={(e) => setHeroBannerUrl(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none ${inputClass}`}
+                      className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Optional Banner Link URL (e.g. https://instagram.com/...)"
+                      value={heroBannerLink}
+                      onChange={(e) => setHeroBannerLink(e.target.value)}
+                      className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Colors & Announcement Bar */}
+              {/* 2. Colors & Announcement Bar */}
               <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
                 <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  2. Colors & Announcement Bar
+                  2. Storefront Colors & Top Announcement
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
@@ -918,10 +1083,74 @@ export default function CleanDashboardPage() {
                 </div>
               </div>
 
-              {/* Regional Delivery Zones */}
+              {/* 3. Social Media & Store Contact Info */}
               <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
                 <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  3. Regional Delivery Zones
+                  3. Social Media Links & Contact Details
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">WhatsApp Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 08123456789"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">Instagram Handle</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. @yourstore"
+                      value={instagramHandle}
+                      onChange={(e) => setInstagramHandle(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">X / Twitter Handle</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. @yourstore"
+                      value={twitterHandle}
+                      onChange={(e) => setTwitterHandle(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">Dispatch Location / Hub</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ikeja, Lagos"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="font-bold opacity-80">Return & Refund Policy</label>
+                    <textarea
+                      rows={3}
+                      placeholder="State your clear return & exchange rules..."
+                      value={returnPolicy}
+                      onChange={(e) => setReturnPolicy(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs resize-none ${inputClass}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Regional Delivery Zones */}
+              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
+                  4. Regional Delivery Zones
                 </h3>
 
                 <div className="space-y-3">
@@ -994,6 +1223,37 @@ export default function CleanDashboardPage() {
                 </button>
               </div>
 
+              {/* Store Identity & Subdomain */}
+              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
+                  Store Information & URL
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">Store Name</label>
+                    <input
+                      type="text"
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold opacity-80">Store Slug / URL Subdomain</label>
+                    <input
+                      type="text"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono ${inputClass}`}
+                    />
+                    <p className="text-[10px] opacity-60">Your store link: ondar.shop/{slug}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Details */}
               <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
                 <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
                   Bank Account for Direct Transfers
@@ -1007,7 +1267,7 @@ export default function CleanDashboardPage() {
                       placeholder="e.g. GTBank, Kuda, Zenith"
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none ${inputClass}`}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
                     />
                   </div>
 
@@ -1018,7 +1278,7 @@ export default function CleanDashboardPage() {
                       placeholder="e.g. 0123456789"
                       value={bankAccountNumber}
                       onChange={(e) => setBankAccountNumber(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none ${inputClass}`}
+                      className={`w-full px-3 py-2 rounded-xl text-xs font-mono ${inputClass}`}
                     />
                   </div>
 
@@ -1029,7 +1289,7 @@ export default function CleanDashboardPage() {
                       placeholder="e.g. Simi Cole Enterprises"
                       value={bankAccountName}
                       onChange={(e) => setBankAccountName(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none ${inputClass}`}
+                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
                     />
                   </div>
                 </div>

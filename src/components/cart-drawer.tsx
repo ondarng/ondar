@@ -338,12 +338,12 @@ export function CartDrawer({ store }: { store: any }) {
 
   return (
     <>
-      {/* Floating Tiny Cart Button (positioned right above WhatsApp button) */}
-      {totalItems > 0 && !isOpen && (
+      {/* Floating Cart Button (Always visible suspended directly above WhatsApp button) */}
+      {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           style={{ backgroundColor: store.accent_color || '#00A859' }}
-          className="fixed bottom-22 right-5 z-40 w-13 h-13 rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center relative"
+          className="fixed bottom-22 right-5 z-40 w-13 h-13 rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center relative border border-black/20"
           aria-label="Open shopping cart"
         >
           <ShoppingBag className="w-6 h-6" />

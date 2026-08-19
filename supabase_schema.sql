@@ -302,3 +302,20 @@ CREATE POLICY "Anyone can submit a review" ON reviews FOR INSERT WITH CHECK (tru
 CREATE POLICY "Store owner can delete reviews" ON reviews FOR DELETE USING (
   store_id IN (SELECT id FROM stores WHERE vendor_id = auth.uid())
 );
+
+-- 12. VENDOR POLLS TABLE
+CREATE TABLE IF NOT EXISTS vendor_polls (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_name TEXT,
+  vendor_contact TEXT,
+  top_feature TEXT,
+  sales_frequency TEXT,
+  willingness_to_pay TEXT,
+  feedback TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE vendor_polls ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can submit poll responses" ON vendor_polls FOR INSERT WITH CHECK (true);
+CREATE POLICY "Polls readable by all" ON vendor_polls FOR SELECT USING (true);
+

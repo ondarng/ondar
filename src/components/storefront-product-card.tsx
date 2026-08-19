@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ShoppingCart, Check } from 'lucide-react'
+import { ShoppingBag, Check, ArrowRight } from 'lucide-react'
 
 interface Product {
   id: string
@@ -63,16 +63,16 @@ export function StorefrontProductCard({ product, slug, accentColor, storeSlug }:
 
   return (
     <div
-      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200/80 transition-all duration-300 hover:shadow-lg"
+      className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs hover:shadow-md transition-all duration-300 relative"
       style={{ '--accent': accentColor } as React.CSSProperties}
     >
-      {/* Image */}
-      <Link href={`/${slug}/product/${product.id}`} className="relative block overflow-hidden">
-        <div className="w-full aspect-square bg-slate-50 flex items-center justify-center p-3 relative">
+      {/* Product Image Area */}
+      <Link href={`/${slug}/product/${product.id}`} className="relative block overflow-hidden bg-[#F8FAFC]">
+        <div className="w-full aspect-square flex items-center justify-center p-3.5 relative">
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-contain group-hover:scale-106 transition-transform duration-500 ease-out"
             loading="lazy"
           />
         </div>
@@ -80,8 +80,8 @@ export function StorefrontProductCard({ product, slug, accentColor, storeSlug }:
         {/* NEW Badge */}
         {isProductNew && !isOut && (
           <span
-            className="absolute top-2 left-2 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow"
-            style={{ backgroundColor: accentColor }}
+            className="absolute top-3 left-3 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs border border-white/20"
+            style={{ backgroundColor: accentColor || '#00A859' }}
           >
             New
           </span>
@@ -89,58 +89,64 @@ export function StorefrontProductCard({ product, slug, accentColor, storeSlug }:
 
         {/* Low Stock Badge */}
         {isLow && !isOut && (
-          <span className="absolute top-2 right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow">
-            Only {product.stock_quantity} left!
+          <span className="absolute top-3 right-3 bg-amber-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+            {product.stock_quantity} left
           </span>
         )}
 
-        {/* Out of Stock overlay */}
+        {/* Out of Stock Overlay */}
         {isOut && (
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-white text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-lg">
-              Out of Stock
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-2">
+            <span className="bg-white text-slate-950 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-lg border border-slate-200">
+              Sold Out
             </span>
           </div>
         )}
       </Link>
 
-      {/* Card Body */}
-      <div className="p-3 flex flex-col flex-1 gap-2">
-        <Link href={`/${slug}/product/${product.id}`} className="block flex-1">
-          <h3 className="text-xs font-black text-slate-900 leading-snug line-clamp-2 uppercase tracking-wide group-hover:text-slate-600 transition-colors">
+      {/* Product Details & Actions */}
+      <div className="p-3.5 flex flex-col flex-1 justify-between gap-2.5 bg-white">
+        <Link href={`/${slug}/product/${product.id}`} className="block space-y-1">
+          <h3 className="text-xs font-black text-slate-900 leading-snug line-clamp-2 uppercase tracking-wide group-hover:text-[#00A859] transition-colors">
             {product.name}
           </h3>
-          <p className="text-sm font-black mt-1 tracking-tight" style={{ color: accentColor }}>
+          <p className="text-sm md:text-base font-black tracking-tight" style={{ color: accentColor || '#00A859' }}>
             {hasVariants && <span className="text-[10px] font-bold text-slate-400 mr-1">from</span>}
             ₦{Number(product.price).toLocaleString()}
           </p>
         </Link>
 
-        {/* Add to Cart / Select Options */}
+        {/* Action Button */}
         {hasVariants ? (
           <Link
             href={`/${slug}/product/${product.id}`}
-            className="w-full text-white text-xs font-bold py-2.5 rounded-xl text-center transition-all active:scale-95 hover:opacity-90"
-            style={{ backgroundColor: accentColor }}
+            className="w-full py-2.5 px-3 rounded-xl border border-black bg-white text-black font-extrabold text-[11px] flex items-center justify-center gap-1.5 hover:bg-neutral-100 transition-colors shadow-2xs"
           >
-            Select options
+            <span>Choose Option</span>
+            <ArrowRight className="w-3 h-3 text-slate-500" />
           </Link>
+        ) : isOut ? (
+          <button
+            disabled
+            className="w-full py-2.5 px-3 rounded-xl bg-slate-100 text-slate-400 font-bold text-[11px] cursor-not-allowed text-center"
+          >
+            Unavailable
+          </button>
         ) : (
           <button
             onClick={addToCart}
-            disabled={isOut || added}
-            className="w-full text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95 hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: added ? '#16a34a' : isOut ? '#94a3b8' : accentColor }}
+            style={{ backgroundColor: added ? '#00A859' : accentColor || '#00A859' }}
+            className="w-full py-2.5 px-3 rounded-xl text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-97 transition-all shadow-2xs border border-black/10"
           >
             {added ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                Added!
+                <span>Added!</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-3.5 h-3.5" />
-                {isOut ? 'Out of Stock' : 'Add to Cart'}
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Add to Cart</span>
               </>
             )}
           </button>

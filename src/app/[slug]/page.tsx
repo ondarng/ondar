@@ -11,7 +11,7 @@ import { StorefrontProductCard } from '@/components/storefront-product-card'
 import { StorefrontFooter } from '@/components/storefront-footer'
 import type { Metadata } from 'next'
 
-const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next']
+const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next', 'poll', 'vendor-poll']
 export const revalidate = 0
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -333,14 +333,29 @@ export default async function PublicStorePage(props: {
             )}
           </div>
         ) : (
-          <div className="bg-slate-900 text-white px-5 py-8 max-w-2xl mx-auto relative overflow-hidden">
-            <div className="relative z-10 space-y-1.5">
-              <h2 className="text-xl md:text-2xl font-black tracking-tight">{store.store_name}</h2>
-              {store.description && <p className="text-xs text-slate-300 max-w-md leading-relaxed">{store.description}</p>}
+          <div className="w-full max-w-2xl mx-auto px-4 pt-3">
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00A859] animate-pulse" />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#00A859]">Verified Social Merchant</span>
+                </div>
+                {store.response_time && (
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                    ⚡ {store.response_time}
+                  </span>
+                )}
+              </div>
+
+              <h2 className="text-xl md:text-2xl font-black tracking-tight text-slate-900">{store.store_name}</h2>
+              {store.description && (
+                <p className="text-xs text-slate-600 leading-relaxed max-w-lg font-medium">{store.description}</p>
+              )}
+
               {trustBadges.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex flex-wrap gap-1.5 pt-1">
                   {trustBadges.map((badge: string, i: number) => (
-                    <span key={i} className="text-[10px] font-bold bg-white/10 text-white px-2.5 py-0.5 rounded-md backdrop-blur-sm">
+                    <span key={i} className="text-[10px] font-bold bg-slate-50 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg">
                       ✓ {badge}
                     </span>
                   ))}

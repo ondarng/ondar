@@ -12,6 +12,9 @@ import {
   Phone,
   MessageSquare,
   FileText,
+  Upload,
+  CheckCircle,
+  Image as ImageIcon,
 } from 'lucide-react'
 
 interface CartItem {
@@ -32,6 +35,12 @@ export function CartDrawer({ store }: { store: any }) {
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [customerNote, setCustomerNote] = useState('')
+  
+  // Payment Proof Preference
+  const [proofPreference, setProofPreference] = useState<'whatsapp' | 'upload'>('whatsapp')
+  const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
+  const [uploadingReceipt, setUploadingReceipt] = useState(false)
+
   const [submitting, setSubmitting] = useState(false)
 
   // Auto-load saved customer details from localStorage
@@ -115,6 +124,20 @@ export function CartDrawer({ store }: { store: any }) {
   const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.quantity, 0)
   const totalItems = cart.reduce((acc, curr) => acc + curr.quantity, 0)
 
+  // Handle Receipt Upload
+  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingReceipt(true)
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setReceiptDataUrl(event.target?.result as string)
+      setUploadingReceipt(false)
+    }
+    reader.readAsDataURL(file)
+  }
+
   // WhatsApp DM Checkout Flow
   const handleWhatsAppCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -142,6 +165,7 @@ export function CartDrawer({ store }: { store: any }) {
             delivery_address: address || '[WHATSAPP] To Be Provided in Chat',
             checkout_mode: 'whatsapp',
             customer_note: customerNote || null,
+            payment_receipt_url: proofPreference === 'upload' ? receiptDataUrl : null,
           }),
         })
         const res = await response.json()
@@ -165,19 +189,22 @@ export function CartDrawer({ store }: { store: any }) {
       if (phone) customerDetails.push(`Phone: ${phone}`)
       if (address) customerDetails.push(`Address: ${address}`)
       if (customerNote) customerDetails.push(`Note: ${customerNote}`)
+      
+      if (proofPreference === 'upload' && receiptDataUrl) {
+        customerDetails.push(`Payment Proof: Uploaded & saved to your Ondar dashboard ✓`)
+      } else {
+        customerDetails.push(`Payment Proof: Attaching screenshot in this chat`)
+      }
 
-      const detailsSection =
-        customerDetails.length > 0
-          ? `\n\n*Customer Info:*\n${customerDetails.join('\n')}`
-          : '\n\n*(I will provide delivery address directly in this chat)*'
+      const detailsSection = `\n\n*Customer Info:*\n${customerDetails.join('\n')}`
 
       const cleanPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
-      const message = `Hi ${store.store_name}! I would like to place an order (#${refCode}):\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}${detailsSection}`
+      const message = `Hi ${store.store_name}! I would like to place order #${refCode}:\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}${detailsSection}`
 
       // 3. Clear cart & open WhatsApp
       saveCart([])
       setIsOpen(false)
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
+      window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
     } catch (err: any) {
       alert('Checkout error: ' + err.message)
     } finally {
@@ -208,7 +235,7 @@ export function CartDrawer({ store }: { store: any }) {
 
       {/* Cart Drawer Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex justify-end">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end">
           <div className="w-full max-w-md bg-white h-full flex flex-col shadow-2xl animate-slide-in">
             {/* Drawer Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -290,7 +317,7 @@ export function CartDrawer({ store }: { store: any }) {
 
             {/* Checkout Form & Button */}
             {cart.length > 0 && (
-              <div className="border-t border-slate-100 p-5 bg-white space-y-4 shrink-0">
+              <div className="border-t border-slate-100 p-5 bg-white space-y-3.5 shrink-0 max-h-[55vh] overflow-y-auto">
                 <div className="flex justify-between items-baseline">
                   <span className="text-slate-500 text-xs font-bold">Subtotal ({totalItems} items)</span>
                   <span className="text-base font-black text-slate-950">₦{subtotal.toLocaleString()}</span>
@@ -328,6 +355,65 @@ export function CartDrawer({ store }: { store: any }) {
                       onChange={(e) => setAddress(e.target.value)}
                       className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-1 focus:ring-slate-900 resize-none"
                     />
+                  </div>
+
+                  {/* ── PROOF OF PAYMENT PREFERENCE TOGGLE ── */}
+                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                    <label className="font-extrabold text-slate-800 block text-[11px]">
+                      Proof of Payment Option:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setProofPreference('whatsapp')}
+                        className={`p-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                          proofPreference === 'whatsapp'
+                            ? 'bg-[#00A859] text-white border-black shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                        }`}
+                      >
+                        Send in WhatsApp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProofPreference('upload')}
+                        className={`p-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                          proofPreference === 'upload'
+                            ? 'bg-[#00A859] text-white border-black shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                        }`}
+                      >
+                        Upload Screenshot
+                      </button>
+                    </div>
+
+                    {proofPreference === 'upload' && (
+                      <div className="pt-1.5 space-y-1.5 animate-fade-in">
+                        {receiptDataUrl ? (
+                          <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-2">
+                              <img src={receiptDataUrl} alt="Receipt" className="w-8 h-8 object-cover rounded-lg border border-slate-200" />
+                              <span className="text-[10px] font-bold text-emerald-700">Receipt Attached ✓</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setReceiptDataUrl(null)}
+                              className="text-red-500 text-[10px] font-bold hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center gap-2 p-2.5 bg-white border border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                            <Upload className="w-3.5 h-3.5 text-slate-500" />
+                            <span className="text-[11px] font-bold text-slate-700">
+                              {uploadingReceipt ? 'Reading receipt...' : 'Choose Receipt / Screenshot'}
+                            </span>
+                            <input type="file" accept="image/*" onChange={handleReceiptFileChange} className="hidden" />
+                          </label>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <button

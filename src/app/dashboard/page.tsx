@@ -28,19 +28,16 @@ import {
   Moon,
   Upload,
   Image as ImageIcon,
-  Truck,
-  Building2,
-  ShieldCheck,
-  Globe,
-  Phone,
-  MapPin,
-  Clock,
-  FileText,
+  Users,
+  MessageSquare,
+  Send,
+  PhoneCall,
+  UserCheck,
 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MobileResponsiveDashboard() {
-  const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'design' | 'settings'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
   const [darkMode, setDarkMode] = useState(false)
 
   const [store, setStore] = useState<any>(null)
@@ -73,6 +70,8 @@ export default function MobileResponsiveDashboard() {
   // Search & Filter States
   const [orderFilter, setOrderFilter] = useState<string>('ALL')
   const [productSearch, setProductSearch] = useState<string>('')
+  const [customerSearch, setCustomerSearch] = useState<string>('')
+  const [copiedAllNumbers, setCopiedAllNumbers] = useState(false)
 
   // Form States for Store Customization
   const [storeName, setStoreName] = useState('')
@@ -91,7 +90,6 @@ export default function MobileResponsiveDashboard() {
   const [responseTime, setResponseTime] = useState('')
   const [returnPolicy, setReturnPolicy] = useState('')
   const [trustBadges, setTrustBadges] = useState<string[]>([])
-  const [newBadge, setNewBadge] = useState('')
 
   // Regional Delivery Zones
   const [deliveryZones, setDeliveryZones] = useState<Array<{ name: string; fee: number }>>([])
@@ -225,6 +223,55 @@ export default function MobileResponsiveDashboard() {
     loadDashboard()
   }, [])
 
+  // Derive Unique Customers CRM List from Orders
+  const customerMap = new Map<string, any>()
+  orders.forEach((o) => {
+    const rawPhone = o.customer_phone || 'No Phone'
+    const key = rawPhone.replace(/[^0-9]/g, '') || o.customer_name || 'Anonymous'
+
+    if (!customerMap.has(key)) {
+      customerMap.set(key, {
+        id: key,
+        name: o.customer_name || 'WhatsApp Customer',
+        phone: o.customer_phone || 'No Phone',
+        cleanPhone: rawPhone.replace(/[^0-9]/g, '').replace(/^0/, '234'),
+        address: o.customer_phone ? o.delivery_address : '',
+        totalOrders: 1,
+        totalSpent: Number(o.total_price) || 0,
+        lastOrderDate: o.created_at,
+        notes: o.customer_note ? [o.customer_note] : [],
+        recentOrders: [o],
+      })
+    } else {
+      const existing = customerMap.get(key)
+      existing.totalOrders += 1
+      existing.totalSpent += Number(o.total_price) || 0
+      existing.recentOrders.push(o)
+      if (o.customer_note && !existing.notes.includes(o.customer_note)) {
+        existing.notes.push(o.customer_note)
+      }
+    }
+  })
+
+  const customersList = Array.from(customerMap.values())
+
+  // Copy all customer numbers for WhatsApp broadcast
+  const handleCopyAllCustomerNumbers = () => {
+    const numbers = customersList
+      .map((c) => c.phone)
+      .filter((p) => p && p !== 'No Phone')
+      .join(', ')
+
+    if (!numbers) {
+      alert('No customer phone numbers found yet.')
+      return
+    }
+
+    navigator.clipboard.writeText(numbers)
+    setCopiedAllNumbers(true)
+    setTimeout(() => setCopiedAllNumbers(false), 2500)
+  }
+
   // Calculate Metrics
   const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0)
   const pendingOrders = orders.filter((o) => o.status === 'PENDING')
@@ -245,7 +292,6 @@ export default function MobileResponsiveDashboard() {
         .upload(fileName, file, { upsert: true })
 
       if (uploadError) {
-        // Fallback to Data URL if storage bucket fails
         const reader = new FileReader()
         reader.onload = (ev) => setLogoUrl(ev.target?.result as string)
         reader.readAsDataURL(file)
@@ -279,7 +325,6 @@ export default function MobileResponsiveDashboard() {
         .upload(fileName, file, { upsert: true })
 
       if (uploadError) {
-        // Fallback to Data URL
         const reader = new FileReader()
         reader.onload = (ev) => setHeroBannerUrl(ev.target?.result as string)
         reader.readAsDataURL(file)
@@ -545,6 +590,25 @@ export default function MobileResponsiveDashboard() {
           </button>
 
           <button
+            onClick={() => setActiveTab('customers')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
+              activeTab === 'customers'
+                ? 'bg-[#00A859] text-white border border-black'
+                : darkMode
+                ? 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                : 'text-neutral-700 hover:text-black hover:bg-neutral-100'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Users className="w-4 h-4" />
+              <span>Customers CRM</span>
+            </div>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-black/10 text-neutral-800">
+              {customersList.length}
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('design')}
             className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
               activeTab === 'design'
@@ -579,6 +643,7 @@ export default function MobileResponsiveDashboard() {
             { id: 'home', label: 'Home', icon: Home },
             { id: 'inventory', label: 'Items', icon: Package },
             { id: 'orders', label: 'Orders', icon: ShoppingBag },
+            { id: 'customers', label: 'CRM', icon: Users },
             { id: 'design', label: 'Design', icon: Palette },
             { id: 'settings', label: 'Settings', icon: Settings },
           ].map((t) => {
@@ -628,9 +693,9 @@ export default function MobileResponsiveDashboard() {
                 </div>
 
                 <div className={`${cardClass} p-4 rounded-2xl space-y-1`}>
-                  <p className="text-xs font-bold opacity-60">Active Products</p>
-                  <p className="text-lg md:text-xl font-black">{products.length}</p>
-                  <p className="text-[10px] font-bold opacity-60">In your catalog</p>
+                  <p className="text-xs font-bold opacity-60">WhatsApp Buyers</p>
+                  <p className="text-lg md:text-xl font-black">{customersList.length}</p>
+                  <p className="text-[10px] font-bold opacity-60">Unique contacts saved</p>
                 </div>
               </div>
 
@@ -697,32 +762,6 @@ export default function MobileResponsiveDashboard() {
                   </div>
                 </div>
               )}
-
-              {/* Catalog Snapshot */}
-              <div className={`${cardClass} p-5 rounded-2xl space-y-4`}>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-black text-sm">Catalog Inventory</h3>
-                  <button
-                    onClick={() => setActiveTab('inventory')}
-                    className="text-xs font-bold text-[#00A859] hover:underline"
-                  >
-                    Manage Inventory →
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {products.slice(0, 4).map((p) => (
-                    <div key={p.id} className={`${subCardClass} p-3 rounded-xl text-xs space-y-1.5`}>
-                      <div className="w-full aspect-square bg-white rounded-lg overflow-hidden border border-black">
-                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover p-1" />
-                      </div>
-                      <p className="font-bold truncate">{p.name}</p>
-                      <p className="font-black">₦{Number(p.price).toLocaleString()}</p>
-                      <p className="text-[10px] opacity-60">Stock: {p.stock_quantity ?? 0}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
@@ -903,12 +942,22 @@ export default function MobileResponsiveDashboard() {
                             <p className="text-amber-600 italic mt-1 font-medium">Note: &ldquo;{ord.customer_note}&rdquo;</p>
                           )}
                           {ord.payment_receipt_url && (
-                            <button
-                              onClick={() => setViewReceiptUrl(ord.payment_receipt_url)}
-                              className="mt-2 px-3 py-1 bg-[#00A859] text-white border border-black rounded-lg font-bold text-[11px] hover:opacity-90 flex items-center gap-1"
-                            >
-                              <Eye className="w-3.5 h-3.5" /> View Payment Receipt Proof
-                            </button>
+                            <div className="pt-2 flex flex-wrap items-center gap-2">
+                              <button
+                                onClick={() => setViewReceiptUrl(ord.payment_receipt_url)}
+                                className="px-3 py-1.5 bg-[#00A859] text-white border border-black rounded-xl font-black text-[11px] hover:opacity-90 flex items-center gap-1.5 shadow-2xs"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> View Payment Receipt Proof
+                              </button>
+                              {ord.status === 'PENDING' && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(ord.id, 'PAID')}
+                                  className="px-3 py-1.5 bg-black text-white border border-black rounded-xl font-black text-[11px] hover:bg-neutral-900 flex items-center gap-1 shadow-2xs"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-[#00A859]" /> Mark as Paid
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -918,7 +967,116 @@ export default function MobileResponsiveDashboard() {
             </div>
           )}
 
-          {/* ════════════════════ TAB 4: STORE CUSTOMIZATION (DESIGN) ════════════════════ */}
+          {/* ════════════════════ TAB 4: CUSTOMERS CRM & WHATSAPP ORGANIZER ════════════════════ */}
+          {activeTab === 'customers' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className={`${cardClass} flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl`}>
+                <div>
+                  <h2 className="font-black text-base flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#00A859]" />
+                    <span>WhatsApp Customers CRM</span>
+                  </h2>
+                  <p className="text-xs opacity-60">Auto-saved contacts of every customer who ordered from your store</p>
+                </div>
+
+                <button
+                  onClick={handleCopyAllCustomerNumbers}
+                  className="px-4 py-2 bg-white text-black border border-black rounded-xl text-xs font-black hover:bg-neutral-100 transition-colors flex items-center gap-1.5"
+                >
+                  {copiedAllNumbers ? <Check className="w-4 h-4 text-[#00A859]" /> : <Copy className="w-4 h-4 text-[#00A859]" />}
+                  <span>{copiedAllNumbers ? 'Copied All Numbers!' : 'Copy All Numbers for Broadcast'}</span>
+                </button>
+              </div>
+
+              {/* Customer Search */}
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search customers by name, phone, or address..."
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-xs outline-none ${inputClass}`}
+                />
+              </div>
+
+              {/* Customers Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customersList
+                  .filter(
+                    (c) =>
+                      c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                      c.phone.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                      c.address.toLowerCase().includes(customerSearch.toLowerCase())
+                  )
+                  .map((cust) => (
+                    <div key={cust.id} className={`${cardClass} p-4 rounded-2xl space-y-3 text-xs`}>
+                      <div className="flex items-start justify-between border-b border-black/10 pb-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm border border-black">
+                            {cust.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h4 className="font-black text-sm">{cust.name}</h4>
+                            <p className="text-[11px] font-mono font-bold text-[#00A859]">{cust.phone}</p>
+                          </div>
+                        </div>
+
+                        <span className="bg-emerald-100 text-emerald-900 border border-black/20 text-[10px] font-black px-2 py-0.5 rounded-full">
+                          {cust.totalOrders} Order{cust.totalOrders !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="opacity-60 block font-bold">Total Spent:</span>
+                          <span className="font-black text-sm">₦{cust.totalSpent.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="opacity-60 block font-bold">Last Order:</span>
+                          <span className="font-bold">{new Date(cust.lastOrderDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      {cust.address && (
+                        <div>
+                          <span className="opacity-60 block font-bold">Saved Address:</span>
+                          <p className="font-medium text-[11px] truncate">{cust.address}</p>
+                        </div>
+                      )}
+
+                      {/* Quick 1-Click WhatsApp Buttons */}
+                      <div className="pt-2 border-t border-black/10 flex flex-wrap gap-2">
+                        {/* 1. Open Direct WhatsApp Chat */}
+                        <a
+                          href={`https://wa.me/${cust.cleanPhone}?text=${encodeURIComponent(`Hi ${cust.name}! Thanks for shopping with ${store?.store_name || 'us'}.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 min-w-[120px] bg-[#00A859] text-white border border-black py-2 px-2.5 rounded-xl font-black text-[11px] hover:opacity-90 flex items-center justify-center gap-1"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Chat on WhatsApp</span>
+                        </a>
+
+                        {/* 2. Send Dispatch Update */}
+                        <a
+                          href={`https://wa.me/${cust.cleanPhone}?text=${encodeURIComponent(`Hi ${cust.name}! Your order from ${store?.store_name || 'us'} is ready and being prepared for delivery!`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white text-black border border-black py-2 px-2.5 rounded-xl font-bold text-[11px] hover:bg-neutral-100 flex items-center justify-center gap-1"
+                          title="Send Dispatch Status Update"
+                        >
+                          <Send className="w-3.5 h-3.5 text-[#00A859]" />
+                          <span>Send Update</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* ════════════════════ TAB 5: STORE CUSTOMIZATION (DESIGN) ════════════════════ */}
           {activeTab === 'design' && (
             <div className="space-y-6 animate-fade-in">
               <div className={`${cardClass} flex items-center justify-between p-4 rounded-2xl`}>
@@ -1204,7 +1362,7 @@ export default function MobileResponsiveDashboard() {
             </div>
           )}
 
-          {/* ════════════════════ TAB 5: SETTINGS ════════════════════ */}
+          {/* ════════════════════ TAB 6: SETTINGS ════════════════════ */}
           {activeTab === 'settings' && (
             <div className="space-y-6 animate-fade-in">
               <div className={`${cardClass} flex items-center justify-between p-4 rounded-2xl`}>

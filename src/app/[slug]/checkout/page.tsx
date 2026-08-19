@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   Loader2,
   ShieldCheck,
+  Upload,
+  CheckCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -43,6 +45,12 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [customerNote, setCustomerNote] = useState('')
+  
+  // Payment Proof Preference
+  const [proofPreference, setProofPreference] = useState<'whatsapp' | 'upload'>('whatsapp')
+  const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
+  const [uploadingReceipt, setUploadingReceipt] = useState(false)
+
   const [submitting, setSubmitting] = useState(false)
 
   const supabase = createClient()
@@ -120,6 +128,19 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
     ? legacyOrder.quantity
     : cart.reduce((acc, item) => acc + item.quantity, 0)
 
+  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingReceipt(true)
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setReceiptDataUrl(event.target?.result as string)
+      setUploadingReceipt(false)
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleCompleteWhatsAppOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
@@ -142,6 +163,7 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
               customer_phone: phone || 'WhatsApp Order',
               delivery_address: address || '[WHATSAPP] In Chat',
               customer_note: customerNote || null,
+              payment_receipt_url: proofPreference === 'upload' ? receiptDataUrl : null,
               status: 'PENDING',
             })
             .eq('id', legacyOrder.id)
@@ -163,6 +185,7 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
               delivery_address: address || '[WHATSAPP] In Chat',
               checkout_mode: 'whatsapp',
               customer_note: customerNote || null,
+              payment_receipt_url: proofPreference === 'upload' ? receiptDataUrl : null,
             }),
           })
           const res = await response.json()
@@ -184,11 +207,14 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
       if (phone) detailsList.push(`Phone: ${phone}`)
       if (address) detailsList.push(`Address: ${address}`)
       if (customerNote) detailsList.push(`Note: ${customerNote}`)
+      
+      if (proofPreference === 'upload' && receiptDataUrl) {
+        detailsList.push(`Payment Proof: Uploaded to your Ondar dashboard ✓`)
+      } else {
+        detailsList.push(`Payment Proof: Attaching screenshot in this chat`)
+      }
 
-      const detailsSection =
-        detailsList.length > 0
-          ? `\n\n*Customer Info:*\n${detailsList.join('\n')}`
-          : '\n\n*(I will provide delivery details directly in this chat)*'
+      const detailsSection = `\n\n*Customer Info:*\n${detailsList.join('\n')}`
 
       const cleanPhone = store?.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
       const message = `Hi ${store?.store_name}! I would like to place order #${refCode}:\n\n${itemsList}\n\n*Total:* ₦${subtotal.toLocaleString()}${detailsSection}`
@@ -197,8 +223,7 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
       localStorage.removeItem(`ondar-cart-${slug}`)
       window.dispatchEvent(new Event('ondar-cart-updated'))
 
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank')
-      router.push(`/${slug}`)
+      window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
     } catch (err: any) {
       alert('Checkout error: ' + err.message)
     } finally {
@@ -333,6 +358,65 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
                   onChange={(e) => setCustomerNote(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-medium resize-none"
                 />
+              </div>
+
+              {/* ── PROOF OF PAYMENT PREFERENCE TOGGLE ── */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <label className="font-extrabold text-slate-800 block text-[11px]">
+                  Proof of Payment Option:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setProofPreference('whatsapp')}
+                    className={`p-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                      proofPreference === 'whatsapp'
+                        ? 'bg-[#00A859] text-white border-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                    }`}
+                  >
+                    Send in WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProofPreference('upload')}
+                    className={`p-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                      proofPreference === 'upload'
+                        ? 'bg-[#00A859] text-white border-black shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                    }`}
+                  >
+                    Upload Screenshot
+                  </button>
+                </div>
+
+                {proofPreference === 'upload' && (
+                  <div className="pt-1.5 space-y-1.5 animate-fade-in">
+                    {receiptDataUrl ? (
+                      <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <img src={receiptDataUrl} alt="Receipt" className="w-8 h-8 object-cover rounded-lg border border-slate-200" />
+                          <span className="text-[10px] font-bold text-emerald-700">Receipt Attached ✓</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setReceiptDataUrl(null)}
+                          className="text-red-500 text-[10px] font-bold hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 p-2.5 bg-white border border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-slate-500" />
+                        <span className="text-[11px] font-bold text-slate-700">
+                          {uploadingReceipt ? 'Reading receipt...' : 'Choose Receipt / Screenshot'}
+                        </span>
+                        <input type="file" accept="image/*" onChange={handleReceiptFileChange} className="hidden" />
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </section>

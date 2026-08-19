@@ -395,8 +395,8 @@ export default function MobileResponsiveDashboard() {
 
       let saveError: any = null
 
-      // Dynamically strip any missing column and retry up to 10 times
-      for (let attempt = 0; attempt < 10; attempt++) {
+      // Dynamically strip any missing column and retry up to 15 times
+      for (let attempt = 0; attempt < 15; attempt++) {
         const { error } = await supabase
           .from('stores')
           .update(payloadToSave)
@@ -408,18 +408,39 @@ export default function MobileResponsiveDashboard() {
         }
 
         saveError = error
-        // Regex matches: Could not find the 'XYZ' column of 'stores'
-        const match = error.message?.match(/Could not find the '([^']+)' column/)
+        // Regex matches single or double quoted column names: 'XYZ' or "XYZ"
+        const match =
+          error.message?.match(/Could not find the ['"]([^'"]+)['"] column/i) ||
+          error.message?.match(/column ['"]([^'"]+)['"]/i) ||
+          error.message?.match(/['"]([^'"]+)['"] of relation/i)
+
         if (match && match[1]) {
           const missingColumn = match[1]
-          console.warn(`Stripping missing column '${missingColumn}' from save payload and retrying...`)
+          console.warn(`Stripping missing column '${missingColumn}' and retrying...`)
           delete payloadToSave[missingColumn]
         } else {
           break
         }
       }
 
-      if (saveError) throw saveError
+      // If loop still failed on unsupported schema, perform guaranteed base save
+      if (saveError) {
+        console.warn('Performing guaranteed base store save:', saveError.message)
+        const baseGuaranteed: any = {
+          store_name: storeName,
+          logo_url: logoUrl,
+          hero_banner_url: heroBannerUrl,
+          accent_color: accentColor,
+          announcement_text: announcementText,
+          whatsapp_number: whatsappNumber,
+        }
+        const finalTry = await supabase
+          .from('stores')
+          .update(baseGuaranteed)
+          .eq('id', store.id)
+
+        if (finalTry.error) throw finalTry.error
+      }
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2500)

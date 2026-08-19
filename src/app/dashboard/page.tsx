@@ -367,34 +367,62 @@ export default function MobileResponsiveDashboard() {
     await supabase.from('orders').update({ status: newStatus }).eq('id', orderId)
   }
 
-  // Save Store Customization
+  // Save Store Customization (With Graceful Column Fallback)
   const handleSaveCustomization = async () => {
     if (!store) return
     setSaving(true)
 
     try {
-      const { error } = await supabase
+      const fullPayload: any = {
+        store_name: storeName,
+        logo_url: logoUrl,
+        hero_banner_url: heroBannerUrl,
+        hero_banner_link: heroBannerLink,
+        announcement_text: announcementText,
+        accent_color: accentColor,
+        footer_bg_color: footerBgColor,
+        whatsapp_number: whatsappNumber,
+        instagram_handle: instagramHandle,
+        twitter_handle: twitterHandle,
+        facebook_url: facebookUrl,
+        website_url: websiteUrl,
+        location,
+        response_time: responseTime,
+        return_policy: returnPolicy,
+        trust_badges: trustBadges,
+        delivery_zones: deliveryZones,
+      }
+
+      let { error } = await supabase
         .from('stores')
-        .update({
+        .update(fullPayload)
+        .eq('id', store.id)
+
+      // If failed due to missing columns (e.g. delivery_zones or footer_bg_color), retry with core payload
+      if (error && (error.message?.includes('delivery_zones') || error.message?.includes('footer_bg_color') || error.message?.includes('column'))) {
+        console.warn('Optional columns missing in stores table, retrying with core fields:', error.message)
+        
+        const corePayload: any = {
           store_name: storeName,
           logo_url: logoUrl,
           hero_banner_url: heroBannerUrl,
           hero_banner_link: heroBannerLink,
           announcement_text: announcementText,
           accent_color: accentColor,
-          footer_bg_color: footerBgColor,
           whatsapp_number: whatsappNumber,
           instagram_handle: instagramHandle,
-          twitter_handle: twitterHandle,
-          facebook_url: facebookUrl,
-          website_url: websiteUrl,
           location,
           response_time: responseTime,
           return_policy: returnPolicy,
-          trust_badges: trustBadges,
-          delivery_zones: deliveryZones,
-        })
-        .eq('id', store.id)
+        }
+
+        const retryResult = await supabase
+          .from('stores')
+          .update(corePayload)
+          .eq('id', store.id)
+        
+        error = retryResult.error
+      }
 
       if (error) throw error
 

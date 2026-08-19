@@ -231,34 +231,40 @@ export default async function PublicStorePage(props: {
           </div>
         )}
 
-        {/* ── TOP NAVBAR HEADER ── */}
-        <header className="bg-white border-b border-slate-200/80 px-4 py-3 sticky top-0 z-40 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        {/* ── TOP NAVBAR HEADER (Glassmorphic) ── */}
+        <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/70 px-4 md:px-6 py-3 sticky top-0 z-40 shadow-xs flex items-center justify-between transition-all">
+          <div className="flex items-center gap-2.5">
             {store.logo_url ? (
               <img
                 src={store.logo_url}
                 alt={store.store_name}
-                className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-100 shadow-xs"
+                className="w-9 h-9 rounded-2xl object-cover ring-1 ring-black/10 shadow-xs"
               />
             ) : (
               <div 
                 style={{ backgroundColor: store.accent_color || '#00A859' }} 
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-sm shadow-xs"
+                className="w-9 h-9 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-xs"
               >
                 {store.store_name.charAt(0)}
               </div>
             )}
-            <h1 className="text-base font-black text-slate-900 tracking-tight leading-none truncate max-w-[170px] md:max-w-xs">
-              {store.store_name}
-            </h1>
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none truncate max-w-[170px] md:max-w-xs">
+                {store.store_name}
+              </h1>
+              <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00A859]" />
+                <span>Verified Merchant</span>
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {isOwner && (
               <Link
                 href="/dashboard"
                 style={{ color: accentColor, borderColor: accentColor + '40' }}
-                className="px-3 py-1.5 bg-slate-50 border rounded-xl text-xs font-bold transition-all active:scale-95 mr-1"
+                className="px-3 py-1.5 bg-slate-50 border rounded-xl text-xs font-black transition-all active:scale-95 mr-1"
               >
                 Dashboard
               </Link>
@@ -268,9 +274,10 @@ export default async function PublicStorePage(props: {
               href={`https://wa.me/?text=${encodeURIComponent(`Check out ${store.store_name} on Ondar`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 text-slate-500 hover:text-slate-900 transition-colors"
+              className="p-2 text-slate-500 hover:text-black hover:bg-slate-100 rounded-xl transition-colors"
+              title="Share store link"
             >
-              <Share2 className="w-5 h-5" />
+              <Share2 className="w-4 h-4" />
             </a>
 
             {/* Cart badge — opens drawer */}
@@ -442,25 +449,25 @@ export default async function PublicStorePage(props: {
 
           {/* ── REAL CUSTOMER REVIEWS ── */}
           {safeReviews.length > 0 && (
-            <section className="mb-8 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
+            <section className="mb-8 bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-800">Customer Reviews</h3>
+                  <h3 className="text-xs uppercase font-black tracking-wider text-slate-900">Customer Reviews</h3>
                   {avgRating && (
-                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-full">
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      <span className="text-[10px] font-black text-amber-700">{avgRating}</span>
+                      <span className="text-[10px] font-black text-amber-800">{avgRating}</span>
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                  {safeReviews.length} Review{safeReviews.length !== 1 ? 's' : ''}
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
+                  {safeReviews.length} Verified Review{safeReviews.length !== 1 ? 's' : ''}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                 {safeReviews.slice(0, 4).map((review: any) => (
-                  <div key={review.id} className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 space-y-1">
+                  <div key={review.id} className="bg-[#F8FAFC] p-4 rounded-2xl border border-slate-200/60 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -468,7 +475,7 @@ export default async function PublicStorePage(props: {
                         ))}
                       </div>
                       {review.is_verified && (
-                        <span className="text-[9px] font-bold text-slate-400">✓ Verified Order</span>
+                        <span className="text-[9px] font-black text-emerald-700">✓ Verified Buyer</span>
                       )}
                     </div>
                     {review.comment && (
@@ -476,7 +483,7 @@ export default async function PublicStorePage(props: {
                         &ldquo;{review.comment}&rdquo;
                       </p>
                     )}
-                    <p className="text-[10px] font-bold text-slate-500">— {review.customer_name}</p>
+                    <p className="text-[10px] font-black text-slate-500">— {review.customer_name}</p>
                   </div>
                 ))}
               </div>

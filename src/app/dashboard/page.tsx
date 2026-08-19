@@ -33,8 +33,10 @@ import {
   Send,
   PhoneCall,
   UserCheck,
+  Crop,
 } from 'lucide-react'
 import Link from 'next/link'
+import { BannerCropperModal } from '@/components/banner-cropper-modal'
 
 export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
@@ -53,6 +55,8 @@ export default function MobileResponsiveDashboard() {
   // Uploading state for logo & banner
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [rawBannerToCrop, setRawBannerToCrop] = useState<string | null>(null)
+  const [showBannerCropper, setShowBannerCropper] = useState(false)
 
   // Story Buy Link Generator Modal
   const [showBuyLinkModal, setShowBuyLinkModal] = useState(false)
@@ -310,37 +314,22 @@ export default function MobileResponsiveDashboard() {
     }
   }
 
-  // Handle Banner Upload
-  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Banner Upload & Cropping
+  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !store) return
-    setUploadingBanner(true)
+    if (!file) return
 
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `banners/${store.id}_${Date.now()}.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file, { upsert: true })
-
-      if (uploadError) {
-        const reader = new FileReader()
-        reader.onload = (ev) => setHeroBannerUrl(ev.target?.result as string)
-        reader.readAsDataURL(file)
-      } else {
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName)
-        setHeroBannerUrl(publicUrl)
-      }
-    } catch {
-      const reader = new FileReader()
-      reader.onload = (ev) => setHeroBannerUrl(ev.target?.result as string)
-      reader.readAsDataURL(file)
-    } finally {
-      setUploadingBanner(false)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setRawBannerToCrop(ev.target?.result as string)
+      setShowBannerCropper(true)
     }
+    reader.readAsDataURL(file)
+  }
+
+  // Handle Cropped Banner Result
+  const handleCropComplete = (croppedDataUrl: string) => {
+    setHeroBannerUrl(croppedDataUrl)
   }
 
   // Quick Stock adjustment
@@ -1219,20 +1208,37 @@ export default function MobileResponsiveDashboard() {
                   <div className="space-y-2">
                     <label className="font-bold block">Hero Banner Image</label>
                     {heroBannerUrl ? (
-                      <div className="relative aspect-[3/1] rounded-2xl border-2 border-black overflow-hidden bg-white">
-                        <img src={heroBannerUrl} alt="Hero Banner" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => setHeroBannerUrl('')}
-                          className="absolute top-1.5 right-1.5 bg-black/80 text-white p-1 rounded-full"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                      <div className="space-y-2">
+                        <div className="relative aspect-[3/1] rounded-2xl border-2 border-black overflow-hidden bg-white">
+                          <img src={heroBannerUrl} alt="Hero Banner" className="w-full h-full object-cover" />
+                          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRawBannerToCrop(heroBannerUrl)
+                                setShowBannerCropper(true)
+                              }}
+                              className="bg-white/95 text-black px-2.5 py-1 rounded-xl text-[10px] font-black border border-black hover:bg-white flex items-center gap-1 shadow-sm transition-all"
+                            >
+                              <Crop className="w-3 h-3 text-[#00A859]" />
+                              <span>Crop / Adjust</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHeroBannerUrl('')}
+                              className="bg-black/80 text-white p-1 rounded-full hover:bg-black"
+                              title="Delete banner"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <label className="flex flex-col items-center justify-center aspect-[3/1] rounded-2xl border-2 border-dashed border-black/40 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors">
-                        <Upload className="w-6 h-6 opacity-40 mb-1" />
-                        <span className="font-bold text-xs">{uploadingBanner ? 'Uploading Banner...' : 'Click to Upload Hero Banner'}</span>
-                        <span className="text-[10px] opacity-60">PNG, JPG up to 5MB</span>
+                        <Crop className="w-6 h-6 text-[#00A859] mb-1" />
+                        <span className="font-bold text-xs">Upload & Crop Hero Banner</span>
+                        <span className="text-[10px] opacity-60">Interactive zoom & drag to 3:1 banner</span>
                         <input type="file" accept="image/*" onChange={handleBannerFileChange} className="hidden" />
                       </label>
                     )}
@@ -1664,6 +1670,19 @@ export default function MobileResponsiveDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── BANNER CROPPER MODAL ── */}
+      {showBannerCropper && rawBannerToCrop && (
+        <BannerCropperModal
+          imageSrc={rawBannerToCrop}
+          isOpen={showBannerCropper}
+          onClose={() => {
+            setShowBannerCropper(false)
+            setRawBannerToCrop(null)
+          }}
+          onCropComplete={handleCropComplete}
+        />
       )}
     </div>
   )

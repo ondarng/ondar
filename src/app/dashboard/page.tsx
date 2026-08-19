@@ -495,15 +495,20 @@ export default function MobileResponsiveDashboard() {
           )}
           <div className="min-w-0">
             <h1 className="font-black text-xs md:text-sm tracking-tight leading-none truncate max-w-[130px] md:max-w-xs">{store?.store_name}</h1>
-            <a
-              href={`/${store?.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] md:text-[11px] text-[#00A859] font-bold hover:underline flex items-center gap-1 mt-0.5 truncate"
-            >
-              <span>ondar.shop/{store?.slug}</span>
-              <ExternalLink className="w-3 h-3 shrink-0" />
-            </a>
+            <div className="flex items-center gap-2 mt-0.5">
+              <a
+                href={`/${store?.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] md:text-[11px] text-[#00A859] font-bold hover:underline flex items-center gap-1 truncate"
+              >
+                <span>ondar.shop/{store?.slug}</span>
+                <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
+              <span className="hidden sm:inline-block text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full border border-emerald-300">
+                14-Day Free Trial
+              </span>
+            </div>
           </div>
         </div>
 

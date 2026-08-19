@@ -71,11 +71,16 @@ export default function CreateStorePage() {
       return
     }
 
+    const trialEnds = new Date()
+    trialEnds.setDate(trialEnds.getDate() + 14)
+
     const { error: insertError } = await supabase.from('stores').insert({
       vendor_id: user.id,
       store_name: storeName,
       slug: slug,
       whatsapp_number: whatsapp,
+      subscription_status: 'TRIAL',
+      trial_ends_at: trialEnds.toISOString(),
     })
 
     if (insertError) {

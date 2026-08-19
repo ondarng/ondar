@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS stores (
     accent_color TEXT DEFAULT '#00A859',
     announcement_text TEXT,
     subscription_status TEXT DEFAULT 'TRIAL',
-    trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + interval '7 days'),
+    trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + interval '14 days'),
     trust_badges TEXT[] DEFAULT ARRAY['Nationwide Delivery', '100% Original', 'Warranty']::TEXT[],
     description TEXT,
     location TEXT,
@@ -245,9 +245,9 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS vendor_notes TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_name TEXT;
 
 
--- 9. RESET ALL TRIAL PERIODS TO 7 DAYS FROM NOW
--- Run this query in Supabase SQL Editor to extend/reset all existing stores to a 7-day trial:
-UPDATE stores SET trial_ends_at = NOW() + INTERVAL '7 days', subscription_status = 'TRIAL';
+-- 9. RESET ALL TRIAL PERIODS TO 14 DAYS FROM NOW
+-- Run this query in Supabase SQL Editor to extend/reset all existing stores to a 14-day free trial:
+UPDATE stores SET trial_ends_at = NOW() + INTERVAL '14 days', subscription_status = 'TRIAL';
 
 
 -- 10. REVIEWS TABLE (Real customer ratings)

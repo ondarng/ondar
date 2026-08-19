@@ -367,13 +367,13 @@ export default function MobileResponsiveDashboard() {
     await supabase.from('orders').update({ status: newStatus }).eq('id', orderId)
   }
 
-  // Save Store Customization (With Graceful Column Fallback)
+  // Save Store Customization (With Dynamic Auto-Stripping Column Fallback)
   const handleSaveCustomization = async () => {
     if (!store) return
     setSaving(true)
 
     try {
-      const fullPayload: any = {
+      const payloadToSave: any = {
         store_name: storeName,
         logo_url: logoUrl,
         hero_banner_url: heroBannerUrl,
@@ -393,38 +393,33 @@ export default function MobileResponsiveDashboard() {
         delivery_zones: deliveryZones,
       }
 
-      let { error } = await supabase
-        .from('stores')
-        .update(fullPayload)
-        .eq('id', store.id)
+      let saveError: any = null
 
-      // If failed due to missing columns (e.g. delivery_zones or footer_bg_color), retry with core payload
-      if (error && (error.message?.includes('delivery_zones') || error.message?.includes('footer_bg_color') || error.message?.includes('column'))) {
-        console.warn('Optional columns missing in stores table, retrying with core fields:', error.message)
-        
-        const corePayload: any = {
-          store_name: storeName,
-          logo_url: logoUrl,
-          hero_banner_url: heroBannerUrl,
-          hero_banner_link: heroBannerLink,
-          announcement_text: announcementText,
-          accent_color: accentColor,
-          whatsapp_number: whatsappNumber,
-          instagram_handle: instagramHandle,
-          location,
-          response_time: responseTime,
-          return_policy: returnPolicy,
+      // Dynamically strip any missing column and retry up to 10 times
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const { error } = await supabase
+          .from('stores')
+          .update(payloadToSave)
+          .eq('id', store.id)
+
+        if (!error) {
+          saveError = null
+          break
         }
 
-        const retryResult = await supabase
-          .from('stores')
-          .update(corePayload)
-          .eq('id', store.id)
-        
-        error = retryResult.error
+        saveError = error
+        // Regex matches: Could not find the 'XYZ' column of 'stores'
+        const match = error.message?.match(/Could not find the '([^']+)' column/)
+        if (match && match[1]) {
+          const missingColumn = match[1]
+          console.warn(`Stripping missing column '${missingColumn}' from save payload and retrying...`)
+          delete payloadToSave[missingColumn]
+        } else {
+          break
+        }
       }
 
-      if (error) throw error
+      if (saveError) throw saveError
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2500)
@@ -435,24 +430,44 @@ export default function MobileResponsiveDashboard() {
     }
   }
 
-  // Save Account Settings
+  // Save Account Settings (With Dynamic Auto-Stripping Column Fallback)
   const handleSaveAccountSettings = async () => {
     if (!store) return
     setSaving(true)
 
     try {
-      const { error } = await supabase
-        .from('stores')
-        .update({
-          store_name: storeName,
-          bank_name: bankName,
-          bank_account_number: bankAccountNumber,
-          bank_account_name: bankAccountName,
-          slug,
-        })
-        .eq('id', store.id)
+      const payloadToSave: any = {
+        store_name: storeName,
+        bank_name: bankName,
+        bank_account_number: bankAccountNumber,
+        bank_account_name: bankAccountName,
+        slug,
+      }
 
-      if (error) throw error
+      let saveError: any = null
+
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { error } = await supabase
+          .from('stores')
+          .update(payloadToSave)
+          .eq('id', store.id)
+
+        if (!error) {
+          saveError = null
+          break
+        }
+
+        saveError = error
+        const match = error.message?.match(/Could not find the '([^']+)' column/)
+        if (match && match[1]) {
+          const missingColumn = match[1]
+          delete payloadToSave[missingColumn]
+        } else {
+          break
+        }
+      }
+
+      if (saveError) throw saveError
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2500)

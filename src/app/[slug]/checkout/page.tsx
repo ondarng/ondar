@@ -172,35 +172,35 @@ export default function StoreCheckoutPage({ params }: { params: Promise<{ slug: 
       let orderDbId = ''
 
       // Record in Supabase Backend
-      try {
-        const fullAddress = [address, city].filter(Boolean).join(', ') || '[WHATSAPP] In Chat'
-        const response = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            store_id: store.id,
-            items: cart.map((item) => ({
-              product_id: item.id,
-              quantity: item.quantity,
-              variant_name: item.variantName || null,
-            })),
-            customer_name: name || 'Customer',
-            customer_phone: phone || 'WhatsApp Order',
-            delivery_address: fullAddress,
-            checkout_mode: 'whatsapp',
-            customer_note: customerNote || null,
-            payment_receipt_url: proofPreference === 'upload' ? receiptDataUrl : null,
-            payment_method: paymentMode === 'transfer' ? 'bank_transfer' : 'negotiate_dm',
-          }),
-        })
+      const fullAddress = [address, city].filter(Boolean).join(', ') || '[WHATSAPP] In Chat'
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          store_id: store.id,
+          items: cart.map((item) => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            variant_name: item.variantName || null,
+          })),
+          customer_name: name || 'Customer',
+          customer_phone: phone || 'WhatsApp Order',
+          delivery_address: fullAddress,
+          checkout_mode: 'whatsapp',
+          customer_note: customerNote || null,
+          payment_receipt_url: proofPreference === 'upload' ? receiptDataUrl : null,
+          payment_method: paymentMode === 'transfer' ? 'bank_transfer' : 'negotiate_dm',
+        }),
+      })
 
-        const res = await response.json()
-        if (res.order_ids?.[0]) {
-          orderDbId = res.order_ids[0]
-          refCode = 'ONDR-' + orderDbId.slice(0, 6).toUpperCase()
-        }
-      } catch (err) {
-        console.warn('Backend order insert skipped:', err)
+      const res = await response.json()
+      if (!response.ok || res.error) {
+        throw new Error(res.error || 'Failed to save order to database')
+      }
+
+      if (res.order_ids?.[0]) {
+        orderDbId = res.order_ids[0]
+        refCode = 'ONDR-' + orderDbId.slice(0, 6).toUpperCase()
       }
 
       setCreatedOrderRef(refCode)

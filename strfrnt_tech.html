@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NEXUS HARDWARE — Official Devices & Gadgets</title>
+
+  <!-- Google Fonts & Tailwind CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            brand: '#00A859',
+            dark: '#0A0A0A',
+            surface: '#F8FAFC',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-bottom-sheet { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 font-sans antialiased pb-32">
+
+  <!-- ── 1. MINIMAL PROMO TICKER ── -->
+  <div class="bg-black text-white text-[11px] font-extrabold uppercase tracking-widest py-2 px-4 text-center sticky top-0 z-50 flex items-center justify-center gap-2">
+    <span>OFFICIAL CERTIFIED HARDWARE • 1-YEAR WARRANTY • SAME-DAY DISPATCH</span>
+  </div>
+
+  <!-- ── 2. MINIMALIST APPLE-GRADE NAVBAR ── -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-8 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-2xl bg-black text-white flex items-center justify-center font-black text-sm shadow-xs border border-black">
+        NX
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-black text-sm md:text-base tracking-tight leading-none text-slate-900">NEXUS HARDWARE</h1>
+          <span class="inline-flex items-center text-[#00A859]">
+            <i data-lucide="badge-check" class="w-4 h-4 fill-brand text-white"></i>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 font-bold mt-0.5 flex items-center gap-1.5">
+          <span>⭐️ 4.9 (210+ Verified Sales)</span>
+          <span>•</span>
+          <span class="text-[#00A859] font-black">Lekki & Ikeja Hubs</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="shareStore()" class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:text-black hover:bg-slate-100 transition-colors" title="Share">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+      </button>
+      <button onclick="openCart()" class="relative px-3.5 py-2.5 rounded-2xl bg-black text-white font-black text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span id="header-cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 3. CLEAN STORE PROFILE CARD ── -->
+  <main class="max-w-4xl mx-auto px-4 md:px-8 pt-4 space-y-5">
+    <div class="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-2xs space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-brand"></span>
+          <span class="text-xs font-black uppercase tracking-wider text-slate-900">Verified Consumer Electronics</span>
+        </div>
+        <span class="text-[11px] font-bold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+          Response: Under 10 mins
+        </span>
+      </div>
+
+      <h2 class="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-snug">
+        Flagship iPhones, MacBooks & Gaming Hardware
+      </h2>
+      <p class="text-xs text-slate-600 leading-relaxed font-medium">
+        All devices are 100% factory sealed or mint certified UK-used. Full receipt, warranty documentation, and IMEI verification provided before payment.
+      </p>
+
+      <div class="flex flex-wrap gap-2 pt-1">
+        <span class="bg-slate-50 text-slate-700 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">
+          ✓ 1-Year Comprehensive Warranty
+        </span>
+        <span class="bg-slate-50 text-slate-700 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">
+          ✓ Battery Health Guaranteed (100%)
+        </span>
+        <span class="bg-slate-50 text-slate-700 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">
+          ✓ Same-Day Insured Delivery
+        </span>
+      </div>
+    </div>
+
+    <!-- ── 4. DEVICE TRADE-IN CLEAN CARD ── -->
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-2xs">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-900">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-black text-slate-900">Device Trade-In / Swap</h4>
+          <p class="text-[11px] text-slate-500 font-medium">Get a valuation on your old device and pay the balance on WhatsApp</p>
+        </div>
+      </div>
+      <a href="https://wa.me/2348000000000?text=Hi%20Nexus%20Hardware!%20I%20want%20to%20swap%20my%20device" target="_blank" class="px-3.5 py-2 bg-black text-white font-bold text-xs rounded-xl shrink-0 hover:bg-neutral-800 transition-colors">
+        Swap Device →
+      </a>
+    </div>
+
+    <!-- ── 5. SEARCH & CATEGORIES ── -->
+    <div class="space-y-3">
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+        <input 
+          type="search" 
+          id="tech-search"
+          oninput="handleSearch()"
+          placeholder="Search iPhone 16, MacBook, PS5, AirPods..." 
+          class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200/90 rounded-2xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-black shadow-2xs"
+        />
+      </div>
+
+      <!-- Clean Category Pills -->
+      <div class="flex items-center justify-between gap-3 overflow-x-auto hide-scrollbar py-0.5">
+        <div class="flex gap-1.5 w-max" id="tech-tabs">
+          <button onclick="setTab('All', this)" class="tech-tab px-4 py-2 rounded-2xl text-xs font-black bg-black text-white border border-black shadow-xs">All Products (6)</button>
+          <button onclick="setTab('iPhones', this)" class="tech-tab px-4 py-2 rounded-2xl text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400">iPhones</button>
+          <button onclick="setTab('MacBooks', this)" class="tech-tab px-4 py-2 rounded-2xl text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400">MacBooks</button>
+          <button onclick="setTab('Gaming', this)" class="tech-tab px-4 py-2 rounded-2xl text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400">Gaming</button>
+          <button onclick="setTab('Audio', this)" class="tech-tab px-4 py-2 rounded-2xl text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400">Audio</button>
+        </div>
+
+        <select id="tech-sort" onchange="handleSort()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer">
+          <option value="newest">Latest Release</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── 6. CLEAN PRODUCT GRID ── -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4" id="tech-grid">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- ── 7. VERIFIED REVIEWS ── -->
+    <section class="bg-white rounded-3xl border border-slate-200/90 p-5 md:p-6 shadow-2xs space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4 text-brand"></i>
+          <h3 class="font-black text-xs uppercase tracking-wider text-slate-900">Verified Customer Feedback</h3>
+        </div>
+        <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          4.9 / 5.0 Rating (210+ Orders)
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-1">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-bold text-slate-900">Chuka M. (Lekki Phase 1)</span>
+            <span class="text-brand font-bold">✓ Verified Purchase</span>
+          </div>
+          <p class="text-slate-600 font-medium leading-relaxed">"Checked the serial number on Apple coverage page before payment. 100% genuine and sealed with full warranty."</p>
+        </div>
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-1">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-bold text-slate-900">David O. (Yaba, Lagos)</span>
+            <span class="text-brand font-bold">✓ Verified Purchase</span>
+          </div>
+          <p class="text-slate-600 font-medium leading-relaxed">"Ordered the PS5 Slim via WhatsApp at 11am, delivery rider arrived at my office by 1:30pm. Fast and smooth."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 8. STORE FOOTER & SPECS ── -->
+    <footer class="bg-black text-white p-6 md:p-8 rounded-3xl space-y-5 text-xs">
+      <div class="space-y-1 border-b border-neutral-800 pb-4">
+        <h3 class="font-black text-base text-white">NEXUS HARDWARE NIGERIA</h3>
+        <p class="text-neutral-400">Certified Original Electronics & Computing Hub</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-neutral-300">
+        <p>📍 <strong>Hub Locations:</strong> Lekki Phase 1 & Ikeja Computer Village</p>
+        <p>🔒 <strong>Warranty Policy:</strong> 1-Year hardware warranty on all sealed units</p>
+        <p>🚚 <strong>Dispatch:</strong> Same-day Lagos delivery, 48hr insured air courier</p>
+        <p>🔄 <strong>Swap Terms:</strong> Instant device appraisal via WhatsApp</p>
+      </div>
+
+      <div class="pt-2 text-center text-[10px] text-neutral-500 border-t border-neutral-800">
+        Powered by <a href="https://ondar.shop" class="text-brand font-bold hover:underline">Ondar Commerce</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ── 9. STICKY MOBILE BOTTOM BAR ── -->
+  <div class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 z-40 flex items-center justify-between px-5 shadow-xl">
+    <div>
+      <span class="text-[10px] font-bold text-slate-400 block uppercase">Order Subtotal</span>
+      <span class="text-sm font-black text-slate-950" id="sticky-subtotal">₦0</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- WhatsApp Tech Support -->
+      <a 
+        href="https://wa.me/2348000000000?text=Hi%20Nexus%20Hardware!%20I%20have%20a%20question%20about%20a%20device" 
+        target="_blank"
+        class="p-2.5 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-xs"
+        title="WhatsApp Hardware Support"
+      >
+        <i data-lucide="message-circle" class="w-5 h-5"></i>
+      </a>
+
+      <!-- Open Cart -->
+      <button 
+        onclick="openCart()" 
+        class="bg-black text-white font-black text-xs px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md active:scale-95 transition-transform"
+      >
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span>View Cart (<span id="sticky-count">0</span>)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 10. DEVICE SPECS MODAL (MINIMALIST) ── -->
+  <div id="tech-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-end">
+    <div class="w-full max-w-lg mx-auto bg-white rounded-t-[32px] p-5 space-y-4 shadow-2xl animate-bottom-sheet max-h-[85vh] overflow-y-auto">
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto"></div>
+
+      <!-- Item Preview -->
+      <div class="flex gap-3 items-center border-b border-slate-100 pb-3">
+        <img id="modal-img" src="" class="w-14 h-14 object-contain bg-slate-50 rounded-xl border border-slate-200 p-1" />
+        <div>
+          <h4 id="modal-name" class="font-bold text-xs text-slate-900 line-clamp-1">Device Name</h4>
+          <p id="modal-price" class="font-black text-sm text-brand mt-0.5">₦0</p>
+        </div>
+      </div>
+
+      <!-- Storage Configuration -->
+      <div class="space-y-2">
+        <label class="text-[11px] font-black uppercase tracking-wider text-slate-700 block">Select Storage Capacity:</label>
+        <div class="grid grid-cols-3 gap-2" id="storage-pills">
+          <button onclick="selectStorage('128GB', 0, this)" class="storage-btn p-2.5 rounded-xl border-2 border-black bg-black text-white text-xs font-black text-center shadow-xs">128GB</button>
+          <button onclick="selectStorage('256GB', 45000, this)" class="storage-btn p-2.5 rounded-xl border border-slate-200 text-xs font-black text-center hover:border-black">256GB (+45k)</button>
+          <button onclick="selectStorage('512GB', 95000, this)" class="storage-btn p-2.5 rounded-xl border border-slate-200 text-xs font-black text-center hover:border-black">512GB (+95k)</button>
+        </div>
+      </div>
+
+      <!-- Warranty Guarantee -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs flex items-center justify-between font-bold">
+        <span class="text-slate-500">Condition & Warranty:</span>
+        <span class="text-emerald-700">Brand New Sealed (1-Year) ✓</span>
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="confirmTechAddToCart()" class="w-full py-3.5 bg-black text-white font-black rounded-2xl text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+        <span>Add Device to Cart</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <button onclick="closeTechModal()" class="w-full py-2 text-slate-400 font-bold text-xs hover:text-black">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ── 11. CART SLIDE-OVER DRAWER ── -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden justify-end">
+    <div class="w-full max-w-md bg-white h-full flex flex-col shadow-2xl">
+      
+      <!-- Drawer Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-slate-900"></i>
+          <h3 class="font-black text-base text-slate-900">YOUR CART</h3>
+        </div>
+        <button onclick="closeCart()" class="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-black">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-3" id="cart-items-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Checkout Form -->
+      <div class="border-t border-slate-100 p-5 bg-white space-y-3 shrink-0 max-h-[60vh] overflow-y-auto">
+        <!-- Summary -->
+        <div class="space-y-1 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-xs font-semibold">
+          <div class="flex justify-between text-slate-500">
+            <span>Hardware Subtotal</span>
+            <span class="text-slate-900 font-bold" id="drawer-subtotal">₦0</span>
+          </div>
+          <div class="flex justify-between text-slate-500">
+            <span>Insured Courier Dispatch</span>
+            <span class="text-brand font-bold" id="drawer-delivery">₦2,500</span>
+          </div>
+          <div class="border-t border-slate-200 pt-1 flex justify-between text-sm font-black text-slate-950">
+            <span>Total Payable</span>
+            <span id="drawer-grandtotal">₦0</span>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="space-y-2">
+          <input type="text" id="cust-name" placeholder="Full Name" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none" />
+          <input type="tel" id="cust-phone" placeholder="WhatsApp Phone Number" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none" />
+          
+          <select id="cust-zone" onchange="updateDelivery()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+            <option value="2500">📍 Lagos Island / Lekki / VI Same-Day (+₦2,500)</option>
+            <option value="2000">📍 Lagos Mainland / Ikeja Same-Day (+₦2,000)</option>
+            <option value="5000">✈️ Nationwide Insured Air Courier (+₦5,000)</option>
+          </select>
+
+          <textarea id="cust-address" rows="2" placeholder="Full Delivery Address" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none resize-none"></textarea>
+        </div>
+
+        <button onclick="submitTechWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Confirm & Order on WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 12. APP JAVASCRIPT LOGIC ── -->
+  <script>
+    const techCatalog = [
+      {
+        id: 't1',
+        name: 'Apple iPhone 16 Pro Max',
+        category: 'iPhones',
+        basePrice: 1850000,
+        image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=500&q=80',
+        badge: 'NEW SEALED',
+        specs: '1-Year Apple Warranty • Natural Titanium'
+      },
+      {
+        id: 't2',
+        name: 'Apple MacBook Pro 14" (M3 Pro)',
+        category: 'MacBooks',
+        basePrice: 2450000,
+        image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=500&q=80',
+        badge: 'FLAGSHIP',
+        specs: '18GB Unified Memory • 512GB SSD'
+      },
+      {
+        id: 't3',
+        name: 'Sony PlayStation 5 Slim (Disc Edition)',
+        category: 'Gaming',
+        basePrice: 780000,
+        image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=500&q=80',
+        badge: 'HOT',
+        specs: '1TB SSD • Includes 2 DualSense Controllers'
+      },
+      {
+        id: 't4',
+        name: 'Apple AirPods Max',
+        category: 'Audio',
+        basePrice: 620000,
+        image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=500&q=80',
+        badge: 'HI-RES AUDIO',
+        specs: 'Active Noise Cancellation • Space Gray'
+      },
+      {
+        id: 't5',
+        name: 'Apple Watch Ultra 2 (Titanium)',
+        category: 'Audio',
+        basePrice: 940000,
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80',
+        badge: 'TITANIUM',
+        specs: '49mm GPS + Cellular • Trail Loop'
+      },
+      {
+        id: 't6',
+        name: 'Apple iPhone 15 Pro',
+        category: 'iPhones',
+        basePrice: 1250000,
+        image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80',
+        badge: 'POPULAR',
+        specs: 'A17 Pro • 100% Battery Health'
+      }
+    ];
+
+    let cart = [];
+    let selectedDevice = null;
+    let selectedStorageName = '128GB';
+    let storageDeltaPrice = 0;
+    let currentCategory = 'All';
+
+    function renderTechGrid(items) {
+      const grid = document.getElementById('tech-grid');
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 font-bold text-xs">No devices match your search.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => `
+        <div class="group flex flex-col bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-400 transition-all duration-300">
+          <div class="relative bg-[#F8FAFC] aspect-square flex items-center justify-center p-4">
+            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-contain group-hover:scale-106 transition-transform duration-500" loading="lazy" />
+            
+            <span class="absolute top-2.5 left-2.5 bg-black text-white text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+              ${p.badge}
+            </span>
+
+            <button onclick="openTechModal('${p.id}')" class="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white text-black border border-slate-200 hover:bg-black hover:text-white flex items-center justify-center shadow-md active:scale-90 transition-all">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="p-3.5 flex flex-col flex-1 justify-between gap-2">
+            <div class="space-y-0.5">
+              <h3 class="text-xs font-black text-slate-900 leading-snug line-clamp-2 uppercase tracking-tight group-hover:text-brand transition-colors">
+                ${p.name}
+              </h3>
+              <p class="text-[10px] text-slate-500 font-semibold line-clamp-1">${p.specs}</p>
+              <p class="text-sm font-black text-brand tracking-tight">₦${p.basePrice.toLocaleString()}</p>
+            </div>
+
+            <button onclick="openTechModal('${p.id}')" class="w-full py-2 rounded-xl bg-white border border-black text-black text-[10px] font-black uppercase tracking-wider hover:bg-black hover:text-white transition-colors">
+              Configure & Buy
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function setTab(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.tech-tab').forEach(b => {
+        b.className = 'tech-tab px-4 py-2 rounded-2xl text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400';
+      });
+      btn.className = 'tech-tab px-4 py-2 rounded-2xl text-xs font-black bg-black text-white border border-black shadow-xs';
+
+      applyFilters();
+    }
+
+    function handleSearch() { applyFilters(); }
+    function handleSort() { applyFilters(); }
+
+    function applyFilters() {
+      const q = document.getElementById('tech-search').value.toLowerCase();
+      const sort = document.getElementById('tech-sort').value;
+
+      let filtered = techCatalog.filter(p => {
+        const matchesCat = currentCategory === 'All' || p.category === currentCategory;
+        const matchesQ = p.name.toLowerCase().includes(q) || p.specs.toLowerCase().includes(q);
+        return matchesCat && matchesQ;
+      });
+
+      if (sort === 'price_asc') filtered.sort((a, b) => a.basePrice - b.basePrice);
+      if (sort === 'price_desc') filtered.sort((a, b) => b.basePrice - a.basePrice);
+
+      renderTechGrid(filtered);
+    }
+
+    // Modal
+    function openTechModal(id) {
+      selectedDevice = techCatalog.find(p => p.id === id);
+      if (!selectedDevice) return;
+
+      selectedStorageName = '128GB';
+      storageDeltaPrice = 0;
+
+      document.getElementById('modal-name').innerText = selectedDevice.name;
+      document.getElementById('modal-price').innerText = '₦' + selectedDevice.basePrice.toLocaleString();
+      document.getElementById('modal-img').src = selectedDevice.image;
+
+      document.getElementById('tech-modal').classList.remove('hidden');
+      document.getElementById('tech-modal').classList.add('flex');
+    }
+
+    function selectStorage(name, delta, btn) {
+      selectedStorageName = name;
+      storageDeltaPrice = delta;
+
+      document.querySelectorAll('.storage-btn').forEach(b => {
+        b.className = 'storage-btn p-2.5 rounded-xl border border-slate-200 text-xs font-black text-center hover:border-black';
+      });
+      btn.className = 'storage-btn p-2.5 rounded-xl border-2 border-black bg-black text-white text-xs font-black text-center shadow-xs';
+
+      const finalPrice = selectedDevice.basePrice + delta;
+      document.getElementById('modal-price').innerText = '₦' + finalPrice.toLocaleString();
+    }
+
+    function confirmTechAddToCart() {
+      if (!selectedDevice) return;
+
+      cart.push({
+        id: selectedDevice.id,
+        name: selectedDevice.name,
+        price: selectedDevice.basePrice + storageDeltaPrice,
+        image: selectedDevice.image,
+        specs: selectedStorageName,
+        qty: 1
+      });
+
+      closeTechModal();
+      updateCartUI();
+      openCart();
+    }
+
+    function closeTechModal() {
+      document.getElementById('tech-modal').classList.add('hidden');
+      document.getElementById('tech-modal').classList.remove('flex');
+    }
+
+    // Cart
+    function updateCartUI() {
+      const count = cart.reduce((acc, curr) => acc + curr.qty, 0);
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value) || 2500;
+
+      document.getElementById('header-cart-count').innerText = count;
+      document.getElementById('sticky-count').innerText = count;
+      document.getElementById('sticky-subtotal').innerText = '₦' + subtotal.toLocaleString();
+
+      document.getElementById('drawer-subtotal').innerText = '₦' + subtotal.toLocaleString();
+      document.getElementById('drawer-delivery').innerText = '₦' + delivery.toLocaleString();
+      document.getElementById('drawer-grandtotal').innerText = '₦' + (subtotal + delivery).toLocaleString();
+
+      const container = document.getElementById('cart-items-container');
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center py-12 space-y-2">
+            <i data-lucide="shopping-bag" class="w-10 h-10 text-slate-300"></i>
+            <p class="font-bold text-sm text-slate-800">Your cart is empty</p>
+            <p class="text-[11px] text-slate-400">Select devices from our verified catalog.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = cart.map((item, index) => `
+          <div class="flex gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <img src="${item.image}" class="w-14 h-14 object-contain bg-white rounded-xl border border-slate-200 p-1 shrink-0">
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-xs text-slate-900 truncate">${item.name}</h4>
+              <span class="inline-block bg-slate-200 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded mt-0.5">${item.specs}</span>
+              <p class="font-black text-xs text-brand mt-1">₦${item.price.toLocaleString()}</p>
+            </div>
+            <button onclick="removeItem(${index})" class="text-slate-400 hover:text-red-500 self-start p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function removeItem(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    }
+
+    function updateDelivery() { updateCartUI(); }
+
+    function openCart() {
+      document.getElementById('cart-drawer').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.add('flex');
+    }
+
+    function closeCart() {
+      document.getElementById('cart-drawer').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.remove('flex');
+    }
+
+    function shareStore() {
+      if (navigator.share) {
+        navigator.share({ title: 'NEXUS HARDWARE Hub', url: window.location.href });
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Store link copied to clipboard!');
+      }
+    }
+
+    function submitTechWhatsApp() {
+      if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+      }
+
+      const name = document.getElementById('cust-name').value || 'Customer';
+      const phone = document.getElementById('cust-phone').value || 'N/A';
+      const address = document.getElementById('cust-address').value || 'To be shared in chat';
+      const zoneText = document.getElementById('cust-zone').options[document.getElementById('cust-zone').selectedIndex].text;
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value);
+      const grandTotal = subtotal + delivery;
+
+      const refCode = 'NX-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+      const itemsList = cart.map(i => `• 1x ${i.name} [${i.specs}] — ₦${i.price.toLocaleString()}`).join('\n');
+
+      const message = `Hello Nexus Hardware! I would like to place order #${refCode}:\n\n${itemsList}\n\n*Items Subtotal:* ₦${subtotal.toLocaleString()}\n*Insured Delivery:* ₦${delivery.toLocaleString()} (${zoneText.split('(')[0].trim()})\n*Total Payable:* ₦${grandTotal.toLocaleString()}\n\n*Customer Info:*\nName: ${name}\nPhone: ${phone}\nDelivery Address: ${address}`;
+
+      window.open(`https://wa.me/2348000000000?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    renderTechGrid(techCatalog);
+    updateCartUI();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

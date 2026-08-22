@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AURA BEAUTY & SCENTS — Luxury Perfumery & Organic Skincare</title>
+
+  <!-- Google Fonts & Tailwind CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: '#00A859',
+            terracotta: '#9A5B4F',
+            sand: '#F7F3EE',
+            warm: '#2B2625',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-bottom-sheet { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="bg-[#F7F3EE] text-[#2B2625] font-sans antialiased pb-32">
+
+  <!-- ── 1. TICKER ── -->
+  <div class="bg-[#2B2625] text-[#F7F3EE] text-[10px] uppercase font-bold tracking-widest py-2 px-4 text-center sticky top-0 z-50 flex items-center justify-center gap-1.5 shadow-xs">
+    <span>AUTHENTIC DESIGNER OUD & CLINICAL SKINCARE • NATIONWIDE DELIVERY</span>
+  </div>
+
+  <!-- ── 2. CLEAN BEAUTY NAVBAR ── -->
+  <header class="bg-[#F7F3EE]/90 backdrop-blur-md border-b border-[#E6DFD5] sticky top-8 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-[#2B2625] text-[#F7F3EE] flex items-center justify-center font-serif text-base font-bold shadow-xs">
+        AB
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h1 class="font-serif text-lg font-bold tracking-wider leading-none text-[#2B2625]">AURA BEAUTY</h1>
+          <span class="inline-flex items-center text-brand" title="Verified Nigerian Beauty House">
+            <i data-lucide="badge-check" class="w-4 h-4 fill-brand text-white"></i>
+          </span>
+        </div>
+        <p class="text-[10px] text-stone-500 font-semibold mt-0.5 flex items-center gap-1">
+          <span>⭐️ 4.9 (340+ Reviews)</span>
+          <span>•</span>
+          <span class="text-brand font-bold">100% Original Guarantee</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="shareStore()" class="p-2.5 rounded-full bg-white border border-[#E6DFD5] text-stone-700 hover:bg-[#2B2625] hover:text-white transition-colors" title="Share">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+      </button>
+      <button onclick="openCart()" class="relative px-4 py-2.5 rounded-full bg-[#2B2625] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span id="header-cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 3. CLEAN PROFILE BANNER ── -->
+  <main class="max-w-4xl mx-auto px-4 md:px-8 pt-4 space-y-5">
+    <div class="bg-white rounded-3xl border border-[#E6DFD5] p-5 md:p-6 shadow-2xs space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-brand"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-[#2B2625]">Luxury Perfumery & Clinical Botanicals</span>
+        </div>
+        <span class="text-[10px] font-bold text-stone-500 bg-stone-50 px-2.5 py-1 rounded-md border border-stone-200">
+          📍 Lekki Phase 1, Lagos
+        </span>
+      </div>
+
+      <h2 class="font-serif text-2xl md:text-3xl text-[#2B2625] leading-tight">
+        Scent Your Presence. Glow In Your Skin.
+      </h2>
+      <p class="text-xs text-stone-600 leading-relaxed font-medium">
+        Curated French designer extraits, Arabian rich ouds, and dermatologist-tested organic glow serums. Zero counterfeit, 100% authentic batches.
+      </p>
+
+      <div class="flex flex-wrap gap-2 pt-1">
+        <span class="bg-[#F7F3EE] text-stone-700 border border-[#E6DFD5] text-[10px] font-bold px-2.5 py-1 rounded-full">
+          ✓ Original Batch Codes Verified
+        </span>
+        <span class="bg-[#F7F3EE] text-stone-700 border border-[#E6DFD5] text-[10px] font-bold px-2.5 py-1 rounded-full">
+          ✓ Long-Lasting Sillage (24hrs+)
+        </span>
+        <span class="bg-[#F7F3EE] text-stone-700 border border-[#E6DFD5] text-[10px] font-bold px-2.5 py-1 rounded-full">
+          ✓ Scent Recommendation on WhatsApp
+        </span>
+      </div>
+    </div>
+
+    <!-- ── 4. SCENT CONSULTATION CARD ── -->
+    <div class="bg-white border border-[#E6DFD5] rounded-2xl p-4 flex items-center justify-between gap-3 shadow-2xs">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-[#F7F3EE] border border-[#E6DFD5] flex items-center justify-center text-[#2B2625]">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-black text-[#2B2625]">Need Scent or Skincare Advice?</h4>
+          <p class="text-[11px] text-stone-500">Chat with our certified beauty aesthetician on WhatsApp</p>
+        </div>
+      </div>
+      <a href="https://wa.me/2348000000000?text=Hi%20Aura%20Beauty!%20I%20need%20a%20scent%20recommendation" target="_blank" class="px-3.5 py-2 bg-[#2B2625] text-white font-bold text-xs rounded-full shrink-0 hover:bg-stone-800 transition-colors">
+        Ask Aesthetician →
+      </a>
+    </div>
+
+    <!-- ── 5. SEARCH & CATEGORIES ── -->
+    <div class="space-y-3">
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+        <input 
+          type="search" 
+          id="beauty-search"
+          oninput="handleSearch()"
+          placeholder="Search perfumes, ouds, vitamin C serums, body oils..." 
+          class="w-full pl-11 pr-4 py-3 bg-white border border-[#E6DFD5] rounded-2xl text-xs font-semibold text-[#2B2625] placeholder:text-stone-400 outline-none focus:border-[#2B2625] shadow-2xs"
+        />
+      </div>
+
+      <!-- Clean Category Tabs -->
+      <div class="flex items-center justify-between gap-3 overflow-x-auto hide-scrollbar py-0.5">
+        <div class="flex gap-1.5 w-max" id="beauty-tabs">
+          <button onclick="setTab('All', this)" class="beauty-tab px-4 py-2 rounded-full text-xs font-black bg-[#2B2625] text-white border border-[#2B2625] shadow-xs">All Collection (6)</button>
+          <button onclick="setTab('Oud', this)" class="beauty-tab px-4 py-2 rounded-full text-xs font-semibold bg-white text-stone-600 border border-[#E6DFD5] hover:border-stone-400">Arabian Oud & Perfume</button>
+          <button onclick="setTab('Skincare', this)" class="beauty-tab px-4 py-2 rounded-full text-xs font-semibold bg-white text-stone-600 border border-[#E6DFD5] hover:border-stone-400">Glow Skincare</button>
+          <button onclick="setTab('Body', this)" class="beauty-tab px-4 py-2 rounded-full text-xs font-semibold bg-white text-stone-600 border border-[#E6DFD5] hover:border-stone-400">Body & Hair Oils</button>
+        </div>
+
+        <select id="beauty-sort" onchange="handleSort()" class="bg-white border border-[#E6DFD5] rounded-xl px-3 py-2 text-xs font-bold text-stone-800 outline-none cursor-pointer">
+          <option value="newest">Most Popular</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── 6. CLEAN BEAUTY PRODUCT GRID ── -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4" id="beauty-grid">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- ── 7. VERIFIED CUSTOMER REVIEWS ── -->
+    <section class="bg-white rounded-3xl border border-[#E6DFD5] p-5 md:p-6 shadow-2xs space-y-3">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-2.5">
+        <div class="flex items-center gap-2">
+          <i data-lucide="heart" class="w-4 h-4 text-brand"></i>
+          <h3 class="font-serif text-sm font-bold tracking-wider text-[#2B2625]">REAL BUYER EXPERIENCES</h3>
+        </div>
+        <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+          340+ Verified Reviews ✓
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div class="bg-[#F7F3EE] p-4 rounded-2xl border border-[#E6DFD5]/80 space-y-1.5">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-bold text-[#2B2625]">Kemi O. (Ikoyi)</span>
+            <span class="text-brand font-bold">✓ Verified Extrait Buyer</span>
+          </div>
+          <p class="text-stone-700 italic leading-relaxed">"The Sultan Royal Oud lasts on my clothes for 3 full days. I get compliments everywhere in the office!"</p>
+        </div>
+        <div class="bg-[#F7F3EE] p-4 rounded-2xl border border-[#E6DFD5]/80 space-y-1.5">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-bold text-[#2B2625]">Zainab A. (Abuja)</span>
+            <span class="text-brand font-bold">✓ Verified Skincare Buyer</span>
+          </div>
+          <p class="text-stone-700 italic leading-relaxed">"The Radiant Vitamin C glow oil cleared my hyperpigmentation in 3 weeks. Repurchasing immediately."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 8. STORE FOOTER ── -->
+    <footer class="bg-[#2B2625] text-[#F7F3EE] p-6 md:p-8 rounded-3xl space-y-4 text-xs">
+      <div class="space-y-1 border-b border-stone-700 pb-4">
+        <h3 class="font-serif text-lg tracking-widest font-bold">AURA BEAUTY & BOTANICALS</h3>
+        <p class="text-stone-400">Authentic Niche Perfumery & Clean Clinical Skincare</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-stone-300">
+        <p>📍 <strong>Boutique Hub:</strong> Admiralty Way, Lekki Phase 1, Lagos</p>
+        <p>🚚 <strong>Dispatch:</strong> Same-day Lagos express rider, 48hr nationwide</p>
+        <p>🔒 <strong>Quality Guarantee:</strong> 100% money-back original batch assurance</p>
+        <p>💬 <strong>WhatsApp Hotline:</strong> Fast support from 8am – 9pm</p>
+      </div>
+
+      <div class="pt-2 text-center text-[10px] text-stone-500 border-t border-stone-700">
+        Powered by <a href="https://ondar.shop" class="text-brand font-bold hover:underline">Ondar Commerce</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ── 9. STICKY MOBILE BOTTOM BAR ── -->
+  <div class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E6DFD5] p-3 z-40 flex items-center justify-between px-5 shadow-xl">
+    <div>
+      <span class="text-[10px] font-bold text-stone-400 block uppercase">Beauty Bag Total</span>
+      <span class="text-sm font-black text-[#2B2625]" id="sticky-subtotal">₦0</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- WhatsApp Scent Hotline -->
+      <a 
+        href="https://wa.me/2348000000000?text=Hi%20Aura%20Beauty!%20I%20need%20help%20with%20an%20order" 
+        target="_blank"
+        class="p-2.5 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xs"
+        title="WhatsApp Beauty Specialist"
+      >
+        <i data-lucide="message-circle" class="w-5 h-5"></i>
+      </a>
+
+      <!-- Open Cart -->
+      <button 
+        onclick="openCart()" 
+        class="bg-[#2B2625] text-white font-bold text-xs px-5 py-3 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-transform"
+      >
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span>View Bag (<span id="sticky-count">0</span>)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 10. SCENT SIZE / BOTTLE MODAL ── -->
+  <div id="beauty-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-end">
+    <div class="w-full max-w-lg mx-auto bg-white rounded-t-[32px] p-5 space-y-4 shadow-2xl animate-bottom-sheet max-h-[85vh] overflow-y-auto">
+      <div class="w-12 h-1.5 bg-stone-200 rounded-full mx-auto"></div>
+
+      <div class="flex gap-3 items-center border-b border-stone-100 pb-3">
+        <img id="modal-img" src="" class="w-14 h-16 object-cover bg-[#F7F3EE] rounded-xl border border-[#E6DFD5] p-1" />
+        <div>
+          <h4 id="modal-name" class="font-bold text-xs text-[#2B2625] line-clamp-1">Product Name</h4>
+          <p id="modal-price" class="font-black text-sm text-brand mt-0.5">₦0</p>
+        </div>
+      </div>
+
+      <!-- Bottle Size Selection -->
+      <div class="space-y-2">
+        <label class="text-[11px] font-black uppercase tracking-wider text-stone-700 block">Select Bottle Size:</label>
+        <div class="grid grid-cols-3 gap-2" id="size-pills">
+          <button onclick="selectBottle('50ml Extrait', 0, this)" class="bottle-btn p-2.5 rounded-2xl border-2 border-[#2B2625] bg-[#2B2625] text-white text-xs font-bold text-center">50ml Standard</button>
+          <button onclick="selectBottle('100ml Jumbo', 22000, this)" class="bottle-btn p-2.5 rounded-2xl border border-stone-200 text-xs font-bold text-center hover:border-[#2B2625]">100ml (+22k)</button>
+          <button onclick="selectBottle('Pocket 10ml Decant', -12000, this)" class="bottle-btn p-2.5 rounded-2xl border border-stone-200 text-xs font-bold text-center hover:border-[#2B2625]">10ml Travel</button>
+        </div>
+      </div>
+
+      <div class="bg-[#F7F3EE] p-3 rounded-2xl border border-[#E6DFD5] text-xs flex items-center justify-between font-bold">
+        <span class="text-stone-500">Sillage & Longevity:</span>
+        <span class="text-brand">24hr+ Ultra Concentrate ✓</span>
+      </div>
+
+      <button onclick="confirmBeautyAddToCart()" class="w-full py-3.5 bg-[#2B2625] text-white font-bold rounded-full text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+        <span>Add to Beauty Bag</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <button onclick="closeBeautyModal()" class="w-full py-2 text-stone-400 font-bold text-xs hover:text-[#2B2625]">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ── 11. CART SLIDE-OVER DRAWER ── -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden justify-end">
+    <div class="w-full max-w-md bg-white h-full flex flex-col shadow-2xl">
+      
+      <!-- Drawer Header -->
+      <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-[#2B2625]"></i>
+          <h3 class="font-serif text-base font-bold tracking-wider text-[#2B2625]">YOUR BEAUTY BAG</h3>
+        </div>
+        <button onclick="closeCart()" class="p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-black">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-3" id="cart-items-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Checkout Form -->
+      <div class="border-t border-stone-100 p-5 bg-[#F7F3EE] space-y-3 shrink-0 max-h-[60vh] overflow-y-auto">
+        <div class="space-y-1 bg-white p-3.5 rounded-2xl border border-[#E6DFD5] text-xs font-semibold">
+          <div class="flex justify-between text-stone-500">
+            <span>Items Subtotal</span>
+            <span class="text-[#2B2625] font-bold" id="drawer-subtotal">₦0</span>
+          </div>
+          <div class="flex justify-between text-stone-500">
+            <span>Delivery Courier</span>
+            <span class="text-brand font-bold" id="drawer-delivery">₦2,000</span>
+          </div>
+          <div class="border-t border-stone-100 pt-1 flex justify-between text-sm font-black text-[#2B2625]">
+            <span>Total Payable</span>
+            <span id="drawer-grandtotal">₦0</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <input type="text" id="cust-name" placeholder="Full Name" class="w-full px-3.5 py-2.5 bg-white border border-[#E6DFD5] rounded-xl text-xs font-semibold outline-none" />
+          <input type="tel" id="cust-phone" placeholder="WhatsApp Phone Number" class="w-full px-3.5 py-2.5 bg-white border border-[#E6DFD5] rounded-xl text-xs font-semibold outline-none" />
+          
+          <select id="cust-zone" onchange="updateDelivery()" class="w-full px-3.5 py-2.5 bg-white border border-[#E6DFD5] rounded-xl text-xs font-bold outline-none">
+            <option value="2000">📍 Lagos Island / Lekki / VI (+₦2,000)</option>
+            <option value="1500">📍 Lagos Mainland Delivery (+₦1,500)</option>
+            <option value="4000">🚚 Interstate Courier (Abuja, PH, Kano) (+₦4,000)</option>
+          </select>
+
+          <textarea id="cust-address" rows="2" placeholder="Delivery Address & Scent Notes" class="w-full px-3.5 py-2 bg-white border border-[#E6DFD5] rounded-xl text-xs font-semibold outline-none resize-none"></textarea>
+        </div>
+
+        <button onclick="submitBeautyWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-3.5 rounded-full text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Order on WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 12. APP JS LOGIC ── -->
+  <script>
+    const beautyCatalog = [
+      {
+        id: 'b1',
+        name: 'SULTAN ROYAL OUD EXTRAIT DE PARFUM',
+        category: 'Oud',
+        basePrice: 42000,
+        image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=500&q=80',
+        badge: 'BESTSELLER',
+        notes: 'Rich Cambodian Oud, Amber & Vanilla'
+      },
+      {
+        id: 'b2',
+        name: 'RADIANT VITAMIN C 20% GLOW SERUM',
+        category: 'Skincare',
+        basePrice: 18500,
+        image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=500&q=80',
+        badge: 'HYDRATION',
+        notes: 'Hyaluronic Acid + Ferulic Botanical Blend'
+      },
+      {
+        id: 'b3',
+        name: 'ROSE NOIR & AMBER VELVET EXTRACT',
+        category: 'Oud',
+        basePrice: 38000,
+        image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=500&q=80',
+        badge: 'POPULAR',
+        notes: 'Damask Rose, Pink Pepper & Smoked Cedar'
+      },
+      {
+        id: 'b4',
+        name: 'LUXE NOURISHING SHEA & JOJOBA BODY OIL',
+        category: 'Body',
+        basePrice: 14000,
+        image: 'https://images.unsplash.com/photo-1608248597359-3353842c16d5?auto=format&fit=crop&w=500&q=80',
+        badge: 'ORGANIC',
+        notes: 'Cold-Pressed Botanical Glow Formula'
+      },
+      {
+        id: 'b5',
+        name: 'BACCA ROUGE 540 INSPIRED NICHE ELIXIR',
+        category: 'Oud',
+        basePrice: 35000,
+        image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=500&q=80',
+        badge: 'MUST HAVE',
+        notes: 'Jasmine, Saffron & Warm Ambergris'
+      },
+      {
+        id: 'b6',
+        name: 'HYDRATING BARRIER RESTORE PEPTIDE CREAM',
+        category: 'Skincare',
+        basePrice: 22000,
+        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80',
+        badge: 'CLINICAL',
+        notes: 'Ceramides 1-3-6 & Niacinamide'
+      }
+    ];
+
+    let cart = [];
+    let selectedItem = null;
+    let selectedSizeName = '50ml Extrait';
+    let sizeDeltaPrice = 0;
+    let currentCategory = 'All';
+
+    function renderBeautyGrid(items) {
+      const grid = document.getElementById('beauty-grid');
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-stone-400 font-bold text-xs">No items found.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => `
+        <div class="group flex flex-col bg-white rounded-3xl overflow-hidden border border-[#E6DFD5] shadow-2xs hover:shadow-md hover:border-stone-400 transition-all duration-300">
+          <div class="relative bg-[#F7F3EE] aspect-[4/5] flex items-center justify-center p-4">
+            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover rounded-2xl group-hover:scale-106 transition-transform duration-500" loading="lazy" />
+            
+            <span class="absolute top-2.5 left-2.5 bg-[#2B2625] text-white text-[8px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              ${p.badge}
+            </span>
+
+            <button onclick="openBeautyModal('${p.id}')" class="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white text-[#2B2625] border border-[#E6DFD5] hover:bg-[#2B2625] hover:text-white flex items-center justify-center shadow-md active:scale-90 transition-all">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="p-3.5 flex flex-col flex-1 justify-between gap-2">
+            <div class="space-y-0.5">
+              <h3 class="text-xs font-black text-[#2B2625] leading-snug line-clamp-2 uppercase tracking-wide group-hover:text-brand transition-colors">
+                ${p.name}
+              </h3>
+              <p class="text-[10px] text-stone-500 font-medium line-clamp-1 italic">${p.notes}</p>
+              <p class="text-sm font-black text-brand tracking-tight">₦${p.basePrice.toLocaleString()}</p>
+            </div>
+
+            <button onclick="openBeautyModal('${p.id}')" class="w-full py-2 rounded-full bg-white border border-[#2B2625] text-[#2B2625] text-[10px] font-black uppercase tracking-wider hover:bg-[#2B2625] hover:text-white transition-colors">
+              Choose Size
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function setTab(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.beauty-tab').forEach(b => {
+        b.className = 'beauty-tab px-4 py-2 rounded-full text-xs font-semibold bg-white text-stone-600 border border-[#E6DFD5] hover:border-stone-400';
+      });
+      btn.className = 'beauty-tab px-4 py-2 rounded-full text-xs font-black bg-[#2B2625] text-white border border-[#2B2625] shadow-xs';
+
+      applyFilters();
+    }
+
+    function handleSearch() { applyFilters(); }
+    function handleSort() { applyFilters(); }
+
+    function applyFilters() {
+      const q = document.getElementById('beauty-search').value.toLowerCase();
+      const sort = document.getElementById('beauty-sort').value;
+
+      let filtered = beautyCatalog.filter(p => {
+        const matchesCat = currentCategory === 'All' || p.category === currentCategory;
+        const matchesQ = p.name.toLowerCase().includes(q) || p.notes.toLowerCase().includes(q);
+        return matchesCat && matchesQ;
+      });
+
+      if (sort === 'price_asc') filtered.sort((a, b) => a.basePrice - b.basePrice);
+      if (sort === 'price_desc') filtered.sort((a, b) => b.basePrice - a.basePrice);
+
+      renderBeautyGrid(filtered);
+    }
+
+    // Modal
+    function openBeautyModal(id) {
+      selectedItem = beautyCatalog.find(p => p.id === id);
+      if (!selectedItem) return;
+
+      selectedSizeName = '50ml Extrait';
+      sizeDeltaPrice = 0;
+
+      document.getElementById('modal-name').innerText = selectedItem.name;
+      document.getElementById('modal-price').innerText = '₦' + selectedItem.basePrice.toLocaleString();
+      document.getElementById('modal-img').src = selectedItem.image;
+
+      document.getElementById('beauty-modal').classList.remove('hidden');
+      document.getElementById('beauty-modal').classList.add('flex');
+    }
+
+    function selectBottle(name, delta, btn) {
+      selectedSizeName = name;
+      sizeDeltaPrice = delta;
+
+      document.querySelectorAll('.bottle-btn').forEach(b => {
+        b.className = 'bottle-btn p-2.5 rounded-2xl border border-stone-200 text-xs font-bold text-center hover:border-[#2B2625]';
+      });
+      btn.className = 'bottle-btn p-2.5 rounded-2xl border-2 border-[#2B2625] bg-[#2B2625] text-white text-xs font-bold text-center shadow-xs';
+
+      const finalPrice = Math.max(1000, selectedItem.basePrice + delta);
+      document.getElementById('modal-price').innerText = '₦' + finalPrice.toLocaleString();
+    }
+
+    function confirmBeautyAddToCart() {
+      if (!selectedItem) return;
+
+      cart.push({
+        id: selectedItem.id,
+        name: selectedItem.name,
+        price: Math.max(1000, selectedItem.basePrice + sizeDeltaPrice),
+        image: selectedItem.image,
+        specs: selectedSizeName,
+        qty: 1
+      });
+
+      closeBeautyModal();
+      updateCartUI();
+      openCart();
+    }
+
+    function closeBeautyModal() {
+      document.getElementById('beauty-modal').classList.add('hidden');
+      document.getElementById('beauty-modal').classList.remove('flex');
+    }
+
+    // Cart
+    function updateCartUI() {
+      const count = cart.reduce((acc, curr) => acc + curr.qty, 0);
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value) || 2000;
+
+      document.getElementById('header-cart-count').innerText = count;
+      document.getElementById('sticky-count').innerText = count;
+      document.getElementById('sticky-subtotal').innerText = '₦' + subtotal.toLocaleString();
+
+      document.getElementById('drawer-subtotal').innerText = '₦' + subtotal.toLocaleString();
+      document.getElementById('drawer-delivery').innerText = '₦' + delivery.toLocaleString();
+      document.getElementById('drawer-grandtotal').innerText = '₦' + (subtotal + delivery).toLocaleString();
+
+      const container = document.getElementById('cart-items-container');
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center py-12 space-y-2">
+            <i data-lucide="sparkles" class="w-10 h-10 text-stone-300"></i>
+            <p class="font-serif font-bold text-base text-stone-700">Your beauty bag is empty</p>
+            <p class="text-[11px] text-stone-400">Discover our luxury scents & skincare above.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = cart.map((item, index) => `
+          <div class="flex gap-3 p-3 bg-white rounded-2xl border border-[#E6DFD5]">
+            <img src="${item.image}" class="w-14 h-16 object-cover bg-[#F7F3EE] rounded-xl border border-[#E6DFD5] p-1 shrink-0">
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-xs text-[#2B2625] truncate">${item.name}</h4>
+              <span class="inline-block bg-[#F7F3EE] text-stone-700 text-[9px] font-bold px-2 py-0.5 rounded-full mt-0.5">${item.specs}</span>
+              <p class="font-black text-xs text-brand mt-1">₦${item.price.toLocaleString()}</p>
+            </div>
+            <button onclick="removeItem(${index})" class="text-stone-300 hover:text-red-500 self-start p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function removeItem(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    }
+
+    function updateDelivery() { updateCartUI(); }
+
+    function openCart() {
+      document.getElementById('cart-drawer').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.add('flex');
+    }
+
+    function closeCart() {
+      document.getElementById('cart-drawer').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.remove('flex');
+    }
+
+    function shareStore() {
+      if (navigator.share) {
+        navigator.share({ title: 'AURA BEAUTY & PERFUMES', url: window.location.href });
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Store link copied to clipboard!');
+      }
+    }
+
+    function submitBeautyWhatsApp() {
+      if (cart.length === 0) {
+        alert('Your bag is empty!');
+        return;
+      }
+
+      const name = document.getElementById('cust-name').value || 'Customer';
+      const phone = document.getElementById('cust-phone').value || 'N/A';
+      const address = document.getElementById('cust-address').value || 'To be shared in chat';
+      const zoneText = document.getElementById('cust-zone').options[document.getElementById('cust-zone').selectedIndex].text;
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value);
+      const grandTotal = subtotal + delivery;
+
+      const refCode = 'AB-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+      const itemsList = cart.map(i => `• 1x ${i.name} (${i.specs}) — ₦${i.price.toLocaleString()}`).join('\n');
+
+      const message = `Hello Aura Beauty! I would like to place order #${refCode}:\n\n${itemsList}\n\n*Items Total:* ₦${subtotal.toLocaleString()}\n*Delivery:* ₦${delivery.toLocaleString()} (${zoneText.split('(')[0].trim()})\n*Total Payable:* ₦${grandTotal.toLocaleString()}\n\n*Customer Info:*\nName: ${name}\nPhone: ${phone}\nDelivery Address: ${address}`;
+
+      window.open(`https://wa.me/2348000000000?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    renderBeautyGrid(beautyCatalog);
+    updateCartUI();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

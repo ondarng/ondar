@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MAISON LAGOS — Luxury Fashion & Resortwear</title>
+
+  <!-- Google Fonts & Tailwind CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Italiana', 'serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: '#00A859',
+            gold: '#D4AF37',
+            cream: '#FAF7F2',
+            noir: '#0F0E0E',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Mobile-first smooth behavior */
+    body { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-bottom-sheet { animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="bg-[#FAF7F2] text-noir font-sans antialiased pb-32">
+
+  <!-- ── 1. MOBILE TOP ANNOUNCEMENT TICKER ── -->
+  <div class="bg-noir text-cream text-[10px] uppercase font-bold tracking-widest py-1.5 px-3 text-center sticky top-0 z-50 flex items-center justify-center gap-1.5 shadow-xs">
+    <span>L'ÉTÉ 2026 COLLECTION NOW LIVE</span>
+    <span>•</span>
+    <span class="text-brand font-black">EXPRESS DISPATCH</span>
+  </div>
+
+  <!-- ── 2. MOBILE LUXURY NAVBAR ── -->
+  <header class="bg-[#FAF7F2]/90 backdrop-blur-md border-b border-stone-200/60 sticky top-7 z-40 px-4 py-3 flex items-center justify-between">
+    <!-- Brand Title -->
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-noir text-cream flex items-center justify-center font-serif text-sm font-bold shadow-xs">
+        ML
+      </div>
+      <div>
+        <h1 class="font-serif text-lg tracking-widest font-bold leading-none text-noir">MAISON LAGOS</h1>
+        <span class="text-[9px] text-stone-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>
+          <span>Verified Fashion House</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2">
+      <button onclick="shareStore()" class="w-9 h-9 rounded-full bg-white border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-noir hover:text-white transition-colors shadow-2xs">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+      </button>
+      <button onclick="openCart()" class="w-9 h-9 rounded-full bg-noir text-cream flex items-center justify-center relative shadow-sm hover:opacity-90 active:scale-95 transition-all">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span id="header-cart-badge" class="absolute -top-1 -right-1 bg-brand text-white font-black text-[9px] rounded-full w-4 h-4 flex items-center justify-center border border-cream">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 3. MOBILE INSTA-STORY HIGHLIGHTS (COLLECTIONS) ── -->
+  <div class="pt-3 pb-2 px-4 overflow-x-auto hide-scrollbar">
+    <div class="flex items-center gap-3.5 w-max">
+      <!-- Story 1 -->
+      <div onclick="filterCategory('All')" class="flex flex-col items-center gap-1 cursor-pointer group">
+        <div class="w-15 h-15 rounded-full p-0.5 ring-2 ring-brand bg-white flex items-center justify-center overflow-hidden shadow-xs">
+          <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform" />
+        </div>
+        <span class="text-[10px] font-black text-noir tracking-tight">All Drops</span>
+      </div>
+
+      <!-- Story 2 -->
+      <div onclick="filterCategory('Dresses')" class="flex flex-col items-center gap-1 cursor-pointer group">
+        <div class="w-15 h-15 rounded-full p-0.5 ring-2 ring-stone-300 bg-white flex items-center justify-center overflow-hidden shadow-xs">
+          <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform" />
+        </div>
+        <span class="text-[10px] font-bold text-stone-600 tracking-tight">Silk Dresses</span>
+      </div>
+
+      <!-- Story 3 -->
+      <div onclick="filterCategory('Corsets')" class="flex flex-col items-center gap-1 cursor-pointer group">
+        <div class="w-15 h-15 rounded-full p-0.5 ring-2 ring-stone-300 bg-white flex items-center justify-center overflow-hidden shadow-xs">
+          <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform" />
+        </div>
+        <span class="text-[10px] font-bold text-stone-600 tracking-tight">Corsets</span>
+      </div>
+
+      <!-- Story 4 -->
+      <div onclick="filterCategory('Resort')" class="flex flex-col items-center gap-1 cursor-pointer group">
+        <div class="w-15 h-15 rounded-full p-0.5 ring-2 ring-stone-300 bg-white flex items-center justify-center overflow-hidden shadow-xs">
+          <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform" />
+        </div>
+        <span class="text-[10px] font-bold text-stone-600 tracking-tight">Resortwear</span>
+      </div>
+
+      <!-- Story 5 -->
+      <div onclick="filterCategory('Sets')" class="flex flex-col items-center gap-1 cursor-pointer group">
+        <div class="w-15 h-15 rounded-full p-0.5 ring-2 ring-amber-500 bg-white flex items-center justify-center overflow-hidden shadow-xs">
+          <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover rounded-full group-hover:scale-108 transition-transform" />
+        </div>
+        <span class="text-[10px] font-bold text-amber-700 tracking-tight">Matching Sets</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. EDITORIAL HERO BANNER ── -->
+  <div class="px-4 pt-1">
+    <div class="relative rounded-[26px] overflow-hidden aspect-[16/9] shadow-sm bg-stone-900 border border-stone-300/80">
+      <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover opacity-85" />
+      
+      <div class="absolute inset-0 bg-gradient-to-t from-noir/90 via-noir/30 to-transparent p-4 flex flex-col justify-end text-cream space-y-1">
+        <span class="text-[9px] font-black uppercase tracking-widest text-gold">Exclusive Runway Drop</span>
+        <h2 class="font-serif text-xl font-bold tracking-wider leading-tight">THE SCULPT COLLECTION</h2>
+        <p class="text-[11px] text-stone-300 font-medium">Bespoke silhouettes tailored for the contemporary muse.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. SEARCH & FILTER PILLS ── -->
+  <div class="px-4 pt-4 space-y-2.5">
+    <div class="relative">
+      <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+      <input 
+        type="search" 
+        id="search-input"
+        oninput="handleSearch()"
+        placeholder="Search dresses, corsets, sets..." 
+        class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-2xl text-xs font-semibold outline-none focus:border-noir shadow-2xs"
+      />
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="flex items-center justify-between gap-2 overflow-x-auto hide-scrollbar py-0.5">
+      <div class="flex gap-1.5 w-max" id="fashion-tabs">
+        <button onclick="setTab('All', this)" class="fashion-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-noir text-cream border border-noir shadow-2xs">All (8)</button>
+        <button onclick="setTab('Dresses', this)" class="fashion-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-stone-600 border border-stone-200">Dresses</button>
+        <button onclick="setTab('Corsets', this)" class="fashion-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-stone-600 border border-stone-200">Corsets</button>
+        <button onclick="setTab('Resort', this)" class="fashion-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-stone-600 border border-stone-200">Resortwear</button>
+        <button onclick="setTab('Sets', this)" class="fashion-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-stone-600 border border-stone-200">Sets</button>
+      </div>
+
+      <select id="fashion-sort" onchange="handleSort()" class="bg-white border border-stone-200 rounded-xl px-2.5 py-1.5 text-[11px] font-bold outline-none">
+        <option value="newest">Latest Drop</option>
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ── 6. EDITORIAL PORTRAIT PRODUCT GRID (4:5 Ratio) ── -->
+  <main class="px-4 pt-3">
+    <div class="grid grid-cols-2 gap-3" id="fashion-grid">
+      <!-- Injected via JS -->
+    </div>
+  </main>
+
+  <!-- ── 7. VERIFIED CUSTOMER REVIEWS (CAROUSEL) ── -->
+  <section class="mt-8 mx-4 p-5 bg-white rounded-3xl border border-stone-200/80 shadow-2xs space-y-3">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-serif text-sm font-bold tracking-wider text-noir">CLIENT TESTIMONIALS</h3>
+        <p class="text-[10px] text-stone-500 font-bold">100% Verified Buyer Reviews</p>
+      </div>
+      <div class="flex items-center gap-1 bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-md">
+        <span class="text-amber-500 text-xs">★</span>
+        <span class="text-[10px] font-black">5.0 / 5.0</span>
+      </div>
+    </div>
+
+    <div class="space-y-2 pt-1 text-xs">
+      <div class="bg-[#FAF7F2] p-3 rounded-2xl border border-stone-200/60 space-y-1">
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-bold text-noir">Amina B. (Ikoyi)</span>
+          <span class="text-brand font-bold">✓ Verified Order</span>
+        </div>
+        <p class="text-stone-700 italic font-medium">"The silk draping on the Emerald Slip Dress is divine. Arrived in a scented luxury box within 24 hours!"</p>
+      </div>
+      <div class="bg-[#FAF7F2] p-3 rounded-2xl border border-stone-200/60 space-y-1">
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-bold text-noir">Stephanie K. (Abuja)</span>
+          <span class="text-brand font-bold">✓ Verified Order</span>
+        </div>
+        <p class="text-stone-700 italic font-medium">"Perfect corset fit! Customer service on WhatsApp answered my sizing questions immediately."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 8. MOBILE LUXURY FOOTER ── -->
+  <footer class="mt-8 bg-noir text-cream p-6 mx-4 rounded-3xl space-y-4 text-xs">
+    <div class="space-y-1 text-center border-b border-stone-800 pb-4">
+      <h3 class="font-serif text-lg tracking-widest font-bold">MAISON LAGOS</h3>
+      <p class="text-[10px] text-stone-400">Contemporary African Luxury & Couture</p>
+    </div>
+
+    <div class="space-y-1.5 text-[11px] text-stone-300">
+      <p>📍 <strong>Atelier:</strong> Victoria Island, Lagos</p>
+      <p>🚚 <strong>Dispatch:</strong> Same-Day Island / 48hr Interstate</p>
+      <p>👗 <strong>Bespoke Sizing:</strong> Available via WhatsApp DM</p>
+    </div>
+
+    <div class="pt-2 text-center text-[10px] text-stone-500 border-t border-stone-800">
+      Powered by <a href="https://ondar.shop" class="text-brand font-black hover:underline">Ondar Commerce</a>
+    </div>
+  </footer>
+
+  <!-- ── 9. STICKY MOBILE BOTTOM BAR ── -->
+  <div class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-stone-200 p-3 z-40 flex items-center justify-between px-5 shadow-lg">
+    <div>
+      <span class="text-[10px] font-bold text-stone-400 block uppercase">Bag Subtotal</span>
+      <span class="text-sm font-black text-noir" id="sticky-subtotal">₦0</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Concierge WhatsApp Chat -->
+      <a 
+        href="https://wa.me/2348000000000?text=Hi%20Maison%20Lagos!%20I%20need%20styling%20advice" 
+        target="_blank"
+        class="p-2.5 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-xs"
+        title="WhatsApp Concierge"
+      >
+        <i data-lucide="message-circle" class="w-5 h-5"></i>
+      </a>
+
+      <!-- Open Bag Button -->
+      <button 
+        onclick="openCart()" 
+        class="bg-noir text-cream font-black text-xs px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md active:scale-95 transition-transform"
+      >
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span>View Bag (<span id="sticky-count">0</span>)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 10. SIZE PICKER BOTTOM SHEET MODAL ── -->
+  <div id="size-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-end">
+    <div class="w-full bg-white rounded-t-[32px] p-5 space-y-4 shadow-2xl animate-bottom-sheet max-h-[85vh] overflow-y-auto">
+      <div class="w-12 h-1.5 bg-stone-200 rounded-full mx-auto"></div>
+
+      <!-- Item Preview -->
+      <div class="flex gap-3 items-center border-b border-stone-100 pb-3">
+        <img id="modal-img" src="" class="w-14 h-16 object-cover rounded-xl bg-stone-100" />
+        <div>
+          <h4 id="modal-name" class="font-bold text-xs text-noir line-clamp-1">Product Name</h4>
+          <p id="modal-price" class="font-black text-sm text-brand mt-0.5">₦0</p>
+        </div>
+      </div>
+
+      <!-- Size Choices -->
+      <div class="space-y-2">
+        <label class="text-[11px] font-black uppercase tracking-wider text-stone-700 block">Select Size:</label>
+        <div class="grid grid-cols-4 gap-2" id="size-pills">
+          <button onclick="selectSize('UK 6 (XS)', this)" class="size-btn p-2.5 rounded-xl border border-stone-200 text-xs font-black text-center hover:border-noir">UK 6</button>
+          <button onclick="selectSize('UK 8 (S)', this)" class="size-btn p-2.5 rounded-xl border border-stone-200 text-xs font-black text-center hover:border-noir">UK 8</button>
+          <button onclick="selectSize('UK 10 (M)', this)" class="size-btn p-2.5 rounded-xl border border-stone-200 text-xs font-black text-center hover:border-noir">UK 10</button>
+          <button onclick="selectSize('UK 12 (L)', this)" class="size-btn p-2.5 rounded-xl border border-stone-200 text-xs font-black text-center hover:border-noir">UK 12</button>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="confirmAddToCart()" class="w-full py-3.5 bg-noir text-cream font-black rounded-2xl text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+        <span>Add to Bag</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+      <button onclick="closeSizeModal()" class="w-full py-2 text-stone-400 font-bold text-xs hover:text-noir">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ── 11. MOBILE CART SLIDE-OVER ── -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden justify-end">
+    <div class="w-full max-w-md bg-white h-full flex flex-col shadow-2xl animate-drawer">
+      
+      <!-- Drawer Header -->
+      <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-noir"></i>
+          <h3 class="font-serif font-bold text-base tracking-wider">YOUR SHOPPING BAG</h3>
+        </div>
+        <button onclick="closeCart()" class="p-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-black">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-3" id="cart-items-container">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Checkout Form -->
+      <div class="border-t border-stone-100 p-5 bg-[#FAF7F2] space-y-3 shrink-0 max-h-[60vh] overflow-y-auto">
+        <!-- Summary -->
+        <div class="space-y-1 bg-white p-3 rounded-2xl border border-stone-200 text-xs font-semibold">
+          <div class="flex justify-between text-stone-500">
+            <span>Items Subtotal</span>
+            <span class="text-noir font-bold" id="drawer-subtotal">₦0</span>
+          </div>
+          <div class="flex justify-between text-stone-500">
+            <span>Courier Dispatch</span>
+            <span class="text-brand font-bold" id="drawer-delivery">₦2,500</span>
+          </div>
+          <div class="border-t border-stone-100 pt-1 flex justify-between text-sm font-black text-noir">
+            <span>Total Payable</span>
+            <span id="drawer-grandtotal">₦0</span>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="space-y-2">
+          <input type="text" id="cust-name" placeholder="Full Name" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold outline-none" />
+          <input type="tel" id="cust-phone" placeholder="WhatsApp Phone Number" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold outline-none" />
+          
+          <select id="cust-zone" onchange="updateDelivery()" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-bold outline-none">
+            <option value="2500">📍 Lagos Island / VI / Lekki Express (+₦2,500)</option>
+            <option value="1800">📍 Lagos Mainland Delivery (+₦1,800)</option>
+            <option value="4500">✈️ Interstate Flight Courier (Abuja, PH) (+₦4,500)</option>
+          </select>
+
+          <textarea id="cust-address" rows="2" placeholder="Delivery Address & Size Notes" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold outline-none resize-none"></textarea>
+        </div>
+
+        <button onclick="submitFashionWhatsApp()" class="w-full bg-noir text-cream font-black py-3.5 rounded-2xl text-xs flex items-center justify-center gap-2 active:scale-98 shadow-md">
+          <i data-lucide="message-circle" class="w-4 h-4 text-brand"></i>
+          <span>Complete Order on WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 12. APP JAVASCRIPT LOGIC ── -->
+  <script>
+    const fashionProducts = [
+      {
+        id: 'f1',
+        name: 'THE EMERALD SILK MAXI SLIP DRESS',
+        category: 'Dresses',
+        price: 48500,
+        image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=600&q=80',
+        tag: 'BESTSELLER',
+        sizes: ['UK 6', 'UK 8', 'UK 10', 'UK 12']
+      },
+      {
+        id: 'f2',
+        name: 'SCULPTED JACQUARD BONED CORSET',
+        category: 'Corsets',
+        price: 32000,
+        image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=600&q=80',
+        tag: 'NEW DROP',
+        sizes: ['UK 8', 'UK 10', 'UK 12']
+      },
+      {
+        id: 'f3',
+        name: 'RIVIERA LINEN OVERSIZED 2-PIECE SET',
+        category: 'Sets',
+        price: 55000,
+        image: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=600&q=80',
+        tag: 'LIMITED',
+        sizes: ['S', 'M', 'L']
+      },
+      {
+        id: 'f4',
+        name: 'ZANZIBAR DRAPED CUT-OUT RESORT GOWN',
+        category: 'Resort',
+        price: 42000,
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80',
+        tag: 'HOT',
+        sizes: ['UK 8', 'UK 10', 'UK 12', 'UK 14']
+      },
+      {
+        id: 'f5',
+        name: 'AURORA SATIN BACKLESS MINI DRESS',
+        category: 'Dresses',
+        price: 36500,
+        image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=600&q=80',
+        tag: 'NEW DROP',
+        sizes: ['UK 6', 'UK 8', 'UK 10']
+      },
+      {
+        id: 'f6',
+        name: 'MONACO PLEATED WIDE-LEG PALAZZO TROUSERS',
+        category: 'Sets',
+        price: 29500,
+        image: 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?auto=format&fit=crop&w=600&q=80',
+        tag: 'RESTOCKED',
+        sizes: ['S', 'M', 'L', 'XL']
+      }
+    ];
+
+    let cart = [];
+    let selectedItemForModal = null;
+    let selectedSize = 'UK 8';
+    let currentCategory = 'All';
+
+    function renderFashionGrid(items) {
+      const grid = document.getElementById('fashion-grid');
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 py-10 text-center text-stone-400 font-bold text-xs">No garments match your filter.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => `
+        <div class="group flex flex-col bg-white rounded-3xl overflow-hidden border border-stone-200/90 shadow-2xs transition-all duration-300">
+          <!-- Portrait 4:5 Image -->
+          <div class="relative bg-stone-100 aspect-[3/4] overflow-hidden">
+            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            
+            <span class="absolute top-2 left-2 bg-noir text-cream text-[8px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">
+              ${p.tag}
+            </span>
+
+            <!-- Quick Add Circle -->
+            <button onclick="openSizePicker('${p.id}')" class="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white text-noir flex items-center justify-center shadow-md active:scale-90 border border-stone-200">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Product Details -->
+          <div class="p-3 flex flex-col flex-1 justify-between gap-2">
+            <div class="space-y-0.5">
+              <h3 class="text-[11px] font-black text-noir tracking-tight line-clamp-1 group-hover:text-brand transition-colors uppercase">
+                ${p.name}
+              </h3>
+              <p class="text-xs font-black text-brand tracking-tight">₦${p.price.toLocaleString()}</p>
+            </div>
+
+            <button onclick="openSizePicker('${p.id}')" class="w-full py-1.5 rounded-xl border border-noir bg-noir text-cream text-[10px] font-black uppercase tracking-wider hover:bg-stone-800 transition-colors">
+              Select Size
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function setTab(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.fashion-tab').forEach(b => {
+        b.className = 'fashion-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-stone-600 border border-stone-200';
+      });
+      btn.className = 'fashion-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-noir text-cream border border-noir shadow-2xs';
+
+      applyFilters();
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      applyFilters();
+    }
+
+    function handleSearch() { applyFilters(); }
+    function handleSort() { applyFilters(); }
+
+    function applyFilters() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const sort = document.getElementById('fashion-sort').value;
+
+      let filtered = fashionProducts.filter(p => {
+        const matchesCat = currentCategory === 'All' || p.category === currentCategory;
+        const matchesQ = p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+        return matchesCat && matchesQ;
+      });
+
+      if (sort === 'price_asc') filtered.sort((a, b) => a.price - b.price);
+      if (sort === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+
+      renderFashionGrid(filtered);
+    }
+
+    // Size Picker Modal
+    function openSizePicker(productId) {
+      selectedItemForModal = fashionProducts.find(p => p.id === productId);
+      if (!selectedItemForModal) return;
+
+      document.getElementById('modal-name').innerText = selectedItemForModal.name;
+      document.getElementById('modal-price').innerText = '₦' + selectedItemForModal.price.toLocaleString();
+      document.getElementById('modal-img').src = selectedItemForModal.image;
+
+      document.getElementById('size-modal').classList.remove('hidden');
+      document.getElementById('size-modal').classList.add('flex');
+    }
+
+    function selectSize(size, btn) {
+      selectedSize = size;
+      document.querySelectorAll('.size-btn').forEach(b => {
+        b.className = 'size-btn p-2.5 rounded-xl border border-stone-200 text-xs font-black text-center hover:border-noir';
+      });
+      btn.className = 'size-btn p-2.5 rounded-xl border-2 border-noir bg-noir text-cream text-xs font-black text-center shadow-xs';
+    }
+
+    function confirmAddToCart() {
+      if (!selectedItemForModal) return;
+
+      cart.push({
+        id: selectedItemForModal.id,
+        name: selectedItemForModal.name,
+        price: selectedItemForModal.price,
+        image: selectedItemForModal.image,
+        size: selectedSize,
+        qty: 1
+      });
+
+      closeSizeModal();
+      updateCartUI();
+      openCart();
+    }
+
+    function closeSizeModal() {
+      document.getElementById('size-modal').classList.add('hidden');
+      document.getElementById('size-modal').classList.remove('flex');
+    }
+
+    // Cart Management
+    function updateCartUI() {
+      const count = cart.reduce((acc, curr) => acc + curr.qty, 0);
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value) || 2500;
+
+      document.getElementById('header-cart-badge').innerText = count;
+      document.getElementById('sticky-count').innerText = count;
+      document.getElementById('sticky-subtotal').innerText = '₦' + subtotal.toLocaleString();
+
+      document.getElementById('drawer-subtotal').innerText = '₦' + subtotal.toLocaleString();
+      document.getElementById('drawer-delivery').innerText = '₦' + delivery.toLocaleString();
+      document.getElementById('drawer-grandtotal').innerText = '₦' + (subtotal + delivery).toLocaleString();
+
+      const container = document.getElementById('cart-items-container');
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center py-12 space-y-2">
+            <i data-lucide="shopping-bag" class="w-10 h-10 text-stone-300"></i>
+            <p class="font-serif font-bold text-sm">Your shopping bag is empty</p>
+            <p class="text-[11px] text-stone-400">Discover our runway drops above.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = cart.map((item, index) => `
+          <div class="flex gap-3 p-3 bg-white rounded-2xl border border-stone-200/80">
+            <img src="${item.image}" class="w-14 h-16 object-cover rounded-xl bg-stone-100 shrink-0">
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-xs text-noir truncate">${item.name}</h4>
+              <span class="inline-block bg-stone-100 text-stone-700 text-[9px] font-black px-2 py-0.5 rounded-md mt-0.5">Size: ${item.size}</span>
+              <p class="font-black text-xs text-brand mt-1">₦${item.price.toLocaleString()}</p>
+            </div>
+            <button onclick="removeItem(${index})" class="text-stone-300 hover:text-red-500 self-start p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function removeItem(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    }
+
+    function updateDelivery() { updateCartUI(); }
+
+    function openCart() {
+      document.getElementById('cart-drawer').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.add('flex');
+    }
+
+    function closeCart() {
+      document.getElementById('cart-drawer').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.remove('flex');
+    }
+
+    function shareStore() {
+      if (navigator.share) {
+        navigator.share({ title: 'MAISON LAGOS Atelier', url: window.location.href });
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Store link copied to clipboard!');
+      }
+    }
+
+    // Submit WhatsApp Checkout
+    function submitFashionWhatsApp() {
+      if (cart.length === 0) {
+        alert('Please add items to your shopping bag!');
+        return;
+      }
+
+      const name = document.getElementById('cust-name').value || 'Customer';
+      const phone = document.getElementById('cust-phone').value || 'N/A';
+      const address = document.getElementById('cust-address').value || 'To be shared in chat';
+      const zoneText = document.getElementById('cust-zone').options[document.getElementById('cust-zone').selectedIndex].text;
+      const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.qty, 0);
+      const delivery = parseInt(document.getElementById('cust-zone').value);
+      const grandTotal = subtotal + delivery;
+
+      const refCode = 'ML-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+      const itemsList = cart.map(i => `• 1x ${i.name} (Size: ${i.size}) — ₦${i.price.toLocaleString()}`).join('\n');
+
+      const message = `Hello Maison Lagos! I would like to order #${refCode}:\n\n${itemsList}\n\n*Items Subtotal:* ₦${subtotal.toLocaleString()}\n*Courier:* ₦${delivery.toLocaleString()} (${zoneText.split('(')[0].trim()})\n*Total Payable:* ₦${grandTotal.toLocaleString()}\n\n*Client Details:*\nName: ${name}\nPhone: ${phone}\nDelivery Address: ${address}`;
+
+      window.open(`https://wa.me/2348000000000?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    // Init
+    renderFashionGrid(fashionProducts);
+    updateCartUI();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

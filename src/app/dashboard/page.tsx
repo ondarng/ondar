@@ -217,6 +217,55 @@ export default function MobileResponsiveDashboard() {
 
         setViewsTodayCount(todayViews || 0)
 
+        // Request browser notification permission
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {})
+        }
+
+        // Realtime Order Subscription
+        const channel = supabase
+          .channel(`dashboard-orders-${storeData.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'orders',
+              filter: `store_id=eq.${storeData.id}`,
+            },
+            (payload) => {
+              const newOrder = payload.new
+              setOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
+
+              // Synthesize subtle order chime
+              try {
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+                const osc = audioCtx.createOscillator()
+                const gain = audioCtx.createGain()
+                osc.type = 'sine'
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime)
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1)
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime)
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35)
+                osc.connect(gain)
+                gain.connect(audioCtx.destination)
+                osc.start()
+                osc.stop(audioCtx.currentTime + 0.35)
+              } catch {}
+
+              // Trigger Desktop Notification
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                new Notification(`⚡ New Order Received!`, {
+                  body: `Order #${newOrder.id.slice(0, 8).toUpperCase()} for ₦${Number(newOrder.total_price).toLocaleString()}`,
+                })
+              }
+            }
+          )
+          .subscribe()
+
+        return () => {
+          supabase.removeChannel(channel)
+        }
       } catch (err) {
         console.error('Error loading dashboard:', err)
       } finally {
@@ -1017,6 +1066,43 @@ export default function MobileResponsiveDashboard() {
                               )}
                             </div>
                           )}
+
+                          {/* ── RELEASE LIVE TRACKING LINK BUTTONS ── */}
+                          <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-black/10 mt-2">
+                            {(() => {
+                              const cleanCustomerPhone = (ord.customer_phone || '').replace(/[^0-9]/g, '').replace(/^0/, '234')
+                              const trackingUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}/track/${ord.id}` : `/track/${ord.id}`
+                              const orderRef = 'ORD-' + ord.id.slice(0, 8).toUpperCase()
+                              const waMessage = `Hello ${ord.customer_name || 'there'}! Your order #${orderRef} with ${store?.store_name || 'our store'} is confirmed. You can track your order status live here:\n${trackingUrl}`
+
+                              return (
+                                <>
+                                  {cleanCustomerPhone && cleanCustomerPhone.length > 5 ? (
+                                    <a
+                                      href={`https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(waMessage)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="px-3 py-1.5 bg-[#25D366] text-white font-extrabold text-[11px] rounded-xl flex items-center gap-1.5 hover:opacity-90 transition-all shadow-2xs"
+                                    >
+                                      <MessageSquare className="w-3.5 h-3.5" />
+                                      <span>Send Tracking on WhatsApp</span>
+                                    </a>
+                                  ) : null}
+
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(trackingUrl)
+                                      alert('Tracking URL copied: ' + trackingUrl)
+                                    }}
+                                    className="px-3 py-1.5 bg-white text-black border border-black rounded-xl font-bold text-[11px] hover:bg-neutral-100 flex items-center gap-1.5 shadow-2xs"
+                                  >
+                                    <Copy className="w-3.5 h-3.5 text-[#00A859]" />
+                                    <span>Copy Tracking Link</span>
+                                  </button>
+                                </>
+                              )
+                            })()}
+                          </div>
                         </div>
                       </div>
                     </div>

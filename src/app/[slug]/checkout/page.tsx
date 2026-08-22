@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+import { compressImage } from '@/lib/image-compression'
+
 interface CartItem {
   id: string
   name: string
@@ -49,7 +51,9 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
   // Payment Proof Preference
   const [proofPreference, setProofPreference] = useState<'whatsapp' | 'upload'>('whatsapp')
   const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
+  const [receiptSizeKb, setReceiptSizeKb] = useState<number | null>(null)
   const [uploadingReceipt, setUploadingReceipt] = useState(false)
+  const [copiedBank, setCopiedBank] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -128,17 +132,32 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
     ? legacyOrder.quantity
     : cart.reduce((acc, item) => acc + item.quantity, 0)
 
-  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingReceipt(true)
 
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setReceiptDataUrl(event.target?.result as string)
+    try {
+      // Auto-compress receipt in <50ms down to ~100-150KB
+      const compressed = await compressImage(file, 1000, 1000, 0.72)
+      setReceiptDataUrl(compressed.dataUrl)
+      setReceiptSizeKb(compressed.sizeKb)
+    } catch (err) {
+      console.warn('Fallback to standard filereader:', err)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setReceiptDataUrl(event.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    } finally {
       setUploadingReceipt(false)
     }
-    reader.readAsDataURL(file)
+  }
+
+  const copyBankNumber = (num: string) => {
+    navigator.clipboard.writeText(num)
+    setCopiedBank(true)
+    setTimeout(() => setCopiedBank(false), 2000)
   }
 
   const handleCompleteWhatsAppOrder = async (e: React.FormEvent) => {
@@ -360,6 +379,42 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
                 />
               </div>
 
+              {/* ── BANK TRANSFER DETAILS SECTION ── */}
+              {store?.bank_account_number && (
+                <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200/80 space-y-2 text-xs">
+                  <div className="flex items-center justify-between font-black text-amber-900 text-[11px] uppercase tracking-wider">
+                    <span>Vendor Bank Transfer Details</span>
+                    <span className="text-[10px] text-amber-700 bg-white px-2 py-0.5 rounded-full border border-amber-200">
+                      Direct NIP Transfer
+                    </span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-amber-200/60 space-y-1.5">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-500 font-bold">Bank:</span>
+                      <span className="font-extrabold text-slate-900">{store.bank_name || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-500 font-bold">Account Number:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-slate-950 text-xs">{store.bank_account_number}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyBankNumber(store.bank_account_number)}
+                          className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold border border-slate-200 transition-colors"
+                        >
+                          {copiedBank ? 'Copied ✓' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-500 font-bold">Account Name:</span>
+                      <span className="font-extrabold text-slate-900">{store.bank_account_name || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ── PROOF OF PAYMENT PREFERENCE TOGGLE ── */}
               <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2 text-xs">
                 <label className="font-extrabold text-slate-800 block text-[11px]">
@@ -396,11 +451,19 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
                       <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200">
                         <div className="flex items-center gap-2">
                           <img src={receiptDataUrl} alt="Receipt" className="w-8 h-8 object-cover rounded-lg border border-slate-200" />
-                          <span className="text-[10px] font-bold text-emerald-700">Receipt Attached ✓</span>
+                          <div>
+                            <span className="text-[10px] font-bold text-emerald-700 block">Receipt Attached ✓</span>
+                            {receiptSizeKb && (
+                              <span className="text-[9px] text-slate-400 font-mono">Optimized ({receiptSizeKb} KB)</span>
+                            )}
+                          </div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => setReceiptDataUrl(null)}
+                          onClick={() => {
+                            setReceiptDataUrl(null)
+                            setReceiptSizeKb(null)
+                          }}
                           className="text-red-500 text-[10px] font-bold hover:underline"
                         >
                           Remove
@@ -410,7 +473,7 @@ export default function WhatsAppCheckoutPage({ params }: { params: Promise<{ slu
                       <label className="flex items-center justify-center gap-2 p-2.5 bg-white border border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                         <Upload className="w-3.5 h-3.5 text-slate-500" />
                         <span className="text-[11px] font-bold text-slate-700">
-                          {uploadingReceipt ? 'Reading receipt...' : 'Choose Receipt / Screenshot'}
+                          {uploadingReceipt ? 'Auto-compressing receipt...' : 'Choose Receipt / Screenshot'}
                         </span>
                         <input type="file" accept="image/*" onChange={handleReceiptFileChange} className="hidden" />
                       </label>

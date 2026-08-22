@@ -17,6 +17,8 @@ import {
   Image as ImageIcon,
 } from 'lucide-react'
 
+import { compressImage } from '@/lib/image-compression'
+
 interface CartItem {
   id: string
   name: string
@@ -39,7 +41,9 @@ export function CartDrawer({ store }: { store: any }) {
   // Payment Proof Preference
   const [proofPreference, setProofPreference] = useState<'whatsapp' | 'upload'>('whatsapp')
   const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
+  const [receiptSizeKb, setReceiptSizeKb] = useState<number | null>(null)
   const [uploadingReceipt, setUploadingReceipt] = useState(false)
+  const [copiedBank, setCopiedBank] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -124,18 +128,32 @@ export function CartDrawer({ store }: { store: any }) {
   const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.quantity, 0)
   const totalItems = cart.reduce((acc, curr) => acc + curr.quantity, 0)
 
-  // Handle Receipt Upload
-  const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Receipt Upload with Auto-Compression
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingReceipt(true)
 
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setReceiptDataUrl(event.target?.result as string)
+    try {
+      const compressed = await compressImage(file, 1000, 1000, 0.72)
+      setReceiptDataUrl(compressed.dataUrl)
+      setReceiptSizeKb(compressed.sizeKb)
+    } catch (err) {
+      console.warn('Fallback to standard FileReader:', err)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setReceiptDataUrl(event.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    } finally {
       setUploadingReceipt(false)
     }
-    reader.readAsDataURL(file)
+  }
+
+  const copyBankNumber = (num: string) => {
+    navigator.clipboard.writeText(num)
+    setCopiedBank(true)
+    setTimeout(() => setCopiedBank(false), 2000)
   }
 
   // WhatsApp DM Checkout Flow

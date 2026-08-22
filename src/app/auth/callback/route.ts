@@ -9,10 +9,11 @@ export async function GET(request: Request) {
   const rawNext = searchParams.get('next') ?? '/dashboard'
   const next = (rawNext.startsWith('/') && !rawNext.startsWith('//')) ? rawNext : '/dashboard'
 
-  // Netlify / Cloud CDN forwards the true client host in x-forwarded-host
+  // Determine true origin accurately for both local dev and production
+  const requestUrl = new URL(request.url)
   const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host')
-  const protocol = request.headers.get('x-forwarded-proto') || 'https'
-  const trueOrigin = forwardedHost ? `${protocol}://${forwardedHost}` : new URL(request.url).origin
+  const protocol = request.headers.get('x-forwarded-proto') || requestUrl.protocol.replace(':', '')
+  const trueOrigin = forwardedHost ? `${protocol}://${forwardedHost}` : requestUrl.origin
 
   if (code) {
     const cookieStore = await cookies()

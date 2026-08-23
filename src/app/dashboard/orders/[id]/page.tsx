@@ -320,6 +320,135 @@ export default function OrderDetailPage() {
           </button>
         </div>
 
+        {/* ── DISPATCH & DELIVERY DETAILS ── */}
+        <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-3">
+          <h4 className="text-xs uppercase tracking-widest text-slate-400 font-bold">Delivery & Courier Info</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Rider / Courier Name</label>
+              <input
+                type="text"
+                placeholder="e.g. GIG / Ibrahim Rider"
+                value={order.rider_name || ''}
+                onChange={(e) => setOrder({ ...order, rider_name: e.target.value })}
+                className="w-full text-xs p-2.5 rounded-xl border border-border bg-slate-50 font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Rider Phone</label>
+              <input
+                type="tel"
+                placeholder="e.g. 08012345678"
+                value={order.rider_phone || ''}
+                onChange={(e) => setOrder({ ...order, rider_phone: e.target.value })}
+                className="w-full text-xs p-2.5 rounded-xl border border-border bg-slate-50 font-bold"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── 1-CLICK WHATSAPP MESSAGE TEMPLATES ── */}
+        <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs uppercase tracking-widest text-slate-900 font-black flex items-center gap-1.5">
+              <MessageSquare className="w-4 h-4 text-[#25D366]" />
+              <span>1-Click WhatsApp Templates</span>
+            </h4>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              5 Quick Templates
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Send instant structured updates to customer on WhatsApp or copy the message.
+          </p>
+
+          <div className="space-y-2.5">
+            {(() => {
+              const cleanPhone = (order.customer_phone || '').replace(/[^0-9]/g, '').replace(/^0/, '234')
+              const customerName = order.customer_name || 'there'
+              const orderRef = 'ORD-' + order.id.slice(0, 8).toUpperCase()
+              const shopName = storeInfo?.store_name || 'our store'
+              const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/track/${order.id}` : `https://ondar.ng/track/${order.id}`
+              const riderName = order.rider_name || 'our dispatch rider'
+              const riderPhone = order.rider_phone || ''
+
+              const templates = [
+                {
+                  id: 'received',
+                  title: '1. Order Received',
+                  badge: 'PENDING',
+                  text: `Hello ${customerName}, thank you for order #${orderRef} with ${shopName}. We have received it and will confirm your payment shortly.`,
+                },
+                {
+                  id: 'paid',
+                  title: '2. Payment Confirmed',
+                  badge: 'PAID',
+                  text: `Hello ${customerName}, payment for order #${orderRef} has been confirmed! We will start preparing your order.`,
+                },
+                {
+                  id: 'preparing',
+                  title: '3. Preparing Order',
+                  badge: 'PACKING',
+                  text: `Hello ${customerName}, we are currently preparing order #${orderRef}. Will notify you once dispatched.`,
+                },
+                {
+                  id: 'dispatched',
+                  title: '4. Dispatched',
+                  badge: 'DISPATCHED',
+                  text: `Hello ${customerName}, order #${orderRef} has been dispatched with ${riderName}${riderPhone ? ` (Phone: ${riderPhone})` : ''}. Tracking: ${trackingUrl}`,
+                },
+                {
+                  id: 'delivered',
+                  title: '5. Delivered',
+                  badge: 'DELIVERED',
+                  text: `Hello ${customerName}, your order #${orderRef} has been delivered. Thank you for shopping with ${shopName}!`,
+                },
+              ]
+
+              return templates.map((tmpl) => (
+                <div key={tmpl.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">{tmpl.title}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {tmpl.badge}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-200/60 font-medium italic">
+                    &ldquo;{tmpl.text}&rdquo;
+                  </p>
+
+                  <div className="flex items-center gap-2 pt-0.5">
+                    {cleanPhone ? (
+                      <a
+                        href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(tmpl.text)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-lg flex items-center justify-center gap-1 hover:opacity-90 shadow-2xs"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>Open WhatsApp</span>
+                      </a>
+                    ) : null}
+
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(tmpl.text)
+                        alert('Message copied to clipboard!')
+                      }}
+                      className="px-3 py-1.5 bg-white text-slate-700 border border-slate-300 text-[10px] font-bold rounded-lg hover:bg-slate-100 flex items-center gap-1"
+                    >
+                      <Copy className="w-3 h-3 text-[#00A859]" />
+                      <span>Copy Text</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            })()}
+          </div>
+        </div>
+
         {/* Status Actions Form */}
         <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
           <h4 className="text-xs uppercase tracking-widest text-slate-400 font-bold">Process Order</h4>

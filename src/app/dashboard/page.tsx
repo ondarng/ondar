@@ -1067,27 +1067,37 @@ export default function MobileResponsiveDashboard() {
                             </div>
                           )}
 
-                          {/* ── RELEASE LIVE TRACKING LINK BUTTONS ── */}
-                          <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-black/10 mt-2">
+                          {/* ── RELEASE LIVE TRACKING & 1-CLICK WHATSAPP TEMPLATES ── */}
+                          <div className="pt-2.5 flex flex-wrap items-center gap-2 border-t border-black/10 mt-2">
                             {(() => {
                               const cleanCustomerPhone = (ord.customer_phone || '').replace(/[^0-9]/g, '').replace(/^0/, '234')
                               const trackingUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}/track/${ord.id}` : `/track/${ord.id}`
                               const orderRef = 'ORD-' + ord.id.slice(0, 8).toUpperCase()
-                              const waMessage = `Hello ${ord.customer_name || 'there'}! Your order #${orderRef} with ${store?.store_name || 'our store'} is confirmed. You can track your order status live here:\n${trackingUrl}`
+                              const customerName = ord.customer_name || 'there'
+                              const shopName = store?.store_name || 'our store'
+
+                              const defaultMsg = `Hello ${customerName}! Your order #${orderRef} with ${shopName} is confirmed. You can track your order status live here:\n${trackingUrl}`
 
                               return (
                                 <>
                                   {cleanCustomerPhone && cleanCustomerPhone.length > 5 ? (
                                     <a
-                                      href={`https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(waMessage)}`}
+                                      href={`https://wa.me/${cleanCustomerPhone}?text=${encodeURIComponent(defaultMsg)}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="px-3 py-1.5 bg-[#25D366] text-white font-extrabold text-[11px] rounded-xl flex items-center gap-1.5 hover:opacity-90 transition-all shadow-2xs"
+                                      className="px-3 py-1.5 bg-[#25D366] text-white font-black text-[11px] rounded-xl flex items-center gap-1.5 hover:opacity-90 transition-all shadow-2xs"
                                     >
                                       <MessageSquare className="w-3.5 h-3.5" />
                                       <span>Send Tracking on WhatsApp</span>
                                     </a>
                                   ) : null}
+
+                                  <Link
+                                    href={`/dashboard/orders/${ord.id}`}
+                                    className="px-3 py-1.5 bg-black text-white border border-black rounded-xl font-bold text-[11px] hover:bg-neutral-800 flex items-center gap-1.5 shadow-2xs"
+                                  >
+                                    <span>5 WhatsApp Templates →</span>
+                                  </Link>
 
                                   <button
                                     onClick={() => {
@@ -1097,7 +1107,7 @@ export default function MobileResponsiveDashboard() {
                                     className="px-3 py-1.5 bg-white text-black border border-black rounded-xl font-bold text-[11px] hover:bg-neutral-100 flex items-center gap-1.5 shadow-2xs"
                                   >
                                     <Copy className="w-3.5 h-3.5 text-[#00A859]" />
-                                    <span>Copy Tracking Link</span>
+                                    <span>Copy Link</span>
                                   </button>
                                 </>
                               )

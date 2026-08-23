@@ -182,7 +182,7 @@ export default function OrderTrackingDetailPage({ params }: { params: Promise<{ 
                 ? 'Out for Delivery 🛵'
                 : isPaid
                 ? 'Processing / Packing'
-                : 'Awaiting Bank Payment'}
+                : 'Payment Verifying ⏳'}
             </span>
           </div>
 
@@ -219,10 +219,10 @@ export default function OrderTrackingDetailPage({ params }: { params: Promise<{ 
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className={`text-xs font-bold ${isPaid ? 'text-slate-900' : 'text-slate-500'}`}>
-                  Payment Confirmed
+                  Payment Verification
                 </h4>
                 <p className="text-[11px] text-slate-500">
-                  {isPaid ? 'Bank transfer confirmed by vendor ✓' : 'Awaiting payment verification by seller.'}
+                  {isPaid ? 'Bank transfer confirmed by vendor ✓' : 'Seller is verifying payment receipt & bank alert.'}
                 </p>
               </div>
             </div>
@@ -284,16 +284,16 @@ export default function OrderTrackingDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        {/* Bank Transfer Instructions (If still unpaid) */}
+        {/* Payment Verification Reminder (If still pending vendor confirmation) */}
         {!isPaid && store?.bank_account_number && (
           <section className="bg-amber-50 rounded-3xl border border-amber-200 p-5 shadow-2xs space-y-3">
             <div className="flex items-center gap-2 text-amber-900 font-black text-xs uppercase tracking-wider">
               <Building2 className="w-4 h-4 text-amber-700" />
-              <span>Vendor Bank Transfer Details</span>
+              <span>Payment Verification in Progress</span>
             </div>
 
             <p className="text-xs text-amber-800 leading-relaxed font-medium">
-              Please transfer <strong>₦{Number(order.total_price).toLocaleString()}</strong> to the vendor's official account below:
+              Please ensure you have completed your bank transfer of <strong>₦{Number(order.total_price).toLocaleString()}</strong> to the vendor account below so the seller can verify and dispatch your order. If you already transferred, the seller will update this status shortly!
             </p>
 
             <div className="bg-white rounded-2xl p-4 border border-amber-200/80 space-y-2">

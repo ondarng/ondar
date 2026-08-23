@@ -39,13 +39,11 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { BannerCropperModal } from '@/components/banner-cropper-modal'
-import { LiveStorefrontPreview } from '@/components/dashboard/live-storefront-preview'
 
 export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
   const [darkMode, setDarkMode] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [designSubTab, setDesignSubTab] = useState<'info' | 'templates' | 'customize'>('templates')
 
   const [store, setStore] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
@@ -1548,7 +1546,7 @@ export default function MobileResponsiveDashboard() {
                 </div>
               )}
 
-              {/* Templates Teaser (Coming Soon) */}
+              {/* Templates & Customizer Teaser (Coming Soon) */}
               <div className={`${cardClass} p-4 rounded-2xl flex items-center justify-between gap-4 border border-black/10`}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[#00A859]">
@@ -1556,12 +1554,14 @@ export default function MobileResponsiveDashboard() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-black text-xs">Storefront Themes & Templates</h4>
+                      <h4 className="font-black text-xs">Storefront Templates & Visual Studio</h4>
                       <span className="text-[9px] font-black uppercase tracking-wider bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-2 py-0.5 rounded">
                         Coming Soon
                       </span>
                     </div>
-                    <p className="text-[11px] opacity-60">Multi-theme switcher (Boutique, Streetwear, Luxe) will be released in an upcoming update.</p>
+                    <p className="text-[11px] opacity-60">
+                      Multi-theme templates and the full-screen visual studio will launch together in a dedicated upcoming update.
+                    </p>
                   </div>
                 </div>
               </div>

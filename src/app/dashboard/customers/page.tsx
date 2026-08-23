@@ -54,13 +54,73 @@ export default function CustomersPage() {
 
       setStoreId(store.id)
 
+      // 1. Fetch CRM customers
       const { data: customersData } = await supabase
         .from('customers')
         .select('*')
         .eq('store_id', store.id)
-        .order('last_order_at', { ascending: false })
 
-      setCustomers(customersData || [])
+      // 2. Fetch all Orders to aggregate true lifetime spend and order history
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('store_id', store.id)
+        .order('created_at', { ascending: false })
+
+      // 3. Deduplicate and merge by normalized phone number
+      const customerMap = new Map<string, any>()
+
+      // First seed with CRM records
+      ;(customersData || []).forEach((c) => {
+        const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '234') || c.id
+        customerMap.set(cleanPhone, {
+          id: c.id,
+          name: c.name,
+          phone: c.phone,
+          cleanPhone,
+          instagram_handle: c.instagram_handle || c.instagram || '',
+          address: c.address || '',
+          total_orders: Number(c.total_orders) || 0,
+          total_spent: Number(c.total_spent) || 0,
+          last_order_at: c.last_order_at || c.created_at,
+          notes: Array.isArray(c.notes) ? c.notes : [],
+        })
+      })
+
+      // Merge order records
+      ;(ordersData || []).forEach((ord) => {
+        const rawPhone = ord.customer_phone || ''
+        const cleanPhone = rawPhone.replace(/[^0-9]/g, '').replace(/^0/, '234')
+        if (!cleanPhone || cleanPhone === 'WhatsAppOrder') return
+
+        if (!customerMap.has(cleanPhone)) {
+          customerMap.set(cleanPhone, {
+            id: ord.id,
+            name: ord.customer_name || 'WhatsApp Customer',
+            phone: ord.customer_phone || 'No Phone',
+            cleanPhone,
+            instagram_handle: ord.customer_instagram || '',
+            address: ord.delivery_address || '',
+            total_orders: 1,
+            total_spent: Number(ord.total_price) || 0,
+            last_order_at: ord.created_at,
+            notes: ord.customer_note ? [ord.customer_note] : [],
+          })
+        } else {
+          const existing = customerMap.get(cleanPhone)
+          existing.total_orders = Math.max(existing.total_orders, existing.total_orders + 1)
+          existing.total_spent += Number(ord.total_price) || 0
+          if (ord.delivery_address && !existing.address) existing.address = ord.delivery_address
+          if (ord.customer_instagram && !existing.instagram_handle) existing.instagram_handle = ord.customer_instagram
+          if (ord.customer_note && !existing.notes.includes(ord.customer_note)) existing.notes.push(ord.customer_note)
+        }
+      })
+
+      const list = Array.from(customerMap.values()).sort(
+        (a, b) => new Date(b.last_order_at || 0).getTime() - new Date(a.last_order_at || 0).getTime()
+      )
+
+      setCustomers(list)
       setLoading(false)
     }
     fetchCustomers()
@@ -70,16 +130,19 @@ export default function CustomersPage() {
     if (!newName.trim() || !newPhone.trim() || !storeId) return
     setSaving(true)
 
+    const cleanPhone = newPhone.replace(/[^0-9]/g, '').replace(/^0/, '234')
     const { data, error } = await supabase.from('customers').upsert({
       store_id: storeId,
       name: newName.trim(),
       phone: newPhone.trim(),
-      instagram_handle: newIg.trim() || null,
-      last_order_at: new Date().toISOString()
-    }, { onConflict: 'store_id,phone' }).select().single()
+      instagram: newIg.trim() || null,
+      last_order_at: new Date().toISOString(),
+      total_orders: 0,
+      total_spent: 0,
+    }).select().single()
 
     if (!error && data) {
-      setCustomers(prev => [data, ...prev.filter(c => c.id !== data.id)])
+      setCustomers(prev => [data, ...prev.filter(c => c.phone !== data.phone)])
       setNewName('')
       setNewPhone('')
       setNewIg('')

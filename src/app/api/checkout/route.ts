@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { upsertCustomerRecord } from '@/lib/customer-crm'
 
 // Server-side Supabase client with service role for validated operations
 function getServiceClient() {
@@ -209,13 +210,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 8. Add customer to CRM (best effort, ignore duplicate errors)
-    await supabase.from('customers').insert({
-      store_id: body.store_id,
+    // 8. Auto-Deduplicate and attach customer to CRM
+    const orderTotalSum = validatedItems.reduce((sum, item) => sum + item.total_price, 0)
+    await upsertCustomerRecord({
+      storeId: body.store_id,
       name: customerName,
       phone: customerPhone,
       instagram: body.customer_instagram || null,
-      address: deliveryAddress
+      address: deliveryAddress,
+      orderTotal: orderTotalSum,
+      note: body.customer_note || null,
     })
 
     // 9. Return verified order data

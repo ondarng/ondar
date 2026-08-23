@@ -7,18 +7,23 @@ import { ArrowLeft, Loader2, Clock, CheckCircle2, Truck, XCircle, Download, Copy
 import html2canvas from 'html2canvas'
 import Link from 'next/link'
 
+import { logOrderActivity, getOrderActivities, type OrderActivity } from '@/lib/order-activity'
+
 export default function OrderDetailPage() {
   const { id } = useParams()
   const orderId = Array.isArray(id) ? id[0] : id
 
   const [order, setOrder] = useState<any>(null)
   const [storeInfo, setStoreInfo] = useState<any>(null)
+  const [activities, setActivities] = useState<OrderActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [receiptDownloading, setReceiptDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [vendorNotes, setVendorNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [customEventText, setCustomEventText] = useState('')
+  const [savingEvent, setSavingEvent] = useState(false)
   
   const receiptRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -55,6 +60,10 @@ export default function OrderDetailPage() {
         setOrder(orderData)
         setStoreInfo(orderData.stores)
         setVendorNotes(orderData.vendor_notes || '')
+
+        // Fetch activity timeline
+        const acts = await getOrderActivities(orderData)
+        setActivities(acts)
       } catch (err) {
         console.error(err)
       } finally {
@@ -85,6 +94,16 @@ export default function OrderDetailPage() {
         .eq('id', order.id)
       
       if (error) throw error
+
+      await logOrderActivity({
+        order_id: order.id,
+        activity_type: 'NOTE_ADDED',
+        title: 'Private Note Updated',
+        description: vendorNotes.slice(0, 100) + (vendorNotes.length > 100 ? '...' : ''),
+      })
+
+      const acts = await getOrderActivities(order)
+      setActivities(acts)
       alert('Notes saved successfully!')
     } catch (err: any) {
       alert("Error saving notes: " + err.message)
@@ -93,15 +112,66 @@ export default function OrderDetailPage() {
     }
   }
 
+  const handleAddCustomEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!customEventText.trim()) return
+    setSavingEvent(true)
+
+    try {
+      await logOrderActivity({
+        order_id: order.id,
+        activity_type: 'CUSTOM',
+        title: customEventText.trim(),
+        description: `Logged by merchant at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      })
+
+      setCustomEventText('')
+      const acts = await getOrderActivities(order)
+      setActivities(acts)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingEvent(false)
+    }
+  }
+
   const handleStatusUpdate = async (newStatus: string) => {
     setUpdating(true)
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          rider_name: order.rider_name || null,
+          rider_phone: order.rider_phone || null
+        })
         .eq('id', order.id)
       
       if (error) throw error
+
+      // Log milestone activity
+      let title = `Status changed to ${newStatus}`
+      let desc = ''
+      if (newStatus === 'PAID') {
+        title = 'Payment marked as paid'
+        desc = 'Bank transfer payment verified by vendor.'
+      } else if (newStatus === 'SHIPPED') {
+        title = order.rider_name ? `Dispatched via ${order.rider_name}` : 'Order dispatched to delivery courier'
+        desc = order.rider_phone ? `Rider Contact: ${order.rider_phone}` : 'Out for customer delivery.'
+      } else if (newStatus === 'DELIVERED') {
+        title = 'Order marked as delivered'
+        desc = 'Customer received package.'
+      } else if (newStatus === 'CANCELLED') {
+        title = 'Order cancelled'
+        desc = 'Order voided by merchant.'
+      }
+
+      await logOrderActivity({
+        order_id: order.id,
+        activity_type: newStatus as any,
+        title,
+        description: desc,
+      })
 
       // Local Stock Adjustment Logic
       if (newStatus === 'CANCELLED' && order.status !== 'CANCELLED') {
@@ -119,6 +189,8 @@ export default function OrderDetailPage() {
       }
 
       setOrder({ ...order, status: newStatus })
+      const acts = await getOrderActivities({ ...order, status: newStatus })
+      setActivities(acts)
     } catch (err: any) {
       alert("Error updating order status: " + err.message)
     } finally {
@@ -447,6 +519,80 @@ export default function OrderDetailPage() {
               ))
             })()}
           </div>
+        </div>
+
+        {/* ── 🕒 ORDER ACTIVITY TIMELINE (AUDIT LOG) ── */}
+        <div className="bg-white p-6 rounded-2xl border border-border shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs uppercase tracking-widest text-slate-900 font-black flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-primary-600" />
+              <span>Activity Timeline (Audit Log)</span>
+            </h4>
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+              {activities.length} Event{activities.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          {/* Activity Event Stepper List */}
+          <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200">
+            {activities.map((act, index) => {
+              const actTime = act.created_at
+                ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now'
+              const actDate = act.created_at
+                ? new Date(act.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })
+                : ''
+
+              return (
+                <div key={act.id || index} className="relative group">
+                  {/* Timeline Dot */}
+                  <span
+                    className={`absolute -left-6 top-1 w-3 h-3 rounded-full border-2 border-white ring-2 ${
+                      act.activity_type === 'PAID'
+                        ? 'bg-blue-500 ring-blue-100'
+                        : act.activity_type === 'DISPATCHED'
+                        ? 'bg-purple-500 ring-purple-100'
+                        : act.activity_type === 'DELIVERED'
+                        ? 'bg-emerald-500 ring-emerald-100'
+                        : act.activity_type === 'CANCELLED'
+                        ? 'bg-red-500 ring-red-100'
+                        : 'bg-slate-700 ring-slate-100'
+                    }`}
+                  />
+
+                  <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">{act.title}</span>
+                      <span className="text-[10px] font-mono text-slate-400 font-bold">
+                        {actDate} {actTime}
+                      </span>
+                    </div>
+                    {act.description && (
+                      <p className="text-[11px] text-slate-600 font-medium leading-relaxed">{act.description}</p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Add Custom Timeline Event Form */}
+          <form onSubmit={handleAddCustomEvent} className="pt-2 flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Log custom event (e.g. Called customer on WhatsApp)..."
+              value={customEventText}
+              onChange={(e) => setCustomEventText(e.target.value)}
+              className="flex-1 text-xs p-2.5 rounded-xl border border-border bg-slate-50 font-medium outline-none focus:border-black"
+            />
+            <button
+              type="submit"
+              disabled={savingEvent || !customEventText.trim()}
+              className="px-3.5 py-2.5 bg-black text-white font-bold text-xs rounded-xl hover:bg-neutral-800 disabled:opacity-40 transition-all shrink-0"
+            >
+              {savingEvent ? 'Saving...' : 'Log Event'}
+            </button>
+          </form>
         </div>
 
         {/* Status Actions Form */}

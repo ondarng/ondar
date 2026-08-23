@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Search, Package, Share2, X, Sparkles, ShieldCheck, Star } from 'lucide-react'
 import { CartDrawer } from '@/components/cart-drawer'
-import { CartBadge } from '@/components/cart-bar'
+import { CartBadge, CartBar } from '@/components/cart-bar'
 import { StorefrontFilters } from '@/components/storefront-filters'
 import { StorefrontProductCard } from '@/components/storefront-product-card'
 import { StorefrontFooter } from '@/components/storefront-footer'
@@ -213,6 +213,7 @@ export default async function PublicStorePage(props: {
             categories={categories.filter((c) => c !== 'All')}
             isOwner={isOwner}
           />
+          <CartBar accentColor={store.accent_color || '#c95c35'} storeSlug={store.slug} />
           <CartDrawer store={store} />
         </>
       )

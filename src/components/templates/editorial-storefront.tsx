@@ -59,17 +59,20 @@ export function EditorialStorefront({ store, products, categories, isOwner }: Ed
 
   const handleAddToCart = (product: any) => {
     try {
-      const cartKey = `ondar_cart_${store.slug}`
+      const cartKey = `ondar-cart-${store.slug}`
       const existing = JSON.parse(localStorage.getItem(cartKey) || '[]')
-      const itemIdx = existing.findIndex((i: any) => i.product.id === product.id)
+      const itemIdx = existing.findIndex((i: any) => i.id === product.id && i.variantName === null)
 
       if (itemIdx > -1) {
         existing[itemIdx].quantity += 1
       } else {
         existing.push({
-          product,
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.image_url,
           quantity: 1,
-          variant: null,
+          variantName: null,
         })
       }
 

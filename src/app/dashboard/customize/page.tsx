@@ -418,6 +418,9 @@ export default function StorefrontEditorStudio() {
                   onChange={(e) => setHeroBannerUrl(e.target.value)}
                   className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-[10px] text-slate-300 font-mono"
                 />
+                <p className="text-[10px] text-slate-400 font-medium">
+                  📐 <strong className="text-slate-300">Best Scale:</strong> 16:9 or 3:1 landscape (1200 × 675px or 1200 × 400px). Fits phones & laptops cleanly.
+                </p>
               </div>
             </div>
           )}
@@ -498,17 +501,20 @@ export default function StorefrontEditorStudio() {
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Feature Image</label>
-                    <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
-                      <img src={previewFeature} alt="" className="w-full h-full object-cover" />
-                      <label className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-bold gap-1">
-                        <Upload className="w-5 h-5" />
-                        <span>Upload Photo</span>
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'feature')} className="hidden" />
-                      </label>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Feature Image</label>
+                      <div className="relative aspect-[16/9] rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+                        <img src={previewFeature} alt="" className="w-full h-full object-cover" />
+                        <label className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-bold gap-1">
+                          <Upload className="w-5 h-5" />
+                          <span>Upload Photo</span>
+                          <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'feature')} className="hidden" />
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium mt-1">
+                        📐 <strong className="text-slate-300">Best Scale:</strong> 4:3 or 16:9 landscape (800 × 600px).
+                      </p>
                     </div>
-                  </div>
                 </>
               )}
             </div>

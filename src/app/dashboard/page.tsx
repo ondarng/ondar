@@ -38,6 +38,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { BannerCropperModal } from '@/components/banner-cropper-modal'
+import { LiveStorefrontPreview } from '@/components/dashboard/live-storefront-preview'
 
 export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
@@ -1540,6 +1541,32 @@ export default function MobileResponsiveDashboard() {
                   <span>Store design saved successfully!</span>
                 </div>
               )}
+
+              {/* ── 📱 LIVE INTERACTIVE STOREFRONT PREVIEW (WYSIWYG) ── */}
+              <LiveStorefrontPreview
+                template={storefrontTemplate}
+                storeName={storeName || store?.store_name || ''}
+                logoUrl={logoUrl}
+                heroBannerUrl={heroBannerUrl}
+                announcementText={announcementText}
+                accentColor={accentColor}
+                footerBgColor={footerBgColor}
+                heroEyebrow={heroEyebrow}
+                heroTitle={heroTitle}
+                heroSubtitle={heroSubtitle}
+                heroBtnText={heroBtnText}
+                tickerText={tickerText}
+                showTicker={showTicker}
+                featureTitle={featureTitle}
+                featureText={featureText}
+                featureImageUrl={featureImageUrl}
+                showFeature={showFeature}
+                showNewsletter={showNewsletter}
+                newsletterTitle={newsletterTitle}
+                newsletterSubtitle={newsletterSubtitle}
+                products={products}
+                slug={slug || store?.slug || ''}
+              />
 
               {/* ── 0. STOREFRONT TEMPLATE SELECTION (PRO / FREE) ── */}
               <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>

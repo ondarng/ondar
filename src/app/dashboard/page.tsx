@@ -1518,167 +1518,55 @@ export default function MobileResponsiveDashboard() {
             </div>
           )}
 
-          {/* ════════════════════ TAB 5: STOREFRONT (STORE INFO, TEMPLATES, CUSTOMIZE) ════════════════════ */}
+          {/* ════════════════════ TAB 5: STORE INFO & BRANDING ════════════════════ */}
           {activeTab === 'design' && (
             <div className="space-y-6 animate-fade-in">
               {/* Top Header */}
               <div className={`${cardClass} flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl`}>
                 <div>
                   <h2 className="font-black text-base flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#00A859]" />
-                    <span>Storefront Studio & Branding</span>
+                    <Store className="w-5 h-5 text-[#00A859]" />
+                    <span>Store Info & Branding</span>
                   </h2>
-                  <p className="text-xs opacity-60">Manage your business profile, theme templates, and visual design</p>
+                  <p className="text-xs opacity-60">Manage your business profile, logo, banner, and delivery settings</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/dashboard/customize"
-                    className="px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-[#00A859]" />
-                    <span>Open Visual Studio</span>
-                  </Link>
-
-                  <button
-                    onClick={handleSaveCustomization}
-                    disabled={saving}
-                    className="px-5 py-2.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-extrabold hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50"
-                  >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    <span>{saving ? 'Saving...' : 'Save Changes'}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={handleSaveCustomization}
+                  disabled={saving}
+                  className="px-5 py-2.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-extrabold hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>{saving ? 'Saving...' : 'Save Store Info'}</span>
+                </button>
               </div>
 
               {saveSuccess && (
                 <div className="bg-[#00A859] text-white border border-black p-3 rounded-xl text-xs font-bold flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  <span>Storefront settings saved successfully!</span>
+                  <span>Store settings saved successfully!</span>
                 </div>
               )}
 
-              {/* ── 3 SUB-TABS NAVIGATION BAR ── */}
-              <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 dark:bg-neutral-900 rounded-2xl border border-black/10">
-                <button
-                  onClick={() => setDesignSubTab('info')}
-                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    designSubTab === 'info'
-                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Store className="w-4 h-4 text-[#00A859]" />
-                  <span>1. Store Info</span>
-                </button>
-
-                <button
-                  onClick={() => setDesignSubTab('customize')}
-                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    designSubTab === 'customize'
-                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Sparkles className="w-4 h-4 text-[#00A859]" />
-                  <span>2. Customize</span>
-                </button>
-
-                <button
-                  onClick={() => setDesignSubTab('templates')}
-                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    designSubTab === 'templates'
-                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Palette className="w-4 h-4 text-slate-400" />
-                  <span>3. Templates</span>
-                  <span className="text-[9px] bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded font-black hidden sm:inline">
-                    Coming Soon
-                  </span>
-                </button>
+              {/* Templates Teaser (Coming Soon) */}
+              <div className={`${cardClass} p-4 rounded-2xl flex items-center justify-between gap-4 border border-black/10`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[#00A859]">
+                    <Palette className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-black text-xs">Storefront Themes & Templates</h4>
+                      <span className="text-[9px] font-black uppercase tracking-wider bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-2 py-0.5 rounded">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <p className="text-[11px] opacity-60">Multi-theme switcher (Boutique, Streetwear, Luxe) will be released in an upcoming update.</p>
+                  </div>
+                </div>
               </div>
 
-              {/* ════════════════════ SUB-TAB: TEMPLATES (COMING SOON) ════════════════════ */}
-              {designSubTab === 'templates' && (
-                <div className={`${cardClass} p-10 rounded-3xl text-center space-y-4 border border-black/15 animate-fade-in`}>
-                  <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-black/10 flex items-center justify-center mx-auto text-[#00A859]">
-                    <Palette className="w-7 h-7" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-3 py-1 rounded-full border border-black/10 inline-block">
-                      Templates Coming Soon
-                    </span>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white pt-2">
-                      Storefront Theme Marketplace
-                    </h3>
-                    <p className="text-xs opacity-70 max-w-md mx-auto leading-relaxed">
-                      We are crafting brand-new luxury, boutique, and streetwear storefront themes for Ondar vendors. New templates will be released in an upcoming update.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* ════════════════════ SUB-TAB 2: CUSTOMIZE (LIVE STUDIO LAUNCHER) ════════════════════ */}
-              {designSubTab === 'customize' && (
-                <div className="space-y-6 animate-fade-in">
-                  {/* Full Visual Studio Launch Banner */}
-                  <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white border border-slate-800 shadow-2xl space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-[#00A859] bg-[#00A859]/20 px-2.5 py-1 rounded-full border border-[#00A859]/30">
-                          Interactive Visual Editor
-                        </span>
-                        <h3 className="text-xl font-black text-white">Full-Screen Visual Customizer Studio</h3>
-                        <p className="text-xs text-slate-300 max-w-lg leading-relaxed">
-                          Click directly on any headline, banner photo, ticker, or story section to edit texts, upload and crop images, and preview live on Mobile & Desktop simultaneously.
-                        </p>
-                      </div>
-
-                      <Link
-                        href="/dashboard/customize"
-                        className="px-6 py-3.5 bg-[#00A859] text-white text-xs font-black rounded-2xl hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-[#00A859]/20"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        <span>Launch Visual Studio →</span>
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Inline Live Preview Component */}
-                  <LiveStorefrontPreview
-                    template={storefrontTemplate}
-                    storeName={storeName || store?.store_name || ''}
-                    logoUrl={logoUrl}
-                    heroBannerUrl={heroBannerUrl}
-                    announcementText={announcementText}
-                    accentColor={accentColor}
-                    footerBgColor={footerBgColor}
-                    heroEyebrow={heroEyebrow}
-                    heroTitle={heroTitle}
-                    heroSubtitle={heroSubtitle}
-                    heroBtnText={heroBtnText}
-                    tickerText={tickerText}
-                    showTicker={showTicker}
-                    featureTitle={featureTitle}
-                    featureText={featureText}
-                    featureImageUrl={featureImageUrl}
-                    showFeature={showFeature}
-                    showNewsletter={showNewsletter}
-                    newsletterTitle={newsletterTitle}
-                    newsletterSubtitle={newsletterSubtitle}
-                    products={products}
-                    slug={slug || store?.slug || ''}
-                  />
-                </div>
-              )}
-
-              {/* ════════════════════ SUB-TAB 3: STORE INFO (CLEAN POLISHED FORMS) ════════════════════ */}
-              {designSubTab === 'info' && (
-                <div className="space-y-6 animate-fade-in">
-                  {/* 1. Basic Identity & URL */}
+              {/* 1. Basic Identity & URL */}
                   <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
                     <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
                       1. Brand Identity & Store Link
@@ -1864,11 +1752,9 @@ export default function MobileResponsiveDashboard() {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
 

@@ -9,7 +9,6 @@ import { CartBadge, CartBar } from '@/components/cart-bar'
 import { StorefrontFilters } from '@/components/storefront-filters'
 import { StorefrontProductCard } from '@/components/storefront-product-card'
 import { StorefrontFooter } from '@/components/storefront-footer'
-import { EditorialStorefront } from '@/components/templates/editorial-storefront'
 import type { Metadata } from 'next'
 
 const RESERVED_SLUGS = ['dashboard', 'login', 'signup', 'onboarding', 'auth', 'api', '_next', 'poll', 'vendor-poll']
@@ -203,21 +202,6 @@ export default async function PublicStorePage(props: {
     const trustBadges: string[] = store.trust_badges || ['Nationwide Delivery', '100% Original', 'Warranty']
     const waPhone = store.whatsapp_number?.replace(/[^0-9]/g, '')?.replace(/^0/, '234') || ''
     const accentColor = store.accent_color || '#00A859'
-
-    if (store.storefront_template === 'editorial') {
-      return (
-        <>
-          <EditorialStorefront
-            store={store}
-            products={safeProducts}
-            categories={categories.filter((c) => c !== 'All')}
-            isOwner={isOwner}
-          />
-          <CartBar accentColor={store.accent_color || '#c95c35'} storeSlug={store.slug} />
-          <CartDrawer store={store} />
-        </>
-      )
-    }
 
     return (
       <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24 antialiased selection:bg-primary-500 selection:text-white">

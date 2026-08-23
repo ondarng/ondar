@@ -35,6 +35,7 @@ import {
   UserCheck,
   Crop,
   Bell,
+  Store,
 } from 'lucide-react'
 import Link from 'next/link'
 import { BannerCropperModal } from '@/components/banner-cropper-modal'
@@ -44,6 +45,7 @@ export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
   const [darkMode, setDarkMode] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [designSubTab, setDesignSubTab] = useState<'info' | 'templates' | 'customize'>('templates')
 
   const [store, setStore] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
@@ -1516,573 +1518,479 @@ export default function MobileResponsiveDashboard() {
             </div>
           )}
 
-          {/* ════════════════════ TAB 5: STORE CUSTOMIZATION (DESIGN) ════════════════════ */}
+          {/* ════════════════════ TAB 5: STOREFRONT (STORE INFO, TEMPLATES, CUSTOMIZE) ════════════════════ */}
           {activeTab === 'design' && (
             <div className="space-y-6 animate-fade-in">
-              <div className={`${cardClass} flex items-center justify-between p-4 rounded-2xl`}>
+              {/* Top Header */}
+              <div className={`${cardClass} flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl`}>
                 <div>
-                  <h2 className="font-black text-base">Store Design & Branding</h2>
-                  <p className="text-xs opacity-60">Upload banners, logos, and customize appearance</p>
+                  <h2 className="font-black text-base flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[#00A859]" />
+                    <span>Storefront Studio & Branding</span>
+                  </h2>
+                  <p className="text-xs opacity-60">Manage your business profile, theme templates, and visual design</p>
                 </div>
 
-                <button
-                  onClick={handleSaveCustomization}
-                  disabled={saving}
-                  className="px-5 py-2.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-extrabold hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>{saving ? 'Saving...' : 'Save Design'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/dashboard/customize"
+                    className="px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#00A859]" />
+                    <span>Open Visual Studio</span>
+                  </Link>
+
+                  <button
+                    onClick={handleSaveCustomization}
+                    disabled={saving}
+                    className="px-5 py-2.5 bg-[#00A859] text-white border border-black rounded-xl text-xs font-extrabold hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </div>
               </div>
 
               {saveSuccess && (
                 <div className="bg-[#00A859] text-white border border-black p-3 rounded-xl text-xs font-bold flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  <span>Store design saved successfully!</span>
+                  <span>Storefront settings saved successfully!</span>
                 </div>
               )}
 
-              {/* ── 📱 LIVE INTERACTIVE STOREFRONT PREVIEW (WYSIWYG) ── */}
-              <LiveStorefrontPreview
-                template={storefrontTemplate}
-                storeName={storeName || store?.store_name || ''}
-                logoUrl={logoUrl}
-                heroBannerUrl={heroBannerUrl}
-                announcementText={announcementText}
-                accentColor={accentColor}
-                footerBgColor={footerBgColor}
-                heroEyebrow={heroEyebrow}
-                heroTitle={heroTitle}
-                heroSubtitle={heroSubtitle}
-                heroBtnText={heroBtnText}
-                tickerText={tickerText}
-                showTicker={showTicker}
-                featureTitle={featureTitle}
-                featureText={featureText}
-                featureImageUrl={featureImageUrl}
-                showFeature={showFeature}
-                showNewsletter={showNewsletter}
-                newsletterTitle={newsletterTitle}
-                newsletterSubtitle={newsletterSubtitle}
-                products={products}
-                slug={slug || store?.slug || ''}
-              />
-
-              {/* ── 0. STOREFRONT TEMPLATE SELECTION (PRO / FREE) ── */}
-              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
-                <div className="flex items-center justify-between border-b border-black/10 pb-2">
-                  <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider">
-                      0. Storefront Template Design
-                    </h3>
-                    <p className="text-[11px] opacity-60">
-                      Choose the visual layout and shopping experience for your visitors
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full border border-emerald-300">
-                    Pro Free Preview
+              {/* ── 3 SUB-TABS NAVIGATION BAR ── */}
+              <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 dark:bg-neutral-900 rounded-2xl border border-black/10">
+                <button
+                  onClick={() => setDesignSubTab('templates')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                    designSubTab === 'templates'
+                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Palette className="w-4 h-4 text-[#00A859]" />
+                  <span>1. Templates</span>
+                  <span className="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-black hidden sm:inline">
+                    PRO
                   </span>
-                </div>
+                </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Template 1: Classic Minimalist */}
-                  <div
-                    onClick={() => setStorefrontTemplate('classic')}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      storefrontTemplate === 'classic'
-                        ? 'border-black bg-neutral-100/60 dark:bg-neutral-900 shadow-md ring-2 ring-[#00A859]'
-                        : 'border-black/20 hover:border-black/50 bg-white dark:bg-neutral-950'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-black text-slate-900 dark:text-white">Classic Minimalist</span>
-                      <span className="text-[9px] font-black uppercase bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
-                        STANDARD
-                      </span>
-                    </div>
-                    <p className="text-[11px] opacity-70 leading-relaxed mb-3">
-                      Clean, high-speed product grid layout with instant filter pills and quick add-to-bag.
-                    </p>
-                    <div className="h-20 bg-slate-50 dark:bg-neutral-900 rounded-xl border border-dashed border-black/20 flex items-center justify-center text-[10px] font-bold opacity-60">
-                      Product Grid · Search Bar · Category Filter Pills
-                    </div>
-                  </div>
+                <button
+                  onClick={() => setDesignSubTab('customize')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                    designSubTab === 'customize'
+                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-[#00A859]" />
+                  <span>2. Customize</span>
+                  <span className="text-[9px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded font-black hidden sm:inline">
+                    Live Canvas
+                  </span>
+                </button>
 
-                  {/* Template 2: Editorial Boutique (preview.html) */}
-                  <div
-                    onClick={() => setStorefrontTemplate('editorial')}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative overflow-hidden ${
-                      storefrontTemplate === 'editorial'
-                        ? 'border-black bg-amber-50/40 dark:bg-amber-950/20 shadow-md ring-2 ring-[#00A859]'
-                        : 'border-black/20 hover:border-black/50 bg-white dark:bg-neutral-950'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-slate-900 dark:text-white">Editorial Boutique (preview.html)</span>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                      <span className="text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded">
-                        PRO · UNLOCKED
-                      </span>
-                    </div>
-                    <p className="text-[11px] opacity-70 leading-relaxed mb-3">
-                      Luxury magazine layout with split hero, marquee ribbon, collection cards, brand story & newsletter.
-                    </p>
-                    <div className="h-20 bg-amber-100/50 dark:bg-amber-900/20 rounded-xl border border-dashed border-amber-300 flex items-center justify-center text-[10px] font-bold text-amber-900 dark:text-amber-300">
-                      Split Hero · Marquee Ticker · Collections · Brand Story · Newsletter
-                    </div>
-                  </div>
-                </div>
+                <button
+                  onClick={() => setDesignSubTab('info')}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                    designSubTab === 'info'
+                      ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Store className="w-4 h-4 text-[#00A859]" />
+                  <span>3. Store Info</span>
+                </button>
               </div>
 
-              {/* ── EDITORIAL PRO SECTION CUSTOMIZERS ── */}
-              {storefrontTemplate === 'editorial' && (
-                <div className={`${cardClass} rounded-2xl p-5 space-y-5 border-2 border-amber-300/80 bg-amber-50/20 dark:bg-neutral-950`}>
-                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
-                    <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span>Editorial Sections Customizer</span>
-                    </h3>
-                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
-                      Customise preview.html Sections
-                    </span>
-                  </div>
-
-                  {/* 1. Editorial Hero Texts */}
-                  <div className="space-y-3 text-xs">
-                    <span className="font-extrabold text-slate-800 dark:text-white block">1. Split Hero Section</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Eyebrow Text</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Everyday, considered."
-                          value={heroEyebrow}
-                          onChange={(e) => setHeroEyebrow(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Big Headline</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Good things, simply."
-                          value={heroTitle}
-                          onChange={(e) => setHeroTitle(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold ${inputClass}`}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Subtitle Paragraph</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. A more editorial storefront direction: stronger visuals..."
-                          value={heroSubtitle}
-                          onChange={(e) => setHeroSubtitle(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. Scrolling Ticker Ribbon */}
-                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-slate-800 dark:text-white">2. Scrolling Marquee Ribbon</span>
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input
-                          type="checkbox"
-                          checked={showTicker}
-                          onChange={(e) => setShowTicker(e.target.checked)}
-                          className="rounded border-black accent-[#00A859]"
-                        />
-                        <span>Enable Ticker</span>
-                      </label>
-                    </div>
-                    {showTicker && (
-                      <input
-                        type="text"
-                        placeholder="e.g. NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ SHOP IN NIGERIA"
-                        value={tickerText}
-                        onChange={(e) => setTickerText(e.target.value)}
-                        className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                      />
-                    )}
-                  </div>
-
-                  {/* 3. Brand Story Feature Section */}
-                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-slate-800 dark:text-white">3. Brand Story / Highlight Banner</span>
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input
-                          type="checkbox"
-                          checked={showFeature}
-                          onChange={(e) => setShowFeature(e.target.checked)}
-                          className="rounded border-black accent-[#00A859]"
-                        />
-                        <span>Enable Brand Story</span>
-                      </label>
-                    </div>
-                    {showFeature && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Headline</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Let the products do the talking."
-                            value={featureTitle}
-                            onChange={(e) => setFeatureTitle(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                          />
+              {/* ════════════════════ SUB-TAB 1: TEMPLATES ════════════════════ */}
+              {designSubTab === 'templates' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Template Card 1: Editorial Boutique (preview.html PRO) */}
+                    <div
+                      className={`p-5 rounded-3xl border-2 transition-all relative flex flex-col justify-between ${
+                        storefrontTemplate === 'editorial'
+                          ? 'border-[#00A859] bg-amber-50/30 dark:bg-amber-950/10 shadow-lg ring-2 ring-[#00A859]'
+                          : 'border-black/15 bg-white dark:bg-neutral-900 hover:border-black/40'
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-black text-sm text-slate-900 dark:text-white">Editorial Boutique</h3>
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
+                              PRO · Free in Beta
+                            </span>
+                          </div>
+                          {storefrontTemplate === 'editorial' && (
+                            <span className="text-[10px] font-black bg-[#00A859] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Active
+                            </span>
+                          )}
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Feature Photo URL</label>
-                          <input
-                            type="text"
-                            placeholder="Image URL or uses hero banner..."
-                            value={featureImageUrl}
-                            onChange={(e) => setFeatureImageUrl(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Brand Philosophy Text</label>
-                          <textarea
-                            rows={2}
-                            placeholder="e.g. Carefully crafted for discerning individuals..."
-                            value={featureText}
-                            onChange={(e) => setFeatureText(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass} resize-none`}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* 4. 📧 Email Newsletter Subscription */}
-                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-slate-800 dark:text-white">4. 📧 Storefront Email Newsletter Capture</span>
-                        <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
-                          Vendor Controlled
-                        </span>
-                      </div>
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input
-                          type="checkbox"
-                          checked={showNewsletter}
-                          onChange={(e) => setShowNewsletter(e.target.checked)}
-                          className="rounded border-black accent-[#00A859]"
-                        />
-                        <span>Enable Email Capture</span>
-                      </label>
-                    </div>
+                        <p className="text-xs opacity-75 leading-relaxed">
+                          Inspired by high-end design magazines: features a luxury split hero banner, animated marquee ribbon, curated collection tiles, brand philosophy section, and newsletter capture.
+                        </p>
 
-                    {showNewsletter && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Newsletter Title</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Stay in the loop"
-                            value={newsletterTitle}
-                            onChange={(e) => setNewsletterTitle(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Subtitle / Incentive</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. New products and exclusive offers, straight to your inbox."
-                            value={newsletterSubtitle}
-                            onChange={(e) => setNewsletterSubtitle(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 1. Media Uploaders (Logo & Hero Banner) */}
-              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
-                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  1. Brand Logo & Hero Banner Upload
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-                  {/* Logo Upload Box */}
-                  <div className="space-y-2">
-                    <label className="font-bold block">Store Logo</label>
-                    <div className="flex items-center gap-3">
-                      {logoUrl ? (
-                        <div className="relative w-16 h-16 rounded-2xl border-2 border-black overflow-hidden bg-white shrink-0">
-                          <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                          <button
-                            onClick={() => setLogoUrl('')}
-                            className="absolute top-0.5 right-0.5 bg-black/80 text-white p-0.5 rounded-full"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-black/40 flex items-center justify-center bg-neutral-50 shrink-0">
-                          <ImageIcon className="w-6 h-6 opacity-40" />
-                        </div>
-                      )}
-
-                      <div className="flex-1 space-y-1">
-                        <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-black text-white text-xs font-bold rounded-xl cursor-pointer border border-black hover:bg-neutral-900 transition-colors">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{uploadingLogo ? 'Uploading...' : 'Upload Logo Image'}</span>
-                          <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Or paste image URL..."
-                          value={logoUrl}
-                          onChange={(e) => setLogoUrl(e.target.value)}
-                          className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hero Banner Upload Box */}
-                  <div className="space-y-2">
-                    <label className="font-bold block">Hero Banner Image</label>
-                    {heroBannerUrl ? (
-                      <div className="space-y-2">
-                        <div className="relative aspect-[3/1] rounded-2xl border-2 border-black overflow-hidden bg-white">
-                          <img src={heroBannerUrl} alt="Hero Banner" className="w-full h-full object-cover" />
-                          <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRawBannerToCrop(heroBannerUrl)
-                                setShowBannerCropper(true)
-                              }}
-                              className="bg-white/95 text-black px-2.5 py-1 rounded-xl text-[10px] font-black border border-black hover:bg-white flex items-center gap-1 shadow-sm transition-all"
-                            >
-                              <Crop className="w-3 h-3 text-[#00A859]" />
-                              <span>Crop / Adjust</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setHeroBannerUrl('')}
-                              className="bg-black/80 text-white p-1 rounded-full hover:bg-black"
-                              title="Delete banner"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                        {/* Visual Mockup Showcase */}
+                        <div className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-[#f4f0e8] text-[#161616] p-3 space-y-2 overflow-hidden shadow-inner">
+                          <div className="flex items-center justify-between border-b border-[#d9d4ca] pb-1.5 text-[9px] font-black uppercase">
+                            <span>{storeName || 'YOUR BRAND'}</span>
+                            <span>Shop · Story · Cart 🛒</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 bg-[#e3dccf] rounded-xl p-2.5">
+                            <div className="space-y-1">
+                              <div className="h-2 w-12 bg-[#c95c35] rounded-full" />
+                              <div className="h-3 w-20 bg-[#161616] rounded" />
+                              <div className="h-1.5 w-16 bg-[#666158] rounded" />
+                            </div>
+                            <div className="h-14 bg-amber-800/20 rounded-lg" />
+                          </div>
+                          <div className="bg-[#c95c35] text-white text-[8px] font-black py-1 px-2 rounded text-center uppercase tracking-widest">
+                            NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ SHOP LOCAL
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center aspect-[3/1] rounded-2xl border-2 border-dashed border-black/40 bg-neutral-50 cursor-pointer hover:bg-neutral-100 transition-colors">
-                        <Crop className="w-6 h-6 text-[#00A859] mb-1" />
-                        <span className="font-bold text-xs">Upload & Crop Hero Banner</span>
-                        <span className="text-[10px] opacity-60">Interactive zoom & drag to 3:1 banner</span>
-                        <input type="file" accept="image/*" onChange={handleBannerFileChange} className="hidden" />
-                      </label>
-                    )}
-                    <input
-                      type="text"
-                      placeholder="Or paste banner image URL..."
-                      value={heroBannerUrl}
-                      onChange={(e) => setHeroBannerUrl(e.target.value)}
-                      className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Optional Banner Link URL (e.g. https://instagram.com/...)"
-                      value={heroBannerLink}
-                      onChange={(e) => setHeroBannerLink(e.target.value)}
-                      className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* 2. Colors & Announcement Bar */}
-              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
-                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  2. Storefront Colors & Top Announcement
-                </h3>
+                      <div className="pt-4 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setStorefrontTemplate('editorial')
+                            handleSaveCustomization()
+                          }}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
+                            storefrontTemplate === 'editorial'
+                              ? 'bg-[#00A859] text-white shadow-sm'
+                              : 'bg-black text-white hover:bg-neutral-800'
+                          }`}
+                        >
+                          {storefrontTemplate === 'editorial' ? 'Current Theme' : 'Apply Editorial Theme'}
+                        </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Brand Accent Color</label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="color"
-                        value={accentColor}
-                        onChange={(e) => setAccentColor(e.target.value)}
-                        className="w-9 h-9 bg-transparent border-0 cursor-pointer rounded-lg"
-                      />
-                      <input
-                        type="text"
-                        value={accentColor}
-                        onChange={(e) => setAccentColor(e.target.value)}
-                        className={`flex-1 px-3 py-2 rounded-xl text-xs font-mono ${inputClass}`}
-                      />
+                        <Link
+                          href="/dashboard/customize"
+                          className="px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-black dark:text-white border border-black/20 rounded-xl text-xs font-bold hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                          title="Customize theme"
+                        >
+                          Customize →
+                        </Link>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Footer Background Color</label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="color"
-                        value={footerBgColor}
-                        onChange={(e) => setFooterBgColor(e.target.value)}
-                        className="w-9 h-9 bg-transparent border-0 cursor-pointer rounded-lg"
-                      />
-                      <input
-                        type="text"
-                        value={footerBgColor}
-                        onChange={(e) => setFooterBgColor(e.target.value)}
-                        className={`flex-1 px-3 py-2 rounded-xl text-xs font-mono ${inputClass}`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Top Announcement Text</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Free delivery on orders over ₦50,000!"
-                      value={announcementText}
-                      onChange={(e) => setAnnouncementText(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none ${inputClass}`}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Social Media & Store Contact Info */}
-              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
-                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  3. Social Media Links & Contact Details
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">WhatsApp Phone Number</label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. 08123456789"
-                      value={whatsappNumber}
-                      onChange={(e) => setWhatsappNumber(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Instagram Handle</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. @yourstore"
-                      value={instagramHandle}
-                      onChange={(e) => setInstagramHandle(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">X / Twitter Handle</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. @yourstore"
-                      value={twitterHandle}
-                      onChange={(e) => setTwitterHandle(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-bold opacity-80">Dispatch Location / Hub</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ikeja, Lagos"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                  </div>
-
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="font-bold opacity-80">Return & Refund Policy</label>
-                    <textarea
-                      rows={3}
-                      placeholder="State your clear return & exchange rules..."
-                      value={returnPolicy}
-                      onChange={(e) => setReturnPolicy(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs resize-none ${inputClass}`}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Regional Delivery Zones */}
-              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
-                <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
-                  4. Regional Delivery Zones
-                </h3>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Zone Name (e.g. Within Lagos)"
-                      value={newZoneName}
-                      onChange={(e) => setNewZoneName(e.target.value)}
-                      className={`flex-1 px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Fee ₦ (0 for free)"
-                      value={newZoneFee}
-                      onChange={(e) => setNewZoneFee(e.target.value)}
-                      className={`w-32 px-3 py-2 rounded-xl text-xs ${inputClass}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!newZoneName) return
-                        setDeliveryZones([...deliveryZones, { name: newZoneName, fee: Number(newZoneFee) || 0 }])
-                        setNewZoneName('')
-                        setNewZoneFee('')
-                      }}
-                      className="px-4 py-2 bg-black text-white border border-black rounded-xl text-xs font-bold hover:bg-neutral-900"
+                    {/* Template Card 2: Classic Minimalist */}
+                    <div
+                      className={`p-5 rounded-3xl border-2 transition-all relative flex flex-col justify-between ${
+                        storefrontTemplate === 'classic'
+                          ? 'border-[#00A859] bg-neutral-100/60 dark:bg-neutral-900 shadow-lg ring-2 ring-[#00A859]'
+                          : 'border-black/15 bg-white dark:bg-neutral-900 hover:border-black/40'
+                      }`}
                     >
-                      Add Zone
-                    </button>
-                  </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-black text-sm text-slate-900 dark:text-white">Classic Minimalist</h3>
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full border border-black/10">
+                              STANDARD FREE
+                            </span>
+                          </div>
+                          {storefrontTemplate === 'classic' && (
+                            <span className="text-[10px] font-black bg-[#00A859] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Active
+                            </span>
+                          )}
+                        </div>
 
-                  <div className="space-y-1.5">
-                    {deliveryZones.map((z, idx) => (
-                      <div key={idx} className={`${subCardClass} flex items-center justify-between p-2.5 rounded-xl text-xs`}>
-                        <span className="font-bold">{z.name}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="font-black text-[#00A859]">₦{z.fee.toLocaleString()}</span>
-                          <button
-                            onClick={() => setDeliveryZones(deliveryZones.filter((_, i) => i !== idx))}
-                            className="text-red-600 hover:underline text-[11px] font-bold"
-                          >
-                            Remove
-                          </button>
+                        <p className="text-xs opacity-75 leading-relaxed">
+                          Clean, high-speed product catalog layout with search bar, instant filter pills, and quick 1-click cart drawer.
+                        </p>
+
+                        {/* Visual Mockup Showcase */}
+                        <div className="rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-3 space-y-2 overflow-hidden shadow-inner">
+                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-1.5 text-[9px] font-bold">
+                            <span>{storeName || 'Store Name'}</span>
+                            <span>🛒 Cart</span>
+                          </div>
+                          <div className="h-10 bg-slate-100 dark:bg-neutral-900 rounded-lg flex items-center justify-center text-[9px] font-bold opacity-60">
+                            Search Products...
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
+                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
+                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
+                          </div>
                         </div>
                       </div>
-                    ))}
+
+                      <div className="pt-4 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setStorefrontTemplate('classic')
+                            handleSaveCustomization()
+                          }}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
+                            storefrontTemplate === 'classic'
+                              ? 'bg-[#00A859] text-white shadow-sm'
+                              : 'bg-black text-white hover:bg-neutral-800'
+                          }`}
+                        >
+                          {storefrontTemplate === 'classic' ? 'Current Theme' : 'Apply Classic Theme'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* ════════════════════ SUB-TAB 2: CUSTOMIZE (LIVE STUDIO LAUNCHER) ════════════════════ */}
+              {designSubTab === 'customize' && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Full Visual Studio Launch Banner */}
+                  <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white border border-slate-800 shadow-2xl space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#00A859] bg-[#00A859]/20 px-2.5 py-1 rounded-full border border-[#00A859]/30">
+                          Interactive Visual Editor
+                        </span>
+                        <h3 className="text-xl font-black text-white">Full-Screen Visual Customizer Studio</h3>
+                        <p className="text-xs text-slate-300 max-w-lg leading-relaxed">
+                          Click directly on any headline, banner photo, ticker, or story section to edit texts, upload and crop images, and preview live on Mobile & Desktop simultaneously.
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/dashboard/customize"
+                        className="px-6 py-3.5 bg-[#00A859] text-white text-xs font-black rounded-2xl hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-[#00A859]/20"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>Launch Visual Studio →</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Inline Live Preview Component */}
+                  <LiveStorefrontPreview
+                    template={storefrontTemplate}
+                    storeName={storeName || store?.store_name || ''}
+                    logoUrl={logoUrl}
+                    heroBannerUrl={heroBannerUrl}
+                    announcementText={announcementText}
+                    accentColor={accentColor}
+                    footerBgColor={footerBgColor}
+                    heroEyebrow={heroEyebrow}
+                    heroTitle={heroTitle}
+                    heroSubtitle={heroSubtitle}
+                    heroBtnText={heroBtnText}
+                    tickerText={tickerText}
+                    showTicker={showTicker}
+                    featureTitle={featureTitle}
+                    featureText={featureText}
+                    featureImageUrl={featureImageUrl}
+                    showFeature={showFeature}
+                    showNewsletter={showNewsletter}
+                    newsletterTitle={newsletterTitle}
+                    newsletterSubtitle={newsletterSubtitle}
+                    products={products}
+                    slug={slug || store?.slug || ''}
+                  />
+                </div>
+              )}
+
+              {/* ════════════════════ SUB-TAB 3: STORE INFO (CLEAN POLISHED FORMS) ════════════════════ */}
+              {designSubTab === 'info' && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* 1. Basic Identity & URL */}
+                  <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                    <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
+                      1. Brand Identity & Store Link
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">Store Name</label>
+                        <input
+                          type="text"
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold ${inputClass}`}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">Store URL Slug</label>
+                        <div className="flex items-center">
+                          <span className="px-3 py-2 bg-neutral-100 dark:bg-neutral-800 border border-r-0 border-black/20 rounded-l-xl text-xs font-mono opacity-70">
+                            ondar.shop/
+                          </span>
+                          <input
+                            type="text"
+                            value={slug}
+                            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                            className={`flex-1 px-3 py-2 rounded-r-xl text-xs font-mono font-bold ${inputClass}`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Store Logo Box */}
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="font-bold opacity-80">Store Logo</label>
+                        <div className="flex items-center gap-3">
+                          {logoUrl ? (
+                            <div className="relative w-14 h-14 rounded-2xl border-2 border-black overflow-hidden bg-white shrink-0">
+                              <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                              <button
+                                onClick={() => setLogoUrl('')}
+                                className="absolute top-0.5 right-0.5 bg-black/80 text-white p-0.5 rounded-full"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-black/30 flex items-center justify-center bg-neutral-50 shrink-0">
+                              <ImageIcon className="w-5 h-5 opacity-40" />
+                            </div>
+                          )}
+
+                          <div className="flex-1 space-y-1">
+                            <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-black text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-neutral-900 transition-colors">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{uploadingLogo ? 'Uploading...' : 'Upload Logo'}</span>
+                              <input type="file" accept="image/*" onChange={handleLogoFileChange} className="hidden" />
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Or paste image URL..."
+                              value={logoUrl}
+                              onChange={(e) => setLogoUrl(e.target.value)}
+                              className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-mono ${inputClass}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Socials & Contact */}
+                  <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                    <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
+                      2. WhatsApp & Social Handles
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">WhatsApp Phone</label>
+                        <input
+                          type="tel"
+                          placeholder="e.g. 08123456789"
+                          value={whatsappNumber}
+                          onChange={(e) => setWhatsappNumber(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">Instagram Handle</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. @yourstore"
+                          value={instagramHandle}
+                          onChange={(e) => setInstagramHandle(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">X / Twitter Handle</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. @yourstore"
+                          value={twitterHandle}
+                          onChange={(e) => setTwitterHandle(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="font-bold opacity-80">Dispatch Location / Hub</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Ikeja, Lagos"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="font-bold opacity-80">Return & Exchange Policy</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 7-day hassle-free exchange on all items"
+                          value={returnPolicy}
+                          onChange={(e) => setReturnPolicy(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Regional Delivery Zones */}
+                  <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                    <h3 className="text-xs font-black uppercase tracking-wider border-b border-black/10 pb-2">
+                      3. Regional Delivery Zones & Fees
+                    </h3>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Zone Name (e.g. Within Lagos)"
+                          value={newZoneName}
+                          onChange={(e) => setNewZoneName(e.target.value)}
+                          className={`flex-1 px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                        <input
+                          type="number"
+                          placeholder="Fee ₦ (0 for free)"
+                          value={newZoneFee}
+                          onChange={(e) => setNewZoneFee(e.target.value)}
+                          className={`w-32 px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!newZoneName) return
+                            setDeliveryZones([...deliveryZones, { name: newZoneName, fee: Number(newZoneFee) || 0 }])
+                            setNewZoneName('')
+                            setNewZoneFee('')
+                          }}
+                          className="px-4 py-2 bg-black text-white border border-black rounded-xl text-xs font-bold hover:bg-neutral-900"
+                        >
+                          Add Zone
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {deliveryZones.map((z, idx) => (
+                          <div key={idx} className={`${subCardClass} flex items-center justify-between p-2.5 rounded-xl text-xs`}>
+                            <span className="font-bold">{z.name}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="font-black text-[#00A859]">₦{z.fee.toLocaleString()}</span>
+                              <button
+                                onClick={() => setDeliveryZones(deliveryZones.filter((_, i) => i !== idx))}
+                                className="text-red-600 hover:underline text-[11px] font-bold"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

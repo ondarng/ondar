@@ -79,6 +79,14 @@ export default function MobileResponsiveDashboard() {
   const [customerSearch, setCustomerSearch] = useState<string>('')
   const [copiedAllNumbers, setCopiedAllNumbers] = useState(false)
 
+  // Email Marketing & Broadcast States
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailBody, setEmailBody] = useState('')
+  const [emailSubscribers, setEmailSubscribers] = useState<any[]>([])
+  const [sendingBroadcast, setSendingBroadcast] = useState(false)
+  const [copiedEmails, setCopiedEmails] = useState(false)
+  const [broadcastSent, setBroadcastSent] = useState(false)
+
   // Form States for Store Customization
   const [storeName, setStoreName] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
@@ -101,6 +109,22 @@ export default function MobileResponsiveDashboard() {
   const [deliveryZones, setDeliveryZones] = useState<Array<{ name: string; fee: number }>>([])
   const [newZoneName, setNewZoneName] = useState('')
   const [newZoneFee, setNewZoneFee] = useState('')
+
+  // Storefront Template & Editorial Customizer States
+  const [storefrontTemplate, setStorefrontTemplate] = useState<'classic' | 'editorial'>('editorial')
+  const [heroEyebrow, setHeroEyebrow] = useState('Everyday, considered.')
+  const [heroTitle, setHeroTitle] = useState('')
+  const [heroSubtitle, setHeroSubtitle] = useState('')
+  const [heroBtnText, setHeroBtnText] = useState('Shop collection')
+  const [tickerText, setTickerText] = useState('NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ 100% AUTHENTIC ✦ SHOP LOCAL ✦')
+  const [showTicker, setShowTicker] = useState(true)
+  const [featureTitle, setFeatureTitle] = useState('Let the products do the talking.')
+  const [featureText, setFeatureText] = useState('')
+  const [featureImageUrl, setFeatureImageUrl] = useState('')
+  const [showFeature, setShowFeature] = useState(true)
+  const [showNewsletter, setShowNewsletter] = useState(true)
+  const [newsletterTitle, setNewsletterTitle] = useState('Stay in the loop')
+  const [newsletterSubtitle, setNewsletterSubtitle] = useState('New products and exclusive offers, straight to your inbox.')
 
   // Account Settings Form
   const [bankName, setBankName] = useState('')
@@ -174,6 +198,22 @@ export default function MobileResponsiveDashboard() {
         setTrustBadges(storeData.trust_badges || ['Nationwide Delivery', '100% Original', 'Warranty'])
         setDeliveryZones(Array.isArray(storeData.delivery_zones) ? storeData.delivery_zones : [])
 
+        // Template and Editorial Customizer fields
+        setStorefrontTemplate(storeData.storefront_template || 'editorial')
+        setHeroEyebrow(storeData.hero_eyebrow || 'Everyday, considered.')
+        setHeroTitle(storeData.hero_title || storeData.store_name || '')
+        setHeroSubtitle(storeData.hero_subtitle || storeData.description || '')
+        setHeroBtnText(storeData.hero_button_text || 'Shop collection')
+        setTickerText(storeData.ticker_text || 'NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ 100% AUTHENTIC ✦ SHOP LOCAL ✦')
+        setShowTicker(storeData.show_ticker !== false)
+        setFeatureTitle(storeData.feature_title || 'Let the products do the talking.')
+        setFeatureText(storeData.feature_text || storeData.description || '')
+        setFeatureImageUrl(storeData.feature_image_url || '')
+        setShowFeature(storeData.show_feature !== false)
+        setShowNewsletter(storeData.show_newsletter !== false)
+        setNewsletterTitle(storeData.newsletter_title || 'Stay in the loop')
+        setNewsletterSubtitle(storeData.newsletter_subtitle || 'New products and exclusive offers, straight to your inbox.')
+
         // Account settings state
         setBankName(storeData.bank_name || '')
         setBankAccountNumber(storeData.bank_account_number || '')
@@ -198,6 +238,15 @@ export default function MobileResponsiveDashboard() {
           .order('created_at', { ascending: false })
 
         setOrders(ords || [])
+
+        // Fetch Newsletter Email Leads
+        const { data: leadsData } = await supabase
+          .from('leads')
+          .select('*')
+          .eq('store_id', storeData.id)
+          .order('created_at', { ascending: false })
+
+        setEmailSubscribers(leadsData || [])
 
         // Fetch Page View Analytics
         const { count: totalViews } = await supabase
@@ -431,6 +480,20 @@ export default function MobileResponsiveDashboard() {
         return_policy: returnPolicy,
         trust_badges: trustBadges,
         delivery_zones: deliveryZones,
+        storefront_template: storefrontTemplate,
+        hero_eyebrow: heroEyebrow,
+        hero_title: heroTitle,
+        hero_subtitle: heroSubtitle,
+        hero_button_text: heroBtnText,
+        ticker_text: tickerText,
+        show_ticker: showTicker,
+        feature_title: featureTitle,
+        feature_text: featureText,
+        feature_image_url: featureImageUrl,
+        show_feature: showFeature,
+        show_newsletter: showNewsletter,
+        newsletter_title: newsletterTitle,
+        newsletter_subtitle: newsletterSubtitle,
       }
 
       let saveError: any = null
@@ -1281,6 +1344,89 @@ export default function MobileResponsiveDashboard() {
                 </button>
               </div>
 
+              {/* ── 📧 EMAIL MARKETING & NEWSLETTER BROADCAST STUDIO ── */}
+              <div className={`${cardClass} p-5 rounded-2xl space-y-4 border-2 border-slate-200 dark:border-neutral-800`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Send className="w-4 h-4 text-[#00A859]" />
+                    <h3 className="text-xs font-black uppercase tracking-wider">Email Newsletter Broadcast Studio</h3>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                    {emailSubscribers.length} Subscriber{emailSubscribers.length !== 1 ? 's' : ''} captured
+                  </span>
+                </div>
+
+                <p className="text-[11px] opacity-70 leading-relaxed">
+                  Compose an email announcement, promotion, or new drop alert to send to your newsletter subscribers.
+                </p>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider block mb-1 opacity-70">Email Subject Line</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 🔥 Weekend Flash Sale — 10% Off All Items!"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none ${inputClass}`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider block mb-1 opacity-70">Message Body</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Type your announcement or offer here..."
+                      value={emailBody}
+                      onChange={(e) => setEmailBody(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none ${inputClass} resize-none`}
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {(() => {
+                      const allEmails = Array.from(
+                        new Set(
+                          emailSubscribers
+                            .map((s) => s.email)
+                            .filter((e) => e && e.includes('@'))
+                        )
+                      ).join(',')
+
+                      return (
+                        <>
+                          <a
+                            href={`mailto:?bcc=${encodeURIComponent(allEmails)}&subject=${encodeURIComponent(emailSubject || 'Special Announcement')}&body=${encodeURIComponent(emailBody || 'Check out our latest products at our store!')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-[#00A859] text-white border border-black rounded-xl text-xs font-black hover:opacity-90 transition-all flex items-center gap-1.5 shadow-2xs"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Launch Email Broadcast (BCC)</span>
+                          </a>
+
+                          <button
+                            onClick={() => {
+                              if (!allEmails) {
+                                alert('No email subscribers captured yet. They will appear here when visitors join your storefront newsletter!')
+                                return
+                              }
+                              navigator.clipboard.writeText(allEmails)
+                              setCopiedEmails(true)
+                              setTimeout(() => setCopiedEmails(false), 2000)
+                            }}
+                            className="px-4 py-2 bg-white text-black border border-black rounded-xl text-xs font-bold hover:bg-neutral-100 transition-colors flex items-center gap-1.5"
+                          >
+                            {copiedEmails ? <Check className="w-3.5 h-3.5 text-[#00A859]" /> : <Copy className="w-3.5 h-3.5 text-[#00A859]" />}
+                            <span>{copiedEmails ? 'Copied Emails!' : 'Copy Subscriber Emails'}</span>
+                          </button>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+              </div>
+
               {/* Customer Search */}
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1392,6 +1538,247 @@ export default function MobileResponsiveDashboard() {
                 <div className="bg-[#00A859] text-white border border-black p-3 rounded-xl text-xs font-bold flex items-center gap-2">
                   <Check className="w-4 h-4" />
                   <span>Store design saved successfully!</span>
+                </div>
+              )}
+
+              {/* ── 0. STOREFRONT TEMPLATE SELECTION (PRO / FREE) ── */}
+              <div className={`${cardClass} rounded-2xl p-5 space-y-4`}>
+                <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider">
+                      0. Storefront Template Design
+                    </h3>
+                    <p className="text-[11px] opacity-60">
+                      Choose the visual layout and shopping experience for your visitors
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full border border-emerald-300">
+                    Pro Free Preview
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Template 1: Classic Minimalist */}
+                  <div
+                    onClick={() => setStorefrontTemplate('classic')}
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      storefrontTemplate === 'classic'
+                        ? 'border-black bg-neutral-100/60 dark:bg-neutral-900 shadow-md ring-2 ring-[#00A859]'
+                        : 'border-black/20 hover:border-black/50 bg-white dark:bg-neutral-950'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-slate-900 dark:text-white">Classic Minimalist</span>
+                      <span className="text-[9px] font-black uppercase bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
+                        STANDARD
+                      </span>
+                    </div>
+                    <p className="text-[11px] opacity-70 leading-relaxed mb-3">
+                      Clean, high-speed product grid layout with instant filter pills and quick add-to-bag.
+                    </p>
+                    <div className="h-20 bg-slate-50 dark:bg-neutral-900 rounded-xl border border-dashed border-black/20 flex items-center justify-center text-[10px] font-bold opacity-60">
+                      Product Grid · Search Bar · Category Filter Pills
+                    </div>
+                  </div>
+
+                  {/* Template 2: Editorial Boutique (preview.html) */}
+                  <div
+                    onClick={() => setStorefrontTemplate('editorial')}
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative overflow-hidden ${
+                      storefrontTemplate === 'editorial'
+                        ? 'border-black bg-amber-50/40 dark:bg-amber-950/20 shadow-md ring-2 ring-[#00A859]'
+                        : 'border-black/20 hover:border-black/50 bg-white dark:bg-neutral-950'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-black text-slate-900 dark:text-white">Editorial Boutique (preview.html)</span>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      <span className="text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded">
+                        PRO · UNLOCKED
+                      </span>
+                    </div>
+                    <p className="text-[11px] opacity-70 leading-relaxed mb-3">
+                      Luxury magazine layout with split hero, marquee ribbon, collection cards, brand story & newsletter.
+                    </p>
+                    <div className="h-20 bg-amber-100/50 dark:bg-amber-900/20 rounded-xl border border-dashed border-amber-300 flex items-center justify-center text-[10px] font-bold text-amber-900 dark:text-amber-300">
+                      Split Hero · Marquee Ticker · Collections · Brand Story · Newsletter
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── EDITORIAL PRO SECTION CUSTOMIZERS ── */}
+              {storefrontTemplate === 'editorial' && (
+                <div className={`${cardClass} rounded-2xl p-5 space-y-5 border-2 border-amber-300/80 bg-amber-50/20 dark:bg-neutral-950`}>
+                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                    <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span>Editorial Sections Customizer</span>
+                    </h3>
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                      Customise preview.html Sections
+                    </span>
+                  </div>
+
+                  {/* 1. Editorial Hero Texts */}
+                  <div className="space-y-3 text-xs">
+                    <span className="font-extrabold text-slate-800 dark:text-white block">1. Split Hero Section</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Eyebrow Text</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Everyday, considered."
+                          value={heroEyebrow}
+                          onChange={(e) => setHeroEyebrow(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Big Headline</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Good things, simply."
+                          value={heroTitle}
+                          onChange={(e) => setHeroTitle(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold ${inputClass}`}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Hero Subtitle Paragraph</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. A more editorial storefront direction: stronger visuals..."
+                          value={heroSubtitle}
+                          onChange={(e) => setHeroSubtitle(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Scrolling Ticker Ribbon */}
+                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-slate-800 dark:text-white">2. Scrolling Marquee Ribbon</span>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                        <input
+                          type="checkbox"
+                          checked={showTicker}
+                          onChange={(e) => setShowTicker(e.target.checked)}
+                          className="rounded border-black accent-[#00A859]"
+                        />
+                        <span>Enable Ticker</span>
+                      </label>
+                    </div>
+                    {showTicker && (
+                      <input
+                        type="text"
+                        placeholder="e.g. NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ SHOP IN NIGERIA"
+                        value={tickerText}
+                        onChange={(e) => setTickerText(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                      />
+                    )}
+                  </div>
+
+                  {/* 3. Brand Story Feature Section */}
+                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-slate-800 dark:text-white">3. Brand Story / Highlight Banner</span>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                        <input
+                          type="checkbox"
+                          checked={showFeature}
+                          onChange={(e) => setShowFeature(e.target.checked)}
+                          className="rounded border-black accent-[#00A859]"
+                        />
+                        <span>Enable Brand Story</span>
+                      </label>
+                    </div>
+                    {showFeature && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Headline</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Let the products do the talking."
+                            value={featureTitle}
+                            onChange={(e) => setFeatureTitle(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Feature Photo URL</label>
+                          <input
+                            type="text"
+                            placeholder="Image URL or uses hero banner..."
+                            value={featureImageUrl}
+                            onChange={(e) => setFeatureImageUrl(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Brand Philosophy Text</label>
+                          <textarea
+                            rows={2}
+                            placeholder="e.g. Carefully crafted for discerning individuals..."
+                            value={featureText}
+                            onChange={(e) => setFeatureText(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass} resize-none`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 4. 📧 Email Newsletter Subscription */}
+                  <div className="space-y-3 text-xs border-t border-black/10 pt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-800 dark:text-white">4. 📧 Storefront Email Newsletter Capture</span>
+                        <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
+                          Vendor Controlled
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                        <input
+                          type="checkbox"
+                          checked={showNewsletter}
+                          onChange={(e) => setShowNewsletter(e.target.checked)}
+                          className="rounded border-black accent-[#00A859]"
+                        />
+                        <span>Enable Email Capture</span>
+                      </label>
+                    </div>
+
+                    {showNewsletter && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Newsletter Title</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Stay in the loop"
+                            value={newsletterTitle}
+                            onChange={(e) => setNewsletterTitle(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Subtitle / Incentive</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. New products and exclusive offers, straight to your inbox."
+                            value={newsletterSubtitle}
+                            onChange={(e) => setNewsletterSubtitle(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-xl text-xs ${inputClass}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

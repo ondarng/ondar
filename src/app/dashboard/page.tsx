@@ -1561,18 +1561,15 @@ export default function MobileResponsiveDashboard() {
               {/* ── 3 SUB-TABS NAVIGATION BAR ── */}
               <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 dark:bg-neutral-900 rounded-2xl border border-black/10">
                 <button
-                  onClick={() => setDesignSubTab('templates')}
+                  onClick={() => setDesignSubTab('info')}
                   className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    designSubTab === 'templates'
+                    designSubTab === 'info'
                       ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Palette className="w-4 h-4 text-[#00A859]" />
-                  <span>1. Templates</span>
-                  <span className="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-black hidden sm:inline">
-                    PRO
-                  </span>
+                  <Store className="w-4 h-4 text-[#00A859]" />
+                  <span>1. Store Info</span>
                 </button>
 
                 <button
@@ -1585,160 +1582,41 @@ export default function MobileResponsiveDashboard() {
                 >
                   <Sparkles className="w-4 h-4 text-[#00A859]" />
                   <span>2. Customize</span>
-                  <span className="text-[9px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded font-black hidden sm:inline">
-                    Live Canvas
-                  </span>
                 </button>
 
                 <button
-                  onClick={() => setDesignSubTab('info')}
+                  onClick={() => setDesignSubTab('templates')}
                   className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                    designSubTab === 'info'
+                    designSubTab === 'templates'
                       ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-sm ring-1 ring-black/10'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Store className="w-4 h-4 text-[#00A859]" />
-                  <span>3. Store Info</span>
+                  <Palette className="w-4 h-4 text-slate-400" />
+                  <span>3. Templates</span>
+                  <span className="text-[9px] bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded font-black hidden sm:inline">
+                    Coming Soon
+                  </span>
                 </button>
               </div>
 
-              {/* ════════════════════ SUB-TAB 1: TEMPLATES ════════════════════ */}
+              {/* ════════════════════ SUB-TAB: TEMPLATES (COMING SOON) ════════════════════ */}
               {designSubTab === 'templates' && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Template Card 1: Editorial Boutique (preview.html PRO) */}
-                    <div
-                      className={`p-5 rounded-3xl border-2 transition-all relative flex flex-col justify-between ${
-                        storefrontTemplate === 'editorial'
-                          ? 'border-[#00A859] bg-amber-50/30 dark:bg-amber-950/10 shadow-lg ring-2 ring-[#00A859]'
-                          : 'border-black/15 bg-white dark:bg-neutral-900 hover:border-black/40'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-black text-sm text-slate-900 dark:text-white">Editorial Boutique</h3>
-                            <span className="text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
-                              PRO · Free in Beta
-                            </span>
-                          </div>
-                          {storefrontTemplate === 'editorial' && (
-                            <span className="text-[10px] font-black bg-[#00A859] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Active
-                            </span>
-                          )}
-                        </div>
+                <div className={`${cardClass} p-10 rounded-3xl text-center space-y-4 border border-black/15 animate-fade-in`}>
+                  <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-black/10 flex items-center justify-center mx-auto text-[#00A859]">
+                    <Palette className="w-7 h-7" />
+                  </div>
 
-                        <p className="text-xs opacity-75 leading-relaxed">
-                          Inspired by high-end design magazines: features a luxury split hero banner, animated marquee ribbon, curated collection tiles, brand philosophy section, and newsletter capture.
-                        </p>
-
-                        {/* Visual Mockup Showcase */}
-                        <div className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-[#f4f0e8] text-[#161616] p-3 space-y-2 overflow-hidden shadow-inner">
-                          <div className="flex items-center justify-between border-b border-[#d9d4ca] pb-1.5 text-[9px] font-black uppercase">
-                            <span>{storeName || 'YOUR BRAND'}</span>
-                            <span>Shop · Story · Cart 🛒</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 bg-[#e3dccf] rounded-xl p-2.5">
-                            <div className="space-y-1">
-                              <div className="h-2 w-12 bg-[#c95c35] rounded-full" />
-                              <div className="h-3 w-20 bg-[#161616] rounded" />
-                              <div className="h-1.5 w-16 bg-[#666158] rounded" />
-                            </div>
-                            <div className="h-14 bg-amber-800/20 rounded-lg" />
-                          </div>
-                          <div className="bg-[#c95c35] text-white text-[8px] font-black py-1 px-2 rounded text-center uppercase tracking-widest">
-                            NEW ARRIVALS ✦ MADE FOR EVERYDAY ✦ SHOP LOCAL
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setStorefrontTemplate('editorial')
-                            handleSaveCustomization()
-                          }}
-                          className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
-                            storefrontTemplate === 'editorial'
-                              ? 'bg-[#00A859] text-white shadow-sm'
-                              : 'bg-black text-white hover:bg-neutral-800'
-                          }`}
-                        >
-                          {storefrontTemplate === 'editorial' ? 'Current Theme' : 'Apply Editorial Theme'}
-                        </button>
-
-                        <Link
-                          href="/dashboard/customize"
-                          className="px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-black dark:text-white border border-black/20 rounded-xl text-xs font-bold hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-                          title="Customize theme"
-                        >
-                          Customize →
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Template Card 2: Classic Minimalist */}
-                    <div
-                      className={`p-5 rounded-3xl border-2 transition-all relative flex flex-col justify-between ${
-                        storefrontTemplate === 'classic'
-                          ? 'border-[#00A859] bg-neutral-100/60 dark:bg-neutral-900 shadow-lg ring-2 ring-[#00A859]'
-                          : 'border-black/15 bg-white dark:bg-neutral-900 hover:border-black/40'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-black text-sm text-slate-900 dark:text-white">Classic Minimalist</h3>
-                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full border border-black/10">
-                              STANDARD FREE
-                            </span>
-                          </div>
-                          {storefrontTemplate === 'classic' && (
-                            <span className="text-[10px] font-black bg-[#00A859] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Active
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-xs opacity-75 leading-relaxed">
-                          Clean, high-speed product catalog layout with search bar, instant filter pills, and quick 1-click cart drawer.
-                        </p>
-
-                        {/* Visual Mockup Showcase */}
-                        <div className="rounded-2xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-3 space-y-2 overflow-hidden shadow-inner">
-                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-1.5 text-[9px] font-bold">
-                            <span>{storeName || 'Store Name'}</span>
-                            <span>🛒 Cart</span>
-                          </div>
-                          <div className="h-10 bg-slate-100 dark:bg-neutral-900 rounded-lg flex items-center justify-center text-[9px] font-bold opacity-60">
-                            Search Products...
-                          </div>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
-                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
-                            <div className="h-12 bg-slate-100 dark:bg-neutral-900 rounded-lg" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setStorefrontTemplate('classic')
-                            handleSaveCustomization()
-                          }}
-                          className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all ${
-                            storefrontTemplate === 'classic'
-                              ? 'bg-[#00A859] text-white shadow-sm'
-                              : 'bg-black text-white hover:bg-neutral-800'
-                          }`}
-                        >
-                          {storefrontTemplate === 'classic' ? 'Current Theme' : 'Apply Classic Theme'}
-                        </button>
-                      </div>
-                    </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 px-3 py-1 rounded-full border border-black/10 inline-block">
+                      Templates Coming Soon
+                    </span>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white pt-2">
+                      Storefront Theme Marketplace
+                    </h3>
+                    <p className="text-xs opacity-70 max-w-md mx-auto leading-relaxed">
+                      We are crafting brand-new luxury, boutique, and streetwear storefront themes for Ondar vendors. New templates will be released in an upcoming update.
+                    </p>
                   </div>
                 </div>
               )}

@@ -34,6 +34,7 @@ import {
   PhoneCall,
   UserCheck,
   Crop,
+  Bell,
 } from 'lucide-react'
 import Link from 'next/link'
 import { BannerCropperModal } from '@/components/banner-cropper-modal'
@@ -41,6 +42,7 @@ import { BannerCropperModal } from '@/components/banner-cropper-modal'
 export default function MobileResponsiveDashboard() {
   const [activeTab, setActiveTab] = useState<'home' | 'inventory' | 'orders' | 'customers' | 'design' | 'settings'>('home')
   const [darkMode, setDarkMode] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const [store, setStore] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
@@ -615,6 +617,143 @@ export default function MobileResponsiveDashboard() {
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-2">
+          {/* ── NOTIFICATION BELL & ACTION ITEMS DROPDOWN ── */}
+          {(() => {
+            const lowStockAlerts = products.filter((p) => p.stock_quantity !== null && p.stock_quantity <= 3)
+            const pendingFollowups = orders.filter((o) => o.status === 'PENDING')
+            const totalAlertsCount = lowStockAlerts.length + pendingFollowups.length
+
+            return (
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={`p-2 rounded-xl border relative transition-colors ${
+                    showNotifications
+                      ? 'bg-black text-white border-black dark:bg-white dark:text-black'
+                      : darkMode
+                      ? 'border-neutral-800 hover:bg-neutral-900 text-neutral-300'
+                      : 'border-black hover:bg-neutral-100 text-black'
+                  }`}
+                  title="Notifications & Action Items"
+                >
+                  <Bell className="w-4 h-4" />
+                  {totalAlertsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-black animate-pulse">
+                      {totalAlertsCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Floating Dropdown Panel */}
+                {showNotifications && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowNotifications(false)}
+                    />
+                    <div
+                      className={`absolute right-0 mt-2 w-80 md:w-96 rounded-2xl border shadow-2xl z-50 p-4 space-y-3 animate-fade-in ${
+                        darkMode ? 'bg-neutral-950 border-neutral-800 text-white' : 'bg-white border-black text-black'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-2">
+                        <div className="flex items-center gap-1.5 font-black text-xs">
+                          <Bell className="w-3.5 h-3.5 text-[#00A859]" />
+                          <span>Action Items & Alerts</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
+                          {totalAlertsCount} pending
+                        </span>
+                      </div>
+
+                      <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                        {totalAlertsCount === 0 ? (
+                          <p className="text-xs text-slate-400 py-4 text-center font-medium">
+                            🎉 All caught up! No low-stock items or pending follow-ups.
+                          </p>
+                        ) : (
+                          <>
+                            {/* Low Stock Alerts */}
+                            {lowStockAlerts.map((p) => (
+                              <div
+                                key={p.id}
+                                className="p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 text-xs space-y-1"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-extrabold text-amber-900 dark:text-amber-300">
+                                    ⚠️ Low Stock Alert
+                                  </span>
+                                  <span className="font-bold text-[10px] text-amber-800 dark:text-amber-400 bg-white dark:bg-black px-1.5 py-0.5 rounded border border-amber-200">
+                                    {p.stock_quantity === 0 ? 'Out of stock' : `${p.stock_quantity} left`}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-700 dark:text-slate-300 truncate">
+                                  <strong>{p.name}</strong> is running low.
+                                </p>
+                                <button
+                                  onClick={() => {
+                                    setShowNotifications(false)
+                                    setActiveTab('inventory')
+                                  }}
+                                  className="text-[10px] font-black text-[#00A859] hover:underline block pt-0.5"
+                                >
+                                  Manage Inventory →
+                                </button>
+                              </div>
+                            ))}
+
+                            {/* Follow-up Reminders */}
+                            {pendingFollowups.map((o) => (
+                              <div
+                                key={o.id}
+                                className="p-2.5 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20 text-xs space-y-1"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-extrabold text-blue-900 dark:text-blue-300">
+                                    ⏳ Order Follow-Up Due
+                                  </span>
+                                  <span className="font-mono text-[10px] text-slate-500 font-bold">
+                                    #{o.id.slice(0, 8).toUpperCase()}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-700 dark:text-slate-300 truncate">
+                                  <strong>{o.customer_name || 'Customer'}</strong> (₦{Number(o.total_price).toLocaleString()}) awaiting confirmation.
+                                </p>
+                                <div className="flex items-center gap-2 pt-0.5">
+                                  <button
+                                    onClick={() => {
+                                      setShowNotifications(false)
+                                      setActiveTab('orders')
+                                    }}
+                                    className="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:underline"
+                                  >
+                                    View in Orders →
+                                  </button>
+                                  {o.customer_phone && (
+                                    <a
+                                      href={`https://wa.me/${o.customer_phone.replace(/[^0-9]/g, '').replace(/^0/, '234')}?text=${encodeURIComponent(
+                                        `Hi ${o.customer_name || 'there'}, following up on your order #${o.id.slice(0, 8).toUpperCase()}!`
+                                      )}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[10px] font-black text-[#25D366] hover:underline"
+                                    >
+                                      WhatsApp DM →
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })()}
+
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}

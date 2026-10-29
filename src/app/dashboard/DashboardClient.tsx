@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { OndarLogo } from "@/components/OndarLogo";
@@ -80,6 +80,14 @@ interface ChartItem {
   value: number;
 }
 
+export interface PeriodStats {
+  paidSales: number;
+  paidOrdersCount: number;
+  estProfit: number;
+  transactionsCount: number;
+  growthPct: number;
+}
+
 interface DashboardClientProps {
   merchantName: string;
   merchantInitial: string;
@@ -90,6 +98,7 @@ interface DashboardClientProps {
   displayStoreUrl: string;
   formattedDate: string;
   metrics: DashboardMetrics;
+  periodHistory?: Record<"today" | "yesterday" | "7d" | "30d" | "all", PeriodStats>;
   charts: {
     chart7D: ChartItem[];
     chart30D: ChartItem[];
@@ -110,12 +119,84 @@ export function DashboardClient({
   displayStoreUrl,
   formattedDate,
   metrics,
+  periodHistory,
   charts,
   attentionItems,
   products: initialProducts,
   totalProductsCount,
 }: DashboardClientProps) {
   const router = useRouter();
+
+  // Store link client-side adaptation (handles preview, custom domain, and staging)
+  const [effectiveFullUrl, setEffectiveFullUrl] = useState(fullStoreUrl);
+  const [effectiveDisplayUrl, setEffectiveDisplayUrl] = useState(displayStoreUrl);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.host) {
+      const host = window.location.host;
+      const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+      const isStaging = host.includes("vercel.app") || host.includes("netlify.app");
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "ondar.ng";
+      const supportsSub =
+        !isLocal && !isStaging && (host === rootDomain || host.endsWith(`.${rootDomain}`));
+      if (!supportsSub) {
+        setEffectiveFullUrl(`${window.location.protocol}//${host}/s/${slug}`);
+        setEffectiveDisplayUrl(`${host}/s/${slug}`);
+      }
+    }
+  }, [slug]);
+
+  // Real-time auto-refresh every 15s to catch new orders
+  useEffect(() => {
+    const timer = setInterval(() => {
+      router.refresh();
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [router]);
+
+  // Timeline / Date filter for past days & history
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "today" | "yesterday" | "7d" | "30d" | "all"
+  >("today");
+  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
+
+  const periodLabels: Record<string, string> = {
+    today: "Today",
+    yesterday: "Yesterday",
+    "7d": "Last 7 Days",
+    "30d": "Last 30 Days",
+    all: "All Time",
+  };
+
+  const periodTitles: Record<string, string> = {
+    today: "Today at a glance",
+    yesterday: "Yesterday at a glance",
+    "7d": "Last 7 days performance",
+    "30d": "Last 30 days performance",
+    all: "All time performance",
+  };
+
+  const activePeriodStats = useMemo(() => {
+    if (periodHistory && periodHistory[selectedPeriod]) {
+      return periodHistory[selectedPeriod];
+    }
+    if (selectedPeriod === "today") {
+      return {
+        paidSales: metrics.todaySales,
+        paidOrdersCount: metrics.todayTransactionsCount,
+        estProfit: Math.round(metrics.todaySales * 0.99),
+        transactionsCount: metrics.todayTransactionsCount,
+        growthPct: metrics.salesGrowthPct,
+      };
+    }
+    return {
+      paidSales: metrics.paidSales,
+      paidOrdersCount: metrics.paidOrdersCount,
+      estProfit: metrics.estProfit,
+      transactionsCount: metrics.paidOrdersCount,
+      growthPct: metrics.salesGrowthPct,
+    };
+  }, [periodHistory, selectedPeriod, metrics]);
 
   // Chart Period Filter (7D, 30D, 90D)
   const [chartPeriod, setChartPeriod] = useState<"7D" | "30D" | "90D">("7D");
@@ -171,7 +252,7 @@ export function DashboardClient({
   // Handle Copy Store Link
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(fullStoreUrl);
+      await navigator.clipboard.writeText(effectiveFullUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     } catch {
@@ -186,7 +267,7 @@ export function DashboardClient({
         await navigator.share({
           title: businessName,
           text: `Check out ${businessName} on Ondar!`,
-          url: fullStoreUrl,
+          url: effectiveFullUrl,
         });
         return;
       } catch {
@@ -344,7 +425,7 @@ export function DashboardClient({
                     </Link>
 
                     <a
-                      href={fullStoreUrl}
+                      href={effectiveFullUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setIsUserMenuOpen(false)}
@@ -412,20 +493,20 @@ export function DashboardClient({
 
               {/* URL Display Link */}
               <a
-                href={fullStoreUrl}
+                href={effectiveFullUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#00A859] hover:underline mb-4 pl-0.5"
               >
                 <Link2 className="w-3.5 h-3.5" />
-                <span>{displayStoreUrl}</span>
+                <span>{effectiveDisplayUrl}</span>
                 <ExternalLink className="w-3 h-3 text-[#00A859]" />
               </a>
 
               {/* Action Buttons: Preview Store & Share Link */}
               <div className="flex items-center gap-2">
                 <a
-                  href={fullStoreUrl}
+                  href={effectiveFullUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-2.5 rounded-xl bg-white border border-[#00A859] text-[#00A859] hover:bg-emerald-50 text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98]"
@@ -457,13 +538,46 @@ export function DashboardClient({
         {/* ============================================================== */}
         <section className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-neutral-900 tracking-tight">Today at a glance</h2>
+            <h2 className="text-base font-bold text-neutral-900 tracking-tight">
+              {periodTitles[selectedPeriod]}
+            </h2>
 
-            {/* Date Pill Selector */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-neutral-200 bg-white text-[11px] font-medium text-neutral-600 shadow-2xs">
-              <Calendar className="w-3 h-3 text-neutral-400" />
-              <span>{formattedDate}</span>
-              <ChevronDown className="w-3 h-3 text-neutral-400" />
+            {/* Interactive Date Pill Selector */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsDateFilterOpen(!isDateFilterOpen)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-neutral-200 bg-white text-[11px] font-bold text-neutral-700 shadow-2xs hover:bg-neutral-50 transition-colors cursor-pointer"
+              >
+                <Calendar className="w-3 h-3 text-[#00A859]" />
+                <span>{periodLabels[selectedPeriod]}</span>
+                <ChevronDown className="w-3 h-3 text-neutral-400" />
+              </button>
+
+              {isDateFilterOpen && (
+                <div className="absolute right-0 top-full mt-1.5 z-30 w-44 bg-white rounded-xl border border-neutral-200 shadow-lg py-1 text-xs">
+                  {(["today", "yesterday", "7d", "30d", "all"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPeriod(p);
+                        setIsDateFilterOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                        selectedPeriod === p
+                          ? "text-[#00A859] bg-[#E8F8EF]"
+                          : "text-neutral-700 hover:bg-neutral-50"
+                      }`}
+                    >
+                      <span>{periodLabels[p]}</span>
+                      {selectedPeriod === p && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00A859]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -477,17 +591,19 @@ export function DashboardClient({
                 </div>
                 <p className="text-[11px] font-medium text-neutral-500">Paid sales</p>
                 <p className="text-lg font-black text-neutral-900 tracking-tight mt-0.5">
-                  ₦{metrics.paidSales.toLocaleString("en-NG")}
+                  ₦{activePeriodStats.paidSales.toLocaleString("en-NG")}
                 </p>
               </div>
               <div className="mt-2.5 flex items-center gap-1 text-[11px]">
-                {metrics.salesGrowthPct > 0 ? (
+                {activePeriodStats.growthPct > 0 ? (
                   <>
-                    <span className="font-bold text-[#00A859]">↑ {metrics.salesGrowthPct}%</span>
+                    <span className="font-bold text-[#00A859]">↑ {activePeriodStats.growthPct}%</span>
                     <span className="text-neutral-400 text-[10px]">vs. 7d</span>
                   </>
                 ) : (
-                  <span className="text-neutral-400 text-[10px]">vs. previous 7d</span>
+                  <span className="text-neutral-400 text-[10px]">
+                    {selectedPeriod === "today" ? "today" : periodLabels[selectedPeriod].toLowerCase()}
+                  </span>
                 )}
               </div>
             </div>
@@ -500,18 +616,13 @@ export function DashboardClient({
                 </div>
                 <p className="text-[11px] font-medium text-neutral-500">Orders</p>
                 <p className="text-lg font-black text-neutral-900 tracking-tight mt-0.5">
-                  {metrics.paidOrdersCount}
+                  {activePeriodStats.paidOrdersCount}
                 </p>
               </div>
               <div className="mt-2.5 flex items-center gap-1 text-[11px]">
-                {metrics.ordersGrowthPct > 0 ? (
-                  <>
-                    <span className="font-bold text-[#00A859]">↑ {metrics.ordersGrowthPct}%</span>
-                    <span className="text-neutral-400 text-[10px]">vs. 7d</span>
-                  </>
-                ) : (
-                  <span className="text-neutral-400 text-[10px]">vs. previous 7d</span>
-                )}
+                <span className="text-neutral-400 text-[10px]">
+                  {activePeriodStats.paidOrdersCount} completed
+                </span>
               </div>
             </div>
 
@@ -526,13 +637,13 @@ export function DashboardClient({
                   <Info className="w-3 h-3 text-neutral-400" />
                 </div>
                 <p className="text-lg font-black text-neutral-900 tracking-tight mt-0.5">
-                  ₦{metrics.estProfit.toLocaleString("en-NG")}
+                  ₦{activePeriodStats.estProfit.toLocaleString("en-NG")}
                 </p>
                 <p className="text-[10px] text-neutral-400">(99% payout split)</p>
               </div>
               <div className="mt-1.5 flex items-center gap-1 text-[11px]">
                 <span className="font-bold text-[#00A859]">
-                  {metrics.paidSales > 0 ? "Active" : "—"}
+                  {activePeriodStats.paidSales > 0 ? "Active" : "—"}
                 </span>
               </div>
             </div>
@@ -950,7 +1061,7 @@ export function DashboardClient({
             </p>
 
             <div className="p-3 rounded-2xl bg-neutral-100 flex items-center justify-between gap-2 mb-4">
-              <span className="text-xs font-bold text-neutral-800 truncate">{fullStoreUrl}</span>
+              <span className="text-xs font-bold text-neutral-800 truncate">{effectiveFullUrl}</span>
               <button
                 type="button"
                 onClick={handleCopyLink}
@@ -964,7 +1075,7 @@ export function DashboardClient({
             <div className="flex flex-col gap-2">
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(
-                  `Hello! Check out my shop on Ondar: ${fullStoreUrl}`
+                  `Hello! Check out my shop on Ondar: ${effectiveFullUrl}`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

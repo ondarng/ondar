@@ -499,14 +499,14 @@ export default function BusinessProfileSettingsPage() {
             )}
           </button>
 
-          {/* Back to settings link */}
+          {/* Back to Home link */}
           <div className="mt-6 text-center">
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 text-xs font-bold text-neutral-600 hover:text-neutral-900 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to settings</span>
+              <span>Back to Home</span>
             </Link>
           </div>
         </form>

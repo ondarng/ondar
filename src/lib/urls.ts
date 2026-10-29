@@ -9,20 +9,46 @@
  * - Store URL:   `[slug].ondar.ng` (or `[slug].[domain]`)
  * - Product URL: `[slug].ondar.ng/p/[productSlug]`
  */
-export function getStoreUrls(slug: string, productSlug?: string) {
+export function getStoreUrls(
+  slug: string,
+  productSlug?: string,
+  serverHost?: string,
+  serverProto?: string
+) {
   const cleanSlug = slug || "shop";
   const cleanProductSlug = productSlug || "product";
 
-  // Check if we are running in browser
+  // Check if we are running in browser or given server host
   const isBrowser = typeof window !== "undefined";
-  const host = isBrowser ? window.location.host : "localhost:3000";
-  const protocol = isBrowser ? window.location.protocol : "https:";
+  const rawHost =
+    serverHost ||
+    (isBrowser
+      ? window.location.host
+      : process.env.NEXT_PUBLIC_APP_URL
+      ? new URL(process.env.NEXT_PUBLIC_APP_URL).host
+      : "localhost:3000");
+
+  const host = rawHost.replace(/:\d+$/, (match) =>
+    match === ":80" || match === ":443" ? "" : match
+  );
+
+  const protocol = serverProto
+    ? serverProto.endsWith(":")
+      ? serverProto
+      : `${serverProto}:`
+    : isBrowser
+    ? window.location.protocol
+    : host.includes("localhost") || host.includes("127.0.0.1")
+    ? "http:"
+    : "https:";
+
   const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
   const isStaging = host.includes("vercel.app") || host.includes("netlify.app");
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "ondar.ng";
   // Only use subdomain routing if explicitly on the real root domain (e.g. ondar.ng), not localhost or staging
-  const supportsSubdomains = !isLocalhost && !isStaging && (host === rootDomain || host.endsWith(`.${rootDomain}`));
+  const supportsSubdomains =
+    !isLocalhost && !isStaging && (host === rootDomain || host.endsWith(`.${rootDomain}`));
 
   if (!supportsSubdomains) {
     const displayStore = `${host}/s/${cleanSlug}`;

@@ -78,7 +78,7 @@ function CheckoutContent({
   whatsappNumber,
   phoneNumber,
   deliveryEnabled = true,
-  pickupEnabled = true,
+  pickupEnabled = false,
   shippingRates = [],
   initialBankDetails,
   hasPaystack = false,
@@ -89,7 +89,7 @@ function CheckoutContent({
 
   const hasRealRates = shippingRates && shippingRates.length > 0;
   const isDeliveryAvailable = deliveryEnabled && (!hasRealRates || shippingRates.length > 0);
-  const isPickupAvailable = pickupEnabled;
+  const isPickupAvailable = Boolean(pickupEnabled && pickupAddress && pickupAddress.trim());
 
   // Wizard Step: 1 = Delivery details & Customer details (Screen C02), 3 = Review ("One last look"), 4 = Ready to Pay
   const [currentStep, setCurrentStep] = useState<1 | 3 | 4>(1);
@@ -160,7 +160,10 @@ function CheckoutContent({
   };
 
   const handleMarkPaymentSent = async () => {
-    if (!createdOrderId) return;
+    if (!createdOrderId) {
+      setPaymentError("Order session expired. Please refresh.");
+      return;
+    }
     setIsClaimingPayment(true);
     setPaymentError(null);
     try {
@@ -376,17 +379,19 @@ function CheckoutContent({
         if (data.bankDetails) {
           setBankDetails(data.bankDetails);
         }
+        clearCart();
+        setCurrentStep(4);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        const fallbackOrderNum = 1000 + Math.floor(Math.random() * 900);
-        setCreatedOrderNumber(fallbackOrderNum);
+        const errData = await res.json().catch(() => ({}));
+        setPaymentError(
+          errData.error || "Unable to place order. Please review your details and try again."
+        );
       }
     } catch {
-      const fallbackOrderNum = 1000 + Math.floor(Math.random() * 900);
-      setCreatedOrderNumber(fallbackOrderNum);
+      setPaymentError("A network error occurred while placing your order. Please try again.");
     } finally {
       setIsSubmitting(false);
-      setCurrentStep(4);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

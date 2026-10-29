@@ -1,6 +1,7 @@
 import React from "react";
 import { getCurrentMerchant } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getStoreUrls } from "@/lib/urls";
 import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "./DashboardClient";
@@ -17,9 +18,13 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") || headersList.get("host") || "localhost:3000";
+  const proto = headersList.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+
   const business = merchant.businessProfile;
   const slug = business?.slug || "shop";
-  const urls = getStoreUrls(slug);
+  const urls = getStoreUrls(slug, undefined, host, proto);
 
   // Derive display first name
   let firstName = "Merchant";
@@ -90,12 +95,43 @@ export default async function DashboardPage() {
   const pendingKobo = pendingOrders.reduce((acc, o) => acc + BigInt(o.totalKobo), BigInt(0));
   const pendingNaira = Math.round(Number(pendingKobo) / 100);
 
-  // 5. Today's stats
+  // 5. Today's stats & History Metrics
+  const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
   const todayPaid = paidOrders.filter((o) => o.createdAt >= startOfToday);
   const todayPaidKobo = todayPaid.reduce((acc, o) => acc + BigInt(o.totalKobo), BigInt(0));
   const todayPaidNaira = Math.round(Number(todayPaidKobo) / 100);
 
   const newOrdersToday = orders.filter((o) => o.createdAt >= startOfToday);
+
+  function getStatsForOrders(orderList: typeof paidOrders, growth = 0) {
+    const kobo = orderList.reduce((acc, o) => acc + BigInt(o.totalKobo), BigInt(0));
+    const paidSales = Math.round(Number(kobo) / 100);
+    const paidOrdersCount = orderList.length;
+    const estProfit = Math.round(paidSales * 0.99);
+    return {
+      paidSales,
+      paidOrdersCount,
+      estProfit,
+      transactionsCount: paidOrdersCount,
+      growthPct: growth,
+    };
+  }
+
+  const periodHistory = {
+    today: getStatsForOrders(todayPaid, salesGrowthPct),
+    yesterday: getStatsForOrders(
+      paidOrders.filter((o) => o.createdAt >= startOfYesterday && o.createdAt < startOfToday),
+      0
+    ),
+    "7d": getStatsForOrders(paidLast7, salesGrowthPct),
+    "30d": getStatsForOrders(
+      paidOrders.filter((o) => o.createdAt >= thirtyDaysAgo),
+      0
+    ),
+    all: getStatsForOrders(paidOrders, 0),
+  };
 
   // 6. Low stock products (stockOnHand <= 2)
   const lowStockProducts = products.filter((p) => p.stockOnHand <= 2 && p.trackStock);
@@ -243,6 +279,7 @@ export default async function DashboardPage() {
         chart90D,
       }}
       attentionItems={attentionItems}
+      periodHistory={periodHistory}
       products={formattedProducts}
       totalProductsCount={products.length}
     />

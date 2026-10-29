@@ -315,7 +315,10 @@ export function ChooseDeliveryAreaModal({
                     <button
                       key={option.name}
                       type="button"
-                      onClick={() => setSelectedOptionName(option.name)}
+                      onClick={() => {
+                        setSelectedOptionName(option.name);
+                        onConfirm(option);
+                      }}
                       className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                         isSelected
                           ? "border-[#00A859] bg-[#E8F8EF]/40"

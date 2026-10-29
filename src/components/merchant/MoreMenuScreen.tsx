@@ -357,7 +357,7 @@ export function MoreMenuScreen({
 
             {/* Bank details & Payouts */}
             <Link
-              href="/settings/profile"
+              href="/settings/payouts"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">

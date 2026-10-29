@@ -7,6 +7,7 @@ import {
 } from "@/components/storefront/customer/StorefrontCatalogClient";
 import { ElectronicsCatalogClient } from "@/components/storefront/customer/ElectronicsCatalogClient";
 import { FashionCatalogClient } from "@/components/storefront/customer/FashionCatalogClient";
+import { FoodCatalogClient } from "@/components/storefront/customer/FoodCatalogClient";
 
 interface Props {
   params: Promise<{
@@ -63,6 +64,23 @@ export default async function PublicStorefrontPage({ params }: Props) {
       options: v.options,
     })),
   }));
+
+  if (profile.templateId === "food") {
+    return (
+      <FoodCatalogClient
+        businessName={profile.businessName}
+        storeSlug={slug}
+        description={profile.description}
+        logoUrl={profile.logoUrl}
+        city={profile.city}
+        state={profile.state}
+        whatsappNumber={profile.whatsappNumber}
+        phoneNumber={profile.phoneNumber || undefined}
+        returnPolicy={profile.returnPolicy}
+        products={products}
+      />
+    );
+  }
 
   if (profile.templateId === "fashion") {
     return (

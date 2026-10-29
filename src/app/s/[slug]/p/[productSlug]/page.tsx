@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { StorefrontProductClient } from "@/components/storefront/customer/StorefrontProductClient";
 import { FashionProductClient } from "@/components/storefront/customer/FashionProductClient";
+import { FoodProductClient } from "@/components/storefront/customer/FoodProductClient";
 
 interface Props {
   params: Promise<{
@@ -60,6 +61,22 @@ export default async function PublicProductPage({ params }: Props) {
       options: v.options,
     })),
   };
+
+  if (profile.templateId === "food") {
+    return (
+      <FoodProductClient
+        businessName={profile.businessName}
+        storeSlug={slug}
+        city={profile.city}
+        state={profile.state}
+        tagline={profile.description}
+        whatsappNumber={profile.whatsappNumber}
+        phoneNumber={profile.phoneNumber || undefined}
+        returnPolicy={profile.returnPolicy}
+        product={product}
+      />
+    );
+  }
 
   if (profile.templateId === "fashion") {
     return (

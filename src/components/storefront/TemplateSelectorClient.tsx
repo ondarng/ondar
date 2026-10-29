@@ -34,6 +34,15 @@ const TEMPLATES: TemplateOption[] = [
     previewColor: "bg-neutral-900",
   },
   {
+    id: "food",
+    name: "Mama's Kitchen & Dining",
+    tagline: "Appetizing food menu & custom meal extras",
+    description: "Warm peach & terracotta theme (#FCE7D2) with operating hours, portion toggles (Regular vs Large), custom food extras (Extra chicken/plantain), quantity steppers, and minimum order notices.",
+    badge: "Free · Kitchen",
+    idealFor: "Restaurants, Cloud Kitchens, Caterers, Bakeries & Food Vendors",
+    previewColor: "bg-[#BA3C1D]",
+  },
+  {
     id: "electronics",
     name: "Cyber Tech & Gadgets",
     tagline: "High-density dark grid & spec badges",

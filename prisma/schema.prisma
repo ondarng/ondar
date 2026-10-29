@@ -1,0 +1,355 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum OnboardingStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  HIDDEN
+  ARCHIVED
+}
+
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PAYMENT_SENT
+  TO_FULFIL
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  AWAITING_PAYMENT
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum StockChangeReason {
+  INITIAL_STOCK
+  RESERVE_HOLD
+  COMMIT_SALE
+  RELEASE_HOLD
+  MANUAL_RESTOCK
+  MANUAL_CORRECTION
+  RETURN
+}
+
+model Merchant {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  passwordHash    String?          // For Email + Password auth (null for Google-only users)
+  googleId        String?          @unique
+  onboardingStep  Int              @default(1)
+  onboardingState OnboardingStatus @default(IN_PROGRESS)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  businessProfile BusinessProfile?
+  products        Product[]
+  orders          Order[]
+  customers       Customer[]
+  payoutAccount   PayoutAccount?
+  paymentConfig   MerchantPaymentConfig?
+  customCheckoutLinks CustomCheckoutLink[]
+  shippingRates   ShippingRate[]
+  orderCounter    OrderCounter?
+}
+
+model BusinessProfile {
+  id             String   @id @default(cuid())
+  merchantId     String   @unique
+  merchant       Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  
+  businessName   String
+  slug           String   @unique // slug.ondar.ng
+  description    String?
+  logoUrl        String?
+  whatsappNumber String
+  phoneNumber    String?
+  
+  state          String
+  city           String
+  address        String?  // Pickup address (revealed only after payment)
+  secondaryPhone String?
+  publicEmail    String?
+  instagram      String?
+  templateId     String   @default("default") // "default" | "electronics" | "boutique"
+  tiktok         String?
+  deliveryCoverage String? @default("Lagos - Ikeja, Yaba and Lekki")
+  deliveryEnabled  Boolean @default(false)
+  pickupEnabled    Boolean @default(false)
+  pickupInstructions String? @default("Call on arrival. Please have your order number ready.")
+  returnPolicy   String?  @default("Returns accepted within 7 days of delivery. Items must be unused and in their original condition. Message us on WhatsApp to arrange a return. Return delivery is paid by the customer unless the item is faulty.")
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+model PayoutAccount {
+  id                     String   @id @default(cuid())
+  merchantId             String   @unique
+  merchant               Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  bankCode               String
+  bankName               String
+  accountNumber          String
+  accountName            String
+  paystackSubaccountCode String   // SUB_xxx from Paystack
+  isVerified             Boolean  @default(false)
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model MerchantPaymentConfig {
+  id                  String   @id @default(cuid())
+  merchantId          String   @unique
+  merchant            Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  paystackPublicKey   String   // pk_live_... or pk_test_...
+  encryptedSecretKey  String   // AES-256-GCM encrypted hex
+  secretKeyIv         String   // 96-bit IV (hex)
+  secretKeyTag        String   // 128-bit auth tag (hex)
+  keyLast4            String   // Last 4 characters for safe UI display (e.g. "a9f2")
+
+  ondarSubaccountCode String   // ACCT_... subaccount on merchant's Paystack holding Ondar's 1% split
+
+  feeBearer           String   @default("MERCHANT") // "MERCHANT" ("I pay") or "CUSTOMER" ("My customer pays")
+
+  isActive            Boolean  @default(true)
+  isLiveMode          Boolean  @default(true)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Product {
+  id             String        @id @default(cuid())
+  merchantId     String
+  merchant       Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  name           String
+  slug           String
+  description    String?
+  sku            String?
+  category       String?
+  priceKobo      BigInt        // Selling price in integer kobo (e.g. 500000 = ₦5,000)
+  costKobo       BigInt?       // Private merchant cost (never exposed)
+  status         ProductStatus @default(ACTIVE)
+
+  trackStock     Boolean       @default(true)
+  isOutOfStockManual Boolean   @default(false)
+  stockOnHand    Int           @default(0)
+  stockReserved  Int           @default(0)
+  lowStockThreshold Int?
+  // Available = stockOnHand - stockReserved
+
+  images         ProductImage[]
+  variants       ProductVariant[]
+  stockHistory   StockAudit[]
+  orderLines     OrderLine[]
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([merchantId, slug])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int      @default(0)
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title         String   // e.g. "M / Green"
+  sku           String?
+  priceKobo     BigInt?  // Price override (optional)
+  costKobo      BigInt?  // Cost override (optional)
+  stockOnHand   Int      @default(0)
+  stockReserved Int      @default(0)
+  imageUrl      String?
+  options       Json?    // e.g. {"Size": "M", "Colour": "Green"}
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model StockAudit {
+  id              String            @id @default(cuid())
+  productId       String
+  product         Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  changeQty       Int               // Positive or negative change
+  beforeAvailable Int
+  afterAvailable  Int
+  beforeOnHand    Int               @default(0)
+  afterOnHand     Int               @default(0)
+  beforeReserved  Int               @default(0)
+  afterReserved   Int               @default(0)
+  reason          StockChangeReason
+  referenceId     String?           // Order ID or manual note
+  note            String?           // Detailed merchant note
+  actor           String?           // e.g. "Merchant adjustment", "Product creation", "Orders · Automatic"
+  createdAt       DateTime          @default(now())
+
+  @@index([productId])
+}
+
+model CustomCheckoutLink {
+  id              String      @id @default(cuid())
+  merchantId      String
+  merchant        Merchant    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  token           String      @unique @default(cuid())
+  note            String?     // Negotiation note (e.g. "Agreed ₦40,000 for 2 shirts + 1 tote")
+  status          String      @default("ACTIVE") // "ACTIVE", "USED", "EXPIRED", "CANCELLED"
+  expiresAt       DateTime    // 24 hours from creation
+  totalKobo       BigInt
+  items           Json        // Snapshot of selected items, quantities, agreed unit prices
+  orderId         String?     // Linked order once placed
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([merchantId])
+  @@index([token])
+}
+
+model Order {
+
+  id              String        @id @default(cuid())
+  merchantId      String
+  merchant        Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orderNumber     Int           // Sequential per merchant (#1001)
+  publicToken     String        @unique @default(cuid()) // Unguessable URL for customer
+
+  orderStatus     OrderStatus   @default(AWAITING_PAYMENT)
+  paymentStatus   PaymentStatus @default(AWAITING_PAYMENT)
+  
+  // Customer details (Snapshot)
+  customerName         String
+  customerPhone        String
+  customerEmail        String?
+  customerNote         String?
+
+  // Delivery details (Snapshot)
+  deliveryType         String        // "pickup" or "delivery"
+  deliveryFeeKobo      BigInt        @default(0)
+  deliveryState        String?
+  deliveryArea         String?
+  deliveryAddress      String?
+  deliveryInstructions String?
+
+  // Money breakdown in Kobo
+  subtotalKobo         BigInt
+  discountKobo         BigInt        @default(0)
+  processingFeeKobo    BigInt        @default(0)   // Paystack processing fee if customer bears it
+  totalKobo            BigInt
+  ondarCutKobo         BigInt        // 1% of subtotal (capped at ₦1,000)
+  paymentReference     String?       @unique       // External transaction ref (e.g. PAY-...)
+  refundedKobo         BigInt        @default(0)   // Total kobo refunded outside Ondar
+  paymentRoute         String?                     // "PAYSTACK", "BANK_TRANSFER", "MANUAL", "RECORDED"
+  source               String        @default("STOREFRONT") // "STOREFRONT", "CUSTOM_CHECKOUT", "RECORDED"
+  flag                 String?                     // "PAID_OUT_OF_STOCK", "PAYMENT_MISMATCH", "STALE_24H"
+  flagDetails          String?                     // Explanatory text for the flag
+  privateNote          String?                     // Vendor private note on the order
+
+  // Hold expiry & payment claim timestamps
+  holdExpiresAt        DateTime?
+  paymentSentAt        DateTime?
+  paymentConfirmedAt   DateTime?
+
+  lines                OrderLine[]
+  events               OrderEvent[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@unique([merchantId, orderNumber])
+}
+
+/** Allocates human-readable order numbers without a latest-plus-one race. */
+model OrderCounter {
+  merchantId      String   @id
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  nextOrderNumber Int      @default(1001)
+  updatedAt       DateTime @updatedAt
+}
+
+model OrderEvent {
+  id         String      @id @default(cuid())
+  orderId    String
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  actor      String      // "customer", "vendor", "system"
+  note       String?
+  createdAt  DateTime    @default(now())
+
+  @@index([orderId])
+}
+
+model OrderLine {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  name        String   // Snapshot of product name
+  priceKobo   BigInt   // Snapshot of price per item
+  quantity    Int
+  lineTotal   BigInt
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  merchantId     String
+  merchant       Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  phone          String   // Normalized +234
+  name           String
+  email          String?
+  totalOrders    Int      @default(0)
+  totalSpentKobo BigInt   @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([merchantId, phone])
+}
+
+model ShippingRate {
+  id                String         @id @default(cuid())
+  merchantId        String
+  merchant          Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  state             String         // e.g. "Lagos", "Abuja (FCT)"
+  parentId          String?        // null for statewide fallback rate; set for area overrides
+  parent            ShippingRate?  @relation("StateOverrides", fields: [parentId], references: [id], onDelete: Cascade)
+  overrides         ShippingRate[] @relation("StateOverrides")
+
+  area              String?        // null for statewide fallback; e.g. "Ikeja", "Lekki Phase 1"
+  deliveryName      String         // e.g. "Lagos delivery", "Ikeja free delivery"
+  isFree            Boolean        @default(false)
+  feeKobo           BigInt         @default(0) // 0 if free
+  estimatedDelivery String?        // e.g. "2–4 business days"
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([merchantId])
+  @@index([parentId])
+}

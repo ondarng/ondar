@@ -25,6 +25,15 @@ const TEMPLATES: TemplateOption[] = [
     previewColor: "bg-[#00A859]",
   },
   {
+    id: "fashion",
+    name: "Zuri Luxe Fashion",
+    tagline: "Editorial portrait grid & bespoke sizing",
+    description: "High-end serif typography, circular category stories, live color swatches, out-of-stock strikes, size guide, and bespoke custom measurements add-on (+₦3,000).",
+    badge: "Free · Designer",
+    idealFor: "Ready-to-wear, Made-to-order, Nigerian Designers & Tailors",
+    previewColor: "bg-neutral-900",
+  },
+  {
     id: "electronics",
     name: "Cyber Tech & Gadgets",
     tagline: "High-density dark grid & spec badges",

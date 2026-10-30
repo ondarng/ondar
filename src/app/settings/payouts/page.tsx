@@ -328,17 +328,34 @@ export default function PayoutSettingsPage() {
                 </div>
               </div>
 
-              {/* 3. Verified Account Name Preview */}
-              {isNameResolved && accountName && (
-                <div className="p-3 rounded-xl bg-[#E8F8EF] border border-[#00A859]/30 text-xs">
-                  <span className="text-[10px] font-bold text-[#00A859] uppercase block tracking-wider">
-                    Verified Account Name
-                  </span>
-                  <p className="font-extrabold text-neutral-900 text-sm mt-0.5">
-                    {accountName}
-                  </p>
+              {/* 3. Account Name */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-neutral-700">
+                    Account Holder Name
+                  </label>
+                  {isNameResolved && (
+                    <span className="text-[10px] font-bold text-[#00A859] flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified by bank
+                    </span>
+                  )}
                 </div>
-              )}
+                <input
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => {
+                    setAccountName(e.target.value);
+                    setIsNameResolved(false);
+                    setSaveSuccess(false);
+                  }}
+                  placeholder="e.g. ADA OKAFOR"
+                  className="w-full h-11 px-3.5 rounded-xl border border-neutral-200 text-xs font-bold text-neutral-900 uppercase placeholder:normal-case placeholder:font-normal placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] transition-colors"
+                />
+                <p className="text-[11px] text-neutral-400 mt-1">
+                  Official name registered with this bank account.
+                </p>
+              </div>
 
               {/* Error messages */}
               {resolveError && (
@@ -365,7 +382,7 @@ export default function PayoutSettingsPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSaving || isResolving || !isNameResolved}
+                disabled={isSaving || isResolving || accountNumber.length !== 10 || !selectedBank || !accountName.trim()}
                 className="w-full h-11 rounded-xl bg-[#00A859] hover:bg-[#00924c] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 {isSaving ? (

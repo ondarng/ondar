@@ -70,11 +70,10 @@ export default function OnboardingPage() {
   const [banksList, setBanksList] = useState<BankItem[]>([]);
   const [selectedBankCode, setSelectedBankCode] = useState("058");
   const [selectedBankName, setSelectedBankName] = useState("Guaranty Trust Bank");
-  const [accountNumber, setAccountNumber] = useState("0123456789");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [isResolvingAccount, setIsResolvingAccount] = useState(false);
-  const [resolvedAccountName, setResolvedAccountName] = useState<string | null>(null);
-  const [manualAccountName, setManualAccountName] = useState("");
-  const [showManualInput, setShowManualInput] = useState(false);
+  const [isVerifiedByBank, setIsVerifiedByBank] = useState(false);
   const [payoutSubStep, setPayoutSubStep] = useState<"input" | "confirm">("input");
 
   // Step 5 State (Copied feedback)
@@ -133,7 +132,10 @@ export default function OnboardingPage() {
             if (data.payout.bankCode) setSelectedBankCode(data.payout.bankCode);
             if (data.payout.bankName) setSelectedBankName(data.payout.bankName);
             if (data.payout.accountNumber) setAccountNumber(data.payout.accountNumber);
-            if (data.payout.accountName) setResolvedAccountName(data.payout.accountName);
+            if (data.payout.accountName) {
+              setAccountName(data.payout.accountName);
+              setIsVerifiedByBank(true);
+            }
           }
 
           if (data.step >= 1 && data.step <= 5) {
@@ -392,8 +394,55 @@ export default function OnboardingPage() {
     }
   };
 
-  // Step 4 Sub-step A: Resolve Bank Account via Paystack API
-  const handleResolveAccount = async (e: React.FormEvent) => {
+  // Auto-resolve account details when 10 digits entered or bank changed
+  const autoResolveAccount = async (acct: string, bankCode: string) => {
+    if (acct.length !== 10) return;
+    setIsResolvingAccount(true);
+    try {
+      const res = await fetch("/api/banks/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountNumber: acct,
+          bankCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.accountName) {
+        setAccountName(data.accountName);
+        setIsVerifiedByBank(true);
+      }
+    } catch {
+      // Resolution error caught gracefully; merchant can still type account name manually
+    } finally {
+      setIsResolvingAccount(false);
+    }
+  };
+
+  const handleAccountNumberChange = (val: string) => {
+    const digitsOnly = val.replace(/[^0-9]/g, "").slice(0, 10);
+    setAccountNumber(digitsOnly);
+    setIsVerifiedByBank(false);
+
+    if (digitsOnly.length === 10) {
+      autoResolveAccount(digitsOnly, selectedBankCode);
+    }
+  };
+
+  const handleBankChange = (code: string) => {
+    setSelectedBankCode(code);
+    const b = banksList.find((item) => item.code === code);
+    if (b) setSelectedBankName(b.name);
+    setIsVerifiedByBank(false);
+
+    const digitsOnly = accountNumber.replace(/[^0-9]/g, "");
+    if (digitsOnly.length === 10) {
+      autoResolveAccount(digitsOnly, code);
+    }
+  };
+
+  const handleContinueToReview = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -403,44 +452,11 @@ export default function OnboardingPage() {
       return;
     }
 
-    setIsResolvingAccount(true);
-    try {
-      const res = await fetch("/api/banks/resolve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accountNumber: cleanAccount,
-          bankCode: selectedBankCode,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setErrorMessage(
-          data.error || "Could not resolve bank account details. Check account number and bank, or enter your name manually below."
-        );
-        setShowManualInput(true);
-        return;
-      }
-
-      setResolvedAccountName(data.accountName);
-      setPayoutSubStep("confirm");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
-      setErrorMessage("Network error verifying account. You can enter your account name manually below.");
-      setShowManualInput(true);
-    } finally {
-      setIsResolvingAccount(false);
-    }
-  };
-
-  const handleManualNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualAccountName.trim()) {
-      setErrorMessage("Please enter your official account holder name.");
+    if (!accountName.trim()) {
+      setErrorMessage("Please enter the official account holder name.");
       return;
     }
-    setResolvedAccountName(manualAccountName.trim().toUpperCase());
+
     setPayoutSubStep("confirm");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -459,7 +475,7 @@ export default function OnboardingPage() {
           bankCode: selectedBankCode,
           bankName: selectedBankName,
           accountNumber: accountNumber.trim(),
-          accountName: resolvedAccountName || manualAccountName || businessName,
+          accountName: accountName.trim() || businessName,
         }),
       });
 
@@ -1001,7 +1017,7 @@ export default function OnboardingPage() {
         {currentStep === 4 && (
           <div className="flex flex-col">
             {payoutSubStep === "input" ? (
-              <form onSubmit={handleResolveAccount} className="flex flex-col">
+              <form onSubmit={handleContinueToReview} className="flex flex-col">
                 <h1 className="text-[34px] leading-[1.12] font-black tracking-tight text-neutral-900 mb-3">
                   Where should your
                   <br />
@@ -1033,12 +1049,7 @@ export default function OnboardingPage() {
                     <select
                       id="bankSelect"
                       value={selectedBankCode}
-                      onChange={(e) => {
-                        const code = e.target.value;
-                        setSelectedBankCode(code);
-                        const b = banksList.find((item) => item.code === code);
-                        if (b) setSelectedBankName(b.name);
-                      }}
+                      onChange={(e) => handleBankChange(e.target.value)}
                       className="w-full appearance-none px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm pr-10 cursor-pointer"
                     >
                       {banksList.length > 0 ? (
@@ -1058,34 +1069,73 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Account Number (NUBAN) */}
-                <div className="mb-2">
+                <div className="mb-5">
                   <label htmlFor="nubanInput" className="block text-sm font-bold text-neutral-900 mb-2">
                     Account number (NUBAN)
                   </label>
                   <input
                     id="nubanInput"
                     type="text"
+                    inputMode="numeric"
                     maxLength={10}
                     required
                     value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    placeholder="0123456789"
-                    className="w-full px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm"
+                    onChange={(e) => handleAccountNumberChange(e.target.value)}
+                    placeholder="e.g. 0123456789"
+                    className="w-full px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] font-mono font-bold tracking-wider placeholder:font-normal placeholder:tracking-normal placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm"
                   />
                   <p className="text-xs text-neutral-500 mt-2 font-normal">
                     Enter your 10-digit Nigerian bank account number.
                   </p>
                 </div>
 
+                {/* Account Holder Name */}
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="accountNameInput" className="block text-sm font-bold text-neutral-900">
+                      Account holder name
+                    </label>
+                    {isVerifiedByBank && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669]">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Verified by bank
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="accountNameInput"
+                      type="text"
+                      required
+                      value={accountName}
+                      onChange={(e) => {
+                        setAccountName(e.target.value);
+                        setIsVerifiedByBank(false);
+                      }}
+                      placeholder="e.g. ADA OKAFOR"
+                      className="w-full px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm"
+                    />
+                    {isResolvingAccount && (
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs text-neutral-400">
+                        <Loader2 className="w-4 h-4 animate-spin text-[#00A859]" />
+                        <span className="text-[11px]">Verifying...</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-neutral-500 mt-2 font-normal">
+                    Official name registered with your bank account. You can type or edit it freely.
+                  </p>
+                </div>
+
                 {/* Info Callout Card */}
-                <div className="p-4 rounded-2xl bg-[#ECFDF5] border border-emerald-100 flex items-start gap-3.5 my-6">
+                <div className="p-4 rounded-2xl bg-[#ECFDF5] border border-emerald-100 flex items-start gap-3.5 my-3">
                   <div className="p-1 text-[#059669] mt-0.5">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-[#065F46]">Let’s check the account name</h2>
+                    <h2 className="text-sm font-bold text-[#065F46]">Direct bank settlements</h2>
                     <p className="text-xs text-[#047857] leading-relaxed mt-1 font-normal">
-                      Paystack will resolve the official account-holder name. You’ll review and confirm it before payments are activated.
+                      Customer card and transfer payments settle directly into this bank account via Paystack.
                     </p>
                   </div>
                 </div>
@@ -1093,63 +1143,15 @@ export default function OnboardingPage() {
                 {/* CTA */}
                 <button
                   type="submit"
-                  disabled={isResolvingAccount}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+                  disabled={accountNumber.replace(/[^0-9]/g, "").length !== 10 || !accountName.trim()}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50 cursor-pointer mt-3"
                 >
-                  {isResolvingAccount ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Verifying via Paystack...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Find account name</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  <span>Continue to review</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
 
-                {showManualInput ? (
-                  <div className="mt-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-left">
-                    <label htmlFor="manualNameInput" className="block text-sm font-bold text-neutral-900 mb-1">
-                      Account holder name
-                    </label>
-                    <p className="text-xs text-neutral-500 mb-3">
-                      Type your official account name as registered with your bank:
-                    </p>
-                    <input
-                      id="manualNameInput"
-                      type="text"
-                      value={manualAccountName}
-                      onChange={(e) => setManualAccountName(e.target.value)}
-                      placeholder="e.g. CALEB ASIEGBU"
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-neutral-900 text-sm font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] mb-3"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleManualNameSubmit}
-                      className="w-full py-3 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm transition-all shadow-sm cursor-pointer"
-                    >
-                      Use this account name
-                    </button>
-                  </div>
-                ) : (
-                  <div className="mt-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setShowManualInput(true)}
-                      className="text-xs text-[#00A859] font-bold hover:underline"
-                    >
-                      Or enter account name manually
-                    </button>
-                  </div>
-                )}
-
                 <p className="text-xs text-neutral-500 text-center mt-2.5 font-normal">
-                  Entering your account number does not activate payments.
-                </p>
-                <p className="text-xs text-neutral-400 text-center mt-0.5 font-normal">
-                  Next: confirm the name returned by your bank.
+                  Next: review and confirm your details to activate payments.
                 </p>
 
                 <div className="mt-8 text-center pb-6">
@@ -1208,7 +1210,7 @@ export default function OnboardingPage() {
                       Official account name
                     </span>
                     <p className="text-base font-black text-neutral-900 tracking-wide mt-1 uppercase">
-                      {resolvedAccountName || manualAccountName || businessName}
+                      {accountName || businessName}
                     </p>
                   </div>
                 </div>

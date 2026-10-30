@@ -20,6 +20,12 @@ export default function SignUpPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        // Exchange code automatically if Supabase landed on root
+        window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}`;
+        return;
+      }
       const err = params.get("error");
       if (err === "oauth_failed") {
         setErrorMessage("Google authentication failed. Please try again or sign up with email.");
@@ -80,7 +86,7 @@ export default function SignUpPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding`,
+          redirectTo: `${window.location.origin}/api/auth/callback`,
           queryParams: {
             prompt: "select_account",
           },

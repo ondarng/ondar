@@ -9,6 +9,7 @@ interface StorefrontHeaderProps {
   storeSlug: string;
   city?: string;
   subtitle?: string | null;
+  previewTemplate?: string;
 }
 
 export function StorefrontHeader({
@@ -16,15 +17,18 @@ export function StorefrontHeader({
   storeSlug,
   city = "Lagos",
   subtitle = "Everyday pieces, thoughtfully chosen",
+  previewTemplate,
 }: StorefrontHeaderProps) {
   const { totalCount } = useCart();
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100">
       <div className="w-full max-w-[440px] mx-auto px-4 py-3 flex items-center justify-between">
         {/* Brand name and location/tagline */}
         <Link
-          href={`/s/${storeSlug}`}
+          href={storeUrl}
           className="flex flex-col hover:opacity-90 transition-opacity text-left"
         >
           <span className="text-lg font-bold text-gray-900 tracking-tight leading-snug">
@@ -38,7 +42,7 @@ export function StorefrontHeader({
 
         {/* Cart Bag Button */}
         <Link
-          href={`/s/${storeSlug}/cart`}
+          href={cartUrl}
           className="w-10 h-10 rounded-full bg-[#E8F8EF] flex items-center justify-center text-[#00A859] relative transition-transform hover:scale-105 active:scale-95 flex-shrink-0"
           aria-label="Shopping bag"
         >

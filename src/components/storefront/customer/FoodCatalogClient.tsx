@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Clock, MessageCircle, Plus, Search, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Check, Plus, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
 
@@ -17,6 +17,7 @@ interface FoodCatalogProps {
   phoneNumber?: string;
   returnPolicy?: string | null;
   products: CatalogProduct[];
+  previewTemplate?: string;
 }
 
 export function FoodCatalogClient(props: FoodCatalogProps) {
@@ -30,28 +31,32 @@ export function FoodCatalogClient(props: FoodCatalogProps) {
 function FoodCatalogContent({
   businessName,
   storeSlug,
-  city = "Ikeja, Lagos",
-  state = "Lagos",
+  description,
+  city = "Lagos",
+  state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  returnPolicy,
   products,
+  previewTemplate,
 }: FoodCatalogProps) {
-  const { items, totalCount, addItem, subtotalKobo, subtotalNaira } = useCart();
+  const { totalCount, addItem, subtotalNaira } = useCart();
 
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [quickAddToast, setQuickAddToast] = useState<string | null>(null);
 
-  // Extract food categories
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
+
+  // Extract food categories truthfully from active products (no fake fallbacks)
   const categories = useMemo(() => {
     const set = new Set<string>();
     products.forEach((p) => {
       if (p.category?.trim()) set.add(p.category.trim());
     });
     const list = Array.from(set);
-    if (list.length === 0) {
-      return ["All", "Rice", "Soups", "Snacks", "Trays"];
-    }
+    if (list.length === 0) return [];
     return ["All", ...list];
   }, [products]);
 
@@ -76,15 +81,17 @@ function FoodCatalogContent({
     e.stopPropagation();
 
     const price = Number(p.priceKobo);
+    const availableStock = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
+    if (p.isOutOfStockManual || (p.trackStock && availableStock <= 0)) return;
+
     addItem({
       id: p.id,
       productId: p.id,
       productName: p.name,
       productSlug: p.slug,
-      imageUrl: p.images[0]?.url || "/default-product.png",
+      imageUrl: p.images[0]?.url || "/sample-product.png",
       priceKobo: price,
-      variantTitle: "Regular portion",
-      availableStock: p.trackStock ? p.stockOnHand - p.stockReserved : 99,
+      availableStock,
     });
 
     setQuickAddToast(p.name);
@@ -93,25 +100,20 @@ function FoodCatalogContent({
 
   const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
 
-  // Default Minimum order in Naira
-  const MINIMUM_ORDER_NAIRA = 5000;
-  const currentSubtotalNaira = Math.round(subtotalKobo / 100);
-  const isMinMet = currentSubtotalNaira >= MINIMUM_ORDER_NAIRA;
-
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-neutral-900 pb-28 font-sans selection:bg-[#BA3C1D] selection:text-white">
       <div className="max-w-[440px] mx-auto px-4 pt-4">
         {/* 1. KITCHEN HEADER */}
         <header className="flex items-center justify-between py-2 mb-3">
           <Link
-            href={`/s/${storeSlug}`}
+            href={storeUrl}
             className="font-serif font-black text-xl text-neutral-900 tracking-tight"
           >
             {businessName}
           </Link>
 
           <Link
-            href={`/s/${storeSlug}/cart`}
+            href={cartUrl}
             className="text-xs font-bold text-neutral-900 hover:text-neutral-600 transition-colors flex items-center gap-1.5"
           >
             <span>Cart</span>
@@ -125,49 +127,53 @@ function FoodCatalogContent({
 
         {/* 2. APPETIZING HERO BANNER */}
         <section className="p-5 rounded-2xl bg-[#FCE7D2] text-neutral-900 mb-6 relative overflow-hidden shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-[10px] font-bold text-[#15803D] shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#15803D] animate-pulse" />
-              Open now · closes 8pm
+          <div className="flex items-center justify-between mb-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 text-[10px] font-bold text-[#BA3C1D] shadow-2xs">
+              <UtensilsCrossed className="w-3 h-3" />
+              {city}, {state}
             </span>
           </div>
 
-          <h2 className="font-serif font-black text-2xl text-neutral-900 tracking-tight leading-snug max-w-[280px]">
-            Home-cooked meals, delivered hot
+          <h2 className="font-serif font-black text-2xl text-neutral-900 tracking-tight leading-snug">
+            {businessName}
           </h2>
-          <p className="text-xs font-medium text-neutral-700 mt-2">
-            Order by 4pm for same-day delivery
-          </p>
+          {description && (
+            <p className="text-xs font-medium text-neutral-700 mt-2 line-clamp-2">
+              {description}
+            </p>
+          )}
         </section>
 
-        {/* 3. CATEGORY NAVIGATION TABS */}
-        <div className="flex items-center gap-5 border-b border-neutral-200 overflow-x-auto pb-2.5 mb-6 scrollbar-none text-xs">
-          {categories.map((cat) => {
-            const isActive = activeCategory.toLowerCase() === cat.toLowerCase();
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={`whitespace-nowrap pb-1 transition-all cursor-pointer relative ${
-                  isActive
-                    ? "font-bold text-neutral-900"
-                    : "font-medium text-neutral-500 hover:text-neutral-800"
-                }`}
-              >
-                <span>{cat}</span>
-                {isActive && (
-                  <div className="absolute left-0 right-0 -bottom-2.5 h-[2px] bg-[#BA3C1D]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+        {/* 3. CATEGORY NAVIGATION TABS (if categories exist) */}
+        {categories.length > 0 && (
+          <div className="flex items-center gap-5 border-b border-neutral-200 overflow-x-auto pb-2.5 mb-6 scrollbar-none text-xs">
+            {categories.map((cat) => {
+              const isActive = activeCategory.toLowerCase() === cat.toLowerCase();
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`whitespace-nowrap pb-1 transition-all cursor-pointer relative ${
+                    isActive
+                      ? "font-bold text-neutral-900"
+                      : "font-medium text-neutral-500 hover:text-neutral-800"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  {isActive && (
+                    <div className="absolute left-0 right-0 -bottom-2.5 h-[2px] bg-[#BA3C1D]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Toast for quick add */}
         {quickAddToast && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#BA3C1D] text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 animate-fade-in">
-            <Check className="w-3.5 h-3.5" />
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
             <span>Added {quickAddToast} to order!</span>
           </div>
         )}
@@ -177,7 +183,16 @@ function FoodCatalogContent({
           <div className="py-16 text-center text-neutral-400">
             <UtensilsCrossed className="w-8 h-8 mx-auto text-neutral-300 mb-2" />
             <p className="font-serif text-base font-bold text-neutral-700">No dishes found</p>
-            <p className="text-xs mt-1">Try switching categories.</p>
+            <p className="text-xs mt-1">Try resetting your filters.</p>
+            {activeCategory !== "All" && (
+              <button
+                type="button"
+                onClick={() => setActiveCategory("All")}
+                className="mt-3 text-xs font-bold text-[#BA3C1D] underline cursor-pointer"
+              >
+                Show all dishes
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-x-3.5 gap-y-6">
@@ -186,17 +201,14 @@ function FoodCatalogContent({
               const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
               const isSoldOut = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
 
-              // Derive prep time or serving text
-              let prepText = "40 min";
-              if (p.name.toLowerCase().includes("tray")) prepText = "Serves 10";
-              else if (p.name.toLowerCase().includes("soup")) prepText = "45 min";
-              else if (p.name.toLowerCase().includes("snack") || p.name.toLowerCase().includes("puff")) prepText = "20 min";
-              else if (p.name.toLowerCase().includes("pounded")) prepText = "60 min";
+              const productUrl = previewTemplate
+                ? `/s/${storeSlug}/p/${p.slug}?previewTemplate=${previewTemplate}`
+                : `/s/${storeSlug}/p/${p.slug}`;
 
               return (
                 <Link
                   key={p.id}
-                  href={`/s/${storeSlug}/p/${p.slug}`}
+                  href={productUrl}
                   className="group flex flex-col cursor-pointer"
                 >
                   {/* Food Card Image Container */}
@@ -218,18 +230,19 @@ function FoodCatalogContent({
 
                     {/* Sold out badge */}
                     {isSoldOut && (
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/95 text-[10px] font-bold text-neutral-900 shadow-2xs">
-                        Sold out today
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-neutral-900/90 text-[10px] font-bold text-white shadow-2xs">
+                        Sold out
                       </div>
                     )}
 
-                    {/* Floating Quick Add Button */}
+                    {/* Quick Add Button */}
                     {!isSoldOut && (
                       <button
                         type="button"
                         onClick={(e) => handleQuickAdd(e, p)}
                         className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#BA3C1D] hover:bg-[#BA3C1D] hover:text-white transition-all cursor-pointer active:scale-90"
                         title="Add to order"
+                        aria-label={`Quick add ${p.name}`}
                       >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
                       </button>
@@ -241,8 +254,8 @@ function FoodCatalogContent({
                     <h3 className="font-bold text-xs text-neutral-900 group-hover:text-[#BA3C1D] transition-colors line-clamp-1">
                       {p.name}
                     </h3>
-                    <p className="text-[11px] text-neutral-500 mt-0.5 font-medium">
-                      ₦{priceNaira.toLocaleString("en-NG")} · {prepText}
+                    <p className="text-[11px] text-neutral-600 mt-0.5 font-bold">
+                      ₦{priceNaira.toLocaleString("en-NG")}
                     </p>
                   </div>
                 </Link>
@@ -257,7 +270,8 @@ function FoodCatalogContent({
             Store information
           </h4>
           <p className="text-xs text-neutral-600 leading-relaxed">
-            Open daily 10am to 8pm. Pickup in {city} is free. Delivery across {state} from ₦1,500. Party trays need 24 hours notice. Cooked food can&apos;t be returned.
+            Pickup available in {city}, {state}. Delivery fees computed at checkout.
+            {returnPolicy ? ` ${returnPolicy}` : ""}
           </p>
           {cleanWhatsapp && (
             <a
@@ -281,14 +295,17 @@ function FoodCatalogContent({
         </footer>
       </div>
 
-      {/* 7. FLOATING MINIMUM ORDER / VIEW CART BAR */}
+      {/* 7. FLOATING VIEW CART BAR */}
       <div className="fixed bottom-4 left-0 right-0 z-40 px-4 max-w-[440px] mx-auto pointer-events-none">
         <Link
-          href={`/s/${storeSlug}/cart`}
+          href={cartUrl}
           className="pointer-events-auto w-full py-3.5 px-4 rounded-2xl bg-[#4A4543] hover:bg-[#3D3836] text-white text-xs font-bold flex items-center justify-between shadow-xl transition-all active:scale-[0.99]"
         >
           {totalCount === 0 ? (
-            <span className="mx-auto">Minimum order ₦{MINIMUM_ORDER_NAIRA.toLocaleString("en-NG")}</span>
+            <span className="mx-auto flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              <span>View Cart (0 items)</span>
+            </span>
           ) : (
             <>
               <div className="flex items-center gap-2">
@@ -297,13 +314,7 @@ function FoodCatalogContent({
                 </span>
                 <span>View Cart</span>
               </div>
-              <span>
-                {isMinMet ? (
-                  `₦${currentSubtotalNaira.toLocaleString("en-NG")}`
-                ) : (
-                  `Add ₦${(MINIMUM_ORDER_NAIRA - currentSubtotalNaira).toLocaleString("en-NG")} for min`
-                )}
-              </span>
+              <span>₦{subtotalNaira}</span>
             </>
           )}
         </Link>

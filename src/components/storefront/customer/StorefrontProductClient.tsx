@@ -16,6 +16,7 @@ export interface ProductDetailProps {
   whatsappNumber?: string;
   phoneNumber?: string;
   returnPolicy?: string | null;
+  previewTemplate?: string;
   product: {
     id: string;
     name: string;
@@ -53,10 +54,13 @@ function ProductContent({
   storeSlug,
   city = "Lagos",
   tagline,
+  previewTemplate,
   product,
 }: ProductDetailProps) {
   const router = useRouter();
   const { addItem } = useCart();
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
 
   // Images
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -128,7 +132,7 @@ function ProductContent({
           {/* Back to shop */}
           <div className="py-3">
             <Link
-              href={`/s/${storeSlug}`}
+              href={storeUrl}
               className="inline-flex items-center gap-1 text-sm font-medium text-[#00A859] hover:underline cursor-pointer"
             >
               <span className="text-base leading-none">←</span>
@@ -283,7 +287,7 @@ function ProductContent({
                 <Check className="w-4 h-4 stroke-[3]" />
                 <span>Added to cart!</span>
               </div>
-              <Link href={`/s/${storeSlug}/cart`} className="underline hover:text-[#008f4c]">
+              <Link href={cartUrl} className="underline hover:text-[#008f4c]">
                 View cart
               </Link>
             </div>

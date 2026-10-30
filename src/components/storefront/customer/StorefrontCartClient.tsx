@@ -17,6 +17,7 @@ interface StorefrontCartClientProps {
   phoneNumber?: string;
   returnPolicy?: string | null;
   coveragePreview?: string;
+  previewTemplate?: string;
   defaultSeedItems?: {
     id: string;
     productId: string;
@@ -46,31 +47,13 @@ function CartContent({
   tagline,
   whatsappNumber,
   coveragePreview,
-  defaultSeedItems,
+  previewTemplate,
 }: StorefrontCartClientProps) {
   const router = useRouter();
-  const { items, totalCount, subtotalNaira, addItem } = useCart();
+  const { items, totalCount, subtotalNaira } = useCart();
 
-  // Pre-seed items only if cart is empty and seed items provided
-  useEffect(() => {
-    if (items.length === 0 && defaultSeedItems && defaultSeedItems.length > 0) {
-      defaultSeedItems.forEach((seed) => {
-        addItem(
-          {
-            id: seed.id,
-            productId: seed.productId,
-            productName: seed.productName,
-            productSlug: seed.productSlug,
-            imageUrl: seed.imageUrl,
-            priceKobo: seed.priceKobo,
-            variantTitle: seed.variantTitle || "Indigo · Size M",
-            availableStock: seed.availableStock || 7,
-          },
-          seed.quantity
-        );
-      });
-    }
-  }, []);
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const checkoutUrl = previewTemplate ? `/s/${storeSlug}/checkout?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/checkout`;
 
   const initials = businessName
     .split(" ")
@@ -92,7 +75,7 @@ function CartContent({
       <div className="w-full max-w-[430px] mx-auto px-4 pt-4 flex flex-col">
         {/* Top Header */}
         <header className="flex items-center justify-between py-2 border-b border-neutral-100 mb-4">
-          <Link href={`/s/${storeSlug}`} className="cursor-pointer">
+          <Link href={storeUrl} className="cursor-pointer">
             <OndarLogo />
           </Link>
           <span className="text-xs text-neutral-500 font-medium truncate max-w-[170px]">
@@ -157,7 +140,7 @@ function CartContent({
               <ShoppingBag className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
               <p className="text-sm font-bold text-neutral-900">Your bag is empty</p>
               <Link
-                href={`/s/${storeSlug}`}
+                href={storeUrl}
                 className="mt-3 inline-block text-xs font-bold text-[#00A859] hover:underline"
               >
                 Browse items
@@ -232,7 +215,7 @@ function CartContent({
             </div>
 
             <Link
-              href={`/s/${storeSlug}/checkout`}
+              href={checkoutUrl}
               className="w-full h-13 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.99]"
             >
               <span>Checkout</span>

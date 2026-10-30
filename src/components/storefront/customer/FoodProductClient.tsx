@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Minus, Plus, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed } from "lucide-react";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
@@ -15,90 +14,66 @@ export function FoodProductClient(props: ProductDetailProps) {
   );
 }
 
-interface ExtraAddon {
-  id: string;
-  name: string;
-  priceNaira: number;
-  priceKobo: number;
-}
-
-const DEFAULT_EXTRAS: ExtraAddon[] = [
-  { id: "chicken", name: "Extra chicken", priceNaira: 1500, priceKobo: 150000 },
-  { id: "plantain", name: "Extra plantain", priceNaira: 500, priceKobo: 50000 },
-];
-
 function FoodProductContent({
   businessName,
   storeSlug,
-  city = "Ikeja",
-  state = "Lagos",
+  city = "Lagos",
+  state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  returnPolicy,
+  previewTemplate,
   product,
 }: ProductDetailProps) {
-  const router = useRouter();
   const { addItem, totalCount } = useCart();
 
-  // Portion State (Regular vs Large)
-  const [portion, setPortion] = useState<"regular" | "large">("regular");
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
 
-  // Base price in Kobo and Naira
-  const basePriceKobo = Number(product.priceKobo);
-  const basePriceNaira = Math.round(basePriceKobo / 100);
+  const hasVariants = Boolean(product.variants && product.variants.length > 0);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    hasVariants ? product.variants[0].id : null
+  );
 
-  // Large portion markup (+₦1,500)
-  const LARGE_PORTION_EXTRA_KOBO = 150000;
-  const portionPriceKobo = portion === "large" ? basePriceKobo + LARGE_PORTION_EXTRA_KOBO : basePriceKobo;
-  const portionPriceNaira = Math.round(portionPriceKobo / 100);
+  const activeVariant = hasVariants
+    ? product.variants.find((v) => v.id === selectedVariantId) || product.variants[0]
+    : null;
 
-  // Selected extras
-  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  // Stock calculation
+  const stockRemaining = activeVariant
+    ? Math.max(0, activeVariant.stockOnHand - activeVariant.stockReserved)
+    : product.trackStock
+    ? Math.max(0, product.stockOnHand - product.stockReserved)
+    : 99;
 
-  const toggleExtra = (id: string) => {
-    setSelectedExtras((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
+  const isOutOfStock = product.isOutOfStockManual || stockRemaining <= 0;
+
+  // Price calculation
+  const unitPriceKobo = activeVariant?.priceKobo
+    ? Number(activeVariant.priceKobo)
+    : Number(product.priceKobo);
+  const unitPriceNaira = Math.round(unitPriceKobo / 100);
 
   // Quantity Stepper
   const [quantity, setQuantity] = useState(1);
+  const totalPriceNaira = unitPriceNaira * quantity;
 
-  // Calculate Unit & Total Price
-  const extrasTotalKobo = selectedExtras.reduce((sum, extraId) => {
-    const found = DEFAULT_EXTRAS.find((e) => e.id === extraId);
-    return sum + (found ? found.priceKobo : 0);
-  }, 0);
-
-  const unitTotalKobo = portionPriceKobo + extrasTotalKobo;
-  const unitTotalNaira = Math.round(unitTotalKobo / 100);
-
-  const grandTotalKobo = unitTotalKobo * quantity;
-  const grandTotalNaira = Math.round(grandTotalKobo / 100);
-
-  // Visual Added feedback
+  // Added visual feedback
   const [addedToast, setAddedToast] = useState(false);
 
   const handleAddToOrder = () => {
-    const extrasNames = selectedExtras
-      .map((id) => DEFAULT_EXTRAS.find((e) => e.id === id)?.name)
-      .filter(Boolean)
-      .join(", ");
-
-    let variantDesc = portion === "large" ? "Large portion" : "Regular portion";
-    if (extrasNames) {
-      variantDesc += ` · ${extrasNames}`;
-    }
+    if (isOutOfStock) return;
 
     addItem(
       {
-        id: `${product.id}-${portion}-${selectedExtras.sort().join("-")}`,
+        id: activeVariant ? `${product.id}-${activeVariant.id}` : product.id,
         productId: product.id,
         productName: product.name,
         productSlug: product.slug,
-        imageUrl: product.images[0]?.url || "/default-product.png",
-        priceKobo: unitTotalKobo,
-        variantTitle: variantDesc,
-        availableStock: 99,
+        imageUrl: product.images[0]?.url || "/sample-product.png",
+        priceKobo: unitPriceKobo,
+        variantTitle: activeVariant ? activeVariant.title : undefined,
+        availableStock: stockRemaining,
       },
       quantity
     );
@@ -111,32 +86,27 @@ function FoodProductContent({
 
   const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
 
-  // Servings and Prep Info
-  let prepInfo = "Serves 1 · Ready in 40 minutes";
-  if (product.name.toLowerCase().includes("tray")) prepInfo = "Serves 10 · Needs 24 hours notice";
-  else if (product.name.toLowerCase().includes("soup")) prepInfo = "Serves 1 to 2 · Ready in 45 minutes";
-  else if (product.name.toLowerCase().includes("snack") || product.name.toLowerCase().includes("puff")) prepInfo = "Serves 1 · Ready in 20 minutes";
-
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-neutral-900 pb-20 font-sans selection:bg-[#BA3C1D] selection:text-white">
       {/* 1. TOP HEADER */}
       <header className="sticky top-0 z-30 bg-[#FDFDFD]/95 backdrop-blur-md px-4 py-3.5 flex items-center justify-between border-b border-neutral-100">
         <Link
-          href={`/s/${storeSlug}`}
+          href={storeUrl}
           className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-700 hover:bg-neutral-200 transition-colors"
+          aria-label="Back to menu"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
 
         <Link
-          href={`/s/${storeSlug}`}
+          href={storeUrl}
           className="font-serif font-black text-xl text-neutral-900 tracking-tight"
         >
           {businessName}
         </Link>
 
         <Link
-          href={`/s/${storeSlug}/cart`}
+          href={cartUrl}
           className="text-xs font-bold text-neutral-900 hover:text-neutral-600 transition-colors flex items-center gap-1.5"
         >
           <span>Cart</span>
@@ -163,165 +133,165 @@ function FoodProductContent({
             </div>
           )}
 
-          <div className="absolute bottom-3 left-3 bg-white/95 px-2.5 py-1 text-[11px] font-bold text-neutral-900 rounded-md shadow-2xs">
-            Photo
-          </div>
+          {isOutOfStock && (
+            <div className="absolute top-3 left-3 bg-neutral-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase">
+              Sold out
+            </div>
+          )}
         </div>
 
-        {/* 3. DISH TITLE & PREP METADATA */}
+        {/* 3. DISH TITLE & DESCRIPTION */}
         <div className="space-y-1.5 mb-6">
+          {product.category && (
+            <span className="text-[10px] font-mono tracking-wider text-[#BA3C1D] uppercase font-bold">
+              {product.category}
+            </span>
+          )}
+
           <h1 className="font-serif font-black text-2xl text-neutral-900 tracking-tight">
             {product.name}
           </h1>
 
-          <p className="text-xs font-medium text-neutral-500">
-            {prepInfo}
+          <p className="text-base font-bold text-neutral-900 pt-0.5">
+            ₦{unitPriceNaira.toLocaleString("en-NG")}
           </p>
 
-          <p className="text-xs text-neutral-600 leading-relaxed pt-1.5">
-            {product.description ||
-              "Cooked fresh with authentic Nigerian spices, fine ingredients, and served hot upon order."}
-          </p>
+          {product.description && (
+            <p className="text-xs text-neutral-600 leading-relaxed pt-1 whitespace-pre-line">
+              {product.description}
+            </p>
+          )}
         </div>
 
-        {/* 4. PORTION SELECTOR */}
-        <div className="mb-6">
-          <label className="block text-xs font-bold text-neutral-900 mb-2.5">
-            Portion
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setPortion("regular")}
-              className={`h-11 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
-                portion === "regular"
-                  ? "bg-[#B83818] text-white shadow-xs"
-                  : "bg-white border border-[#B83818] text-[#B83818] hover:bg-neutral-50"
-              }`}
-            >
-              Regular · ₦{basePriceNaira.toLocaleString("en-NG")}
-            </button>
+        {/* 4. REAL VARIANTS (if configured by merchant) */}
+        {hasVariants && (
+          <div className="mb-6">
+            <label className="block text-xs font-bold text-neutral-900 mb-2">
+              Select Option
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {product.variants.map((v) => {
+                const isSelected = selectedVariantId === v.id;
+                const vStock = Math.max(0, v.stockOnHand - v.stockReserved);
+                const vOOS = vStock <= 0;
+                const vPriceNaira = v.priceKobo
+                  ? Math.round(Number(v.priceKobo) / 100)
+                  : unitPriceNaira;
 
-            <button
-              type="button"
-              onClick={() => setPortion("large")}
-              className={`h-11 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
-                portion === "large"
-                  ? "bg-[#B83818] text-white shadow-xs"
-                  : "bg-white border border-[#B83818] text-[#B83818] hover:bg-neutral-50"
-              }`}
-            >
-              Large · ₦{(basePriceNaira + 1500).toLocaleString("en-NG")}
-            </button>
-          </div>
-        </div>
-
-        {/* 5. ADD EXTRAS */}
-        <div className="mb-6">
-          <label className="block text-xs font-bold text-neutral-900 mb-2.5">
-            Add extras
-          </label>
-          <div className="space-y-2">
-            {DEFAULT_EXTRAS.map((extra) => {
-              const isChecked = selectedExtras.includes(extra.id);
-              return (
-                <button
-                  key={extra.id}
-                  type="button"
-                  onClick={() => toggleExtra(extra.id)}
-                  className={`w-full p-3.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                    isChecked
-                      ? "border-[#B83818] bg-[#FCE7D2]/30 text-neutral-900"
-                      : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className={`w-4 h-4 rounded border flex items-center justify-center ${
-                        isChecked
-                          ? "border-[#B83818] bg-[#B83818] text-white"
-                          : "border-neutral-300 bg-white"
-                      }`}
-                    >
-                      {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    disabled={vOOS}
+                    onClick={() => setSelectedVariantId(v.id)}
+                    className={`p-3 rounded-xl text-xs font-bold transition-all cursor-pointer border text-left ${
+                      vOOS
+                        ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed line-through"
+                        : isSelected
+                        ? "border-[#BA3C1D] bg-[#FCE7D2]/40 text-[#BA3C1D]"
+                        : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300"
+                    }`}
+                  >
+                    <div>{v.title}</div>
+                    <div className="text-[11px] text-neutral-500 font-normal mt-0.5">
+                      ₦{vPriceNaira.toLocaleString("en-NG")}
                     </div>
-                    <span>{extra.name}</span>
-                  </div>
-                  <span className="font-extrabold text-neutral-900">
-                    +₦{extra.priceNaira.toLocaleString("en-NG")}
-                  </span>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 5. QUANTITY STEPPER */}
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-100/80 mb-6">
+          <span className="text-xs font-bold text-neutral-800">Quantity</span>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              disabled={quantity <= 1 || isOutOfStock}
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-8 h-8 rounded-full bg-white shadow-2xs flex items-center justify-center text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-50 cursor-pointer"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span className="font-bold text-sm text-neutral-900 w-4 text-center">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              disabled={isOutOfStock || quantity >= stockRemaining}
+              onClick={() => setQuantity((q) => Math.min(stockRemaining, q + 1))}
+              className="w-8 h-8 rounded-full bg-white shadow-2xs flex items-center justify-center text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-50 cursor-pointer"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* 6. QUANTITY STEPPER */}
-        <div className="flex items-center justify-center gap-5 my-6">
+        {/* 6. ADD TO ORDER CTA BUTTON */}
+        <div className="space-y-3 mb-8">
           <button
             type="button"
-            disabled={quantity <= 1}
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="w-10 h-10 rounded-full border border-neutral-300 bg-white flex items-center justify-center text-neutral-700 hover:bg-neutral-50 disabled:opacity-30 cursor-pointer"
-          >
-            <Minus className="w-4 h-4" />
-          </button>
-          <span className="text-base font-black text-neutral-900 w-8 text-center">
-            {quantity}
-          </span>
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => q + 1)}
-            className="w-10 h-10 rounded-full border border-neutral-300 bg-white flex items-center justify-center text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* 7. PRIMARY CTA: ADD TO ORDER */}
-        <div className="space-y-3 mb-6">
-          <button
-            type="button"
+            disabled={isOutOfStock}
             onClick={handleAddToOrder}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#B83818] hover:bg-[#A33014] text-white text-xs font-black tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+            className={`w-full py-3.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-[0.99] ${
+              isOutOfStock
+                ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                : "bg-[#BA3C1D] hover:bg-[#A33014] text-white"
+            }`}
           >
             {addedToast ? (
               <>
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 stroke-[3]" />
                 <span>Added to order!</span>
               </>
+            ) : isOutOfStock ? (
+              <span>Sold out</span>
             ) : (
-              <span>Add to order · ₦{grandTotalNaira.toLocaleString("en-NG")}</span>
+              <span>Add to order · ₦{totalPriceNaira.toLocaleString("en-NG")}</span>
             )}
           </button>
 
-          <p className="text-[11px] text-neutral-400 text-center leading-relaxed">
-            Minimum order ₦5,000. Your total, including delivery and any payment fee, is shown at checkout before you pay.
-          </p>
+          {cleanWhatsapp && (
+            <div className="text-center">
+              <a
+                href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                  `Hello ${businessName}! I am inquiring about ${product.name}${
+                    activeVariant ? ` (${activeVariant.title})` : ""
+                  }.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs font-bold text-[#BA3C1D] hover:opacity-80 underline underline-offset-4"
+              >
+                Inquire on WhatsApp
+              </a>
+            </div>
+          )}
         </div>
 
-        {/* 8. KITCHEN DELIVERY & RETURNS POLICIES */}
-        <div className="pt-5 border-t border-neutral-200 space-y-2.5 text-xs leading-relaxed">
-          <div>
-            <span className="font-bold text-neutral-900">Delivery. </span>
-            <span className="text-neutral-600">
-              {state} from ₦1,500. Pickup in {city} is free.
-            </span>
+        {/* 7. STORE POLICIES */}
+        <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 space-y-1.5">
+          <div className="flex items-center gap-2 text-neutral-900 font-bold">
+            <ShieldCheck className="w-4 h-4 text-[#BA3C1D]" />
+            <span>Fulfilment & Policies</span>
           </div>
-
-          <div>
-            <span className="font-bold text-neutral-900">Returns. </span>
-            <span className="text-neutral-600">
-              Cooked food can&apos;t be returned. Tell us within an hour if something is wrong.
-            </span>
-          </div>
+          <p>
+            Pickup available in {city}, {state}. Delivery fees computed at checkout.
+          </p>
+          {returnPolicy && (
+            <p className="text-[11px] text-neutral-500 pt-1 border-t border-neutral-200/80">
+              {returnPolicy}
+            </p>
+          )}
         </div>
 
-        {/* 9. FOOTER */}
-        <footer className="mt-14 py-6 border-t border-neutral-100 text-center">
-          <p className="text-[11px] font-medium text-neutral-400">
-            Powered by <span className="font-bold text-neutral-600">Ondar</span>
-          </p>
+        {/* 8. FOOTER */}
+        <footer className="mt-12 py-6 border-t border-neutral-100 text-center text-neutral-400 text-[11px]">
+          Powered by <span className="font-bold text-neutral-600">Ondar</span>
         </footer>
       </div>
     </main>

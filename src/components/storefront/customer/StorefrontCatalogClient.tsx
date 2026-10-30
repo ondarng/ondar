@@ -48,6 +48,7 @@ interface StorefrontCatalogClientProps {
   returnPolicy?: string | null;
   deliveryCoverage?: string | null;
   products: CatalogProduct[];
+  previewTemplate?: string;
 }
 
 export function StorefrontCatalogClient({
@@ -61,6 +62,7 @@ export function StorefrontCatalogClient({
   phoneNumber,
   returnPolicy,
   products,
+  previewTemplate,
 }: StorefrontCatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -120,6 +122,7 @@ export function StorefrontCatalogClient({
           storeSlug={storeSlug}
           city={city}
           subtitle={description || "Everyday pieces, thoughtfully chosen"}
+          previewTemplate={previewTemplate}
         />
 
         <div className="w-full max-w-[440px] mx-auto px-4 pt-4 flex flex-col">
@@ -293,10 +296,14 @@ export function StorefrontCatalogClient({
                   stockLabel = `In stock · ${availableStock} available`;
                 }
 
+                const productUrl = previewTemplate
+                  ? `/s/${storeSlug}/p/${p.slug}?previewTemplate=${previewTemplate}`
+                  : `/s/${storeSlug}/p/${p.slug}`;
+
                 return (
                   <Link
                     key={p.id}
-                    href={`/s/${storeSlug}/p/${p.slug}`}
+                    href={productUrl}
                     className="flex flex-col group cursor-pointer"
                   >
                     {/* Square Image Card */}

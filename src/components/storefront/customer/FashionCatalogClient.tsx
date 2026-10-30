@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowLeft, MessageCircle, Search, ShoppingBag, X } from "lucide-react";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
@@ -18,6 +17,7 @@ interface FashionCatalogProps {
   phoneNumber?: string;
   returnPolicy?: string | null;
   products: CatalogProduct[];
+  previewTemplate?: string;
 }
 
 export function FashionCatalogClient(props: FashionCatalogProps) {
@@ -36,15 +36,20 @@ function FashionCatalogContent({
   state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  returnPolicy,
   products,
+  previewTemplate,
 }: FashionCatalogProps) {
   const { totalCount } = useCart();
 
-  const [activeTab, setActiveTab] = useState<"all" | "ready" | "custom">("all");
+  const [activeStockFilter, setActiveStockFilter] = useState<"all" | "in_stock">("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract categories dynamically with count and preview image
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
+
+  // Extract categories truthfully from active products (no fake fallback categories)
   const categories = useMemo(() => {
     const map = new Map<string, { name: string; count: number; image?: string }>();
     products.forEach((p) => {
@@ -62,31 +67,18 @@ function FashionCatalogContent({
         }
       }
     });
-
-    // If merchant has few or no categories set, supply high-fashion fallbacks mapped to products
-    const list = Array.from(map.values());
-    if (list.length === 0) {
-      return [
-        { name: "Dresses", count: products.length, image: products[0]?.images[0]?.url },
-        { name: "Tops", count: products.length, image: products[1]?.images[0]?.url },
-        { name: "Native wear", count: products.length, image: products[2]?.images[0]?.url },
-        { name: "Bags", count: products.length, image: products[3]?.images[0]?.url },
-      ];
-    }
-    return list;
+    return Array.from(map.values());
   }, [products]);
 
-  // Filter products by tab, category, and search query
+  // Filter products by stock status, category, and search query
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      const isCustomOrder =
-        (p.trackStock && p.stockOnHand - p.stockReserved <= 0) ||
-        p.name.toLowerCase().includes("measure") ||
-        p.name.toLowerCase().includes("made to order") ||
-        (p.description && p.description.toLowerCase().includes("made to order"));
+      const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
+      const isOutOfStock = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
 
-      if (activeTab === "ready" && isCustomOrder) return false;
-      if (activeTab === "custom" && !isCustomOrder) return false;
+      if (activeStockFilter === "in_stock" && isOutOfStock) {
+        return false;
+      }
 
       if (
         selectedCategory &&
@@ -105,29 +97,34 @@ function FashionCatalogContent({
 
       return true;
     });
-  }, [products, activeTab, selectedCategory, searchQuery]);
+  }, [products, activeStockFilter, selectedCategory, searchQuery]);
 
   const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+
+  // Top announcement text: uses merchant description if available, otherwise city/state or brand headline
+  const announcementText = description?.trim()
+    ? description
+    : `${businessName} · ${city}, ${state}`;
 
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-neutral-900 pb-20 font-sans selection:bg-neutral-900 selection:text-white">
       {/* 1. TOP ANNOUNCEMENT BANNER */}
-      <div className="bg-black text-white text-[11px] font-medium py-2 px-4 text-center tracking-tight">
-        Ready to wear ships in 24 hours. Made to order takes 5 to 7 days.
+      <div className="bg-black text-white text-[11px] font-medium py-2 px-4 text-center tracking-tight truncate">
+        {announcementText}
       </div>
 
       <div className="max-w-[440px] mx-auto px-4">
         {/* 2. BRAND SERIF HEADER */}
         <header className="sticky top-0 z-30 bg-[#FDFDFD]/95 backdrop-blur-md py-4 flex items-center justify-between border-b border-neutral-100 mb-4">
           <Link
-            href={`/s/${storeSlug}`}
+            href={storeUrl}
             className="font-serif font-black text-2xl tracking-[0.25em] text-neutral-900 uppercase"
           >
             {businessName}
           </Link>
 
           <Link
-            href={`/s/${storeSlug}/cart`}
+            href={cartUrl}
             className="text-xs font-bold text-neutral-900 hover:text-neutral-600 transition-colors flex items-center gap-1.5"
           >
             <span>Cart</span>
@@ -139,88 +136,79 @@ function FashionCatalogContent({
           </Link>
         </header>
 
-        {/* 3. CIRCULAR CATEGORY STORIES */}
-        <section className="mb-5">
-          <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none">
-            {categories.map((cat, idx) => {
-              const isSelected = selectedCategory?.toLowerCase() === cat.name.toLowerCase();
-              return (
-                <button
-                  key={cat.name}
-                  type="button"
-                  onClick={() =>
-                    setSelectedCategory(isSelected ? null : cat.name)
-                  }
-                  className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
-                >
-                  <div
-                    className={`w-[60px] h-[60px] rounded-full overflow-hidden border transition-all flex items-center justify-center ${
-                      isSelected
-                        ? "border-neutral-900 ring-2 ring-neutral-900 ring-offset-2"
-                        : "border-neutral-200 bg-neutral-100 group-hover:border-neutral-400"
-                    }`}
+        {/* 3. CIRCULAR CATEGORY STORIES (only rendered if merchant has categories) */}
+        {categories.length > 0 && (
+          <section className="mb-5">
+            <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none">
+              {categories.map((cat) => {
+                const isSelected = selectedCategory?.toLowerCase() === cat.name.toLowerCase();
+                return (
+                  <button
+                    key={cat.name}
+                    type="button"
+                    onClick={() =>
+                      setSelectedCategory(isSelected ? null : cat.name)
+                    }
+                    className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group"
                   >
-                    {cat.image ? (
-                      <img
-                        src={cat.image}
-                        alt={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#E5E7EB] flex items-center justify-center text-xs font-serif font-bold text-neutral-600">
-                        {cat.name.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <span
-                    className={`text-[11px] transition-colors whitespace-nowrap ${
-                      isSelected
-                        ? "font-black text-neutral-900"
-                        : "font-semibold text-neutral-700 group-hover:text-neutral-900"
-                    }`}
-                  >
-                    {cat.name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+                    <div
+                      className={`w-[60px] h-[60px] rounded-full overflow-hidden border transition-all flex items-center justify-center ${
+                        isSelected
+                          ? "border-neutral-900 ring-2 ring-neutral-900 ring-offset-2"
+                          : "border-neutral-200 bg-neutral-100 group-hover:border-neutral-400"
+                      }`}
+                    >
+                      {cat.image ? (
+                        <img
+                          src={cat.image}
+                          alt={cat.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#E5E7EB] flex items-center justify-center text-xs font-serif font-bold text-neutral-600">
+                          {cat.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <span
+                      className={`text-[11px] transition-colors whitespace-nowrap ${
+                        isSelected
+                          ? "font-black text-neutral-900"
+                          : "font-semibold text-neutral-700 group-hover:text-neutral-900"
+                      }`}
+                    >
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-        {/* 4. SEGMENT FILTER SWITCHER */}
-        <div className="p-1 bg-neutral-100 rounded-xl grid grid-cols-3 mb-6 text-xs font-bold">
+        {/* 4. STOCK FILTER TABS */}
+        <div className="p-1 bg-neutral-100 rounded-xl grid grid-cols-2 mb-6 text-xs font-bold">
           <button
             type="button"
-            onClick={() => setActiveTab("all")}
+            onClick={() => setActiveStockFilter("all")}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "all"
+              activeStockFilter === "all"
                 ? "bg-neutral-900 text-white shadow-2xs"
                 : "text-neutral-600 hover:text-neutral-900"
             }`}
           >
-            All
+            All pieces ({products.length})
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("ready")}
+            onClick={() => setActiveStockFilter("in_stock")}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "ready"
+              activeStockFilter === "in_stock"
                 ? "bg-neutral-900 text-white shadow-2xs"
                 : "text-neutral-600 hover:text-neutral-900"
             }`}
           >
-            Ready to wear
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("custom")}
-            className={`py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "custom"
-                ? "bg-neutral-900 text-white shadow-2xs"
-                : "text-neutral-600 hover:text-neutral-900"
-            }`}
-          >
-            Made to order
+            In stock
           </button>
         </div>
 
@@ -228,16 +216,16 @@ function FashionCatalogContent({
         {filteredProducts.length === 0 ? (
           <div className="py-16 text-center text-neutral-400">
             <p className="font-serif text-base font-bold text-neutral-700">No pieces found</p>
-            <p className="text-xs mt-1">Try switching tabs or resetting filters.</p>
-            {(selectedCategory || searchQuery || activeTab !== "all") && (
+            <p className="text-xs mt-1">Try resetting your filters.</p>
+            {(selectedCategory || searchQuery || activeStockFilter !== "all") && (
               <button
                 type="button"
                 onClick={() => {
                   setSelectedCategory(null);
-                  setActiveTab("all");
+                  setActiveStockFilter("all");
                   setSearchQuery("");
                 }}
-                className="mt-3 text-xs font-bold text-neutral-900 underline"
+                className="mt-3 text-xs font-bold text-neutral-900 underline cursor-pointer"
               >
                 Reset filters
               </button>
@@ -247,33 +235,25 @@ function FashionCatalogContent({
           <div className="grid grid-cols-2 gap-x-3.5 gap-y-7">
             {filteredProducts.map((p) => {
               const priceNaira = Math.round(Number(p.priceKobo) / 100);
-              const isMadeToOrder =
-                (p.trackStock && p.stockOnHand - p.stockReserved <= 0) ||
-                p.name.toLowerCase().includes("measure") ||
-                p.name.toLowerCase().includes("made to order");
-
               const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
-              const isLowStock = availableQty > 0 && availableQty <= 3;
+              const isOutOfStock = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
+              const isLowStock = !isOutOfStock && availableQty > 0 && availableQty <= 3;
 
-              // Derive variant summary (e.g. "3 colours · S M L XL")
-              let metaSubtitle = "Ready to ship";
-              if (isMadeToOrder) {
-                metaSubtitle = "Your measurements · 5 to 7 days";
-              } else if (p.variants && p.variants.length > 0) {
-                const sizes = Array.from(
-                  new Set(
-                    p.variants
-                      .map((v) => v.title.split("/")[0]?.trim())
-                      .filter((s) => ["S", "M", "L", "XL", "XXL", "One size"].includes(s))
-                  )
-                ).join(" ");
-                metaSubtitle = sizes ? `Multiple sizes · ${sizes}` : `${p.variants.length} options`;
+              let metaSubtitle = "";
+              if (p.variants && p.variants.length > 0) {
+                metaSubtitle = `${p.variants.length} option${p.variants.length > 1 ? "s" : ""}`;
+              } else if (p.category) {
+                metaSubtitle = p.category;
               }
+
+              const productUrl = previewTemplate
+                ? `/s/${storeSlug}/p/${p.slug}?previewTemplate=${previewTemplate}`
+                : `/s/${storeSlug}/p/${p.slug}`;
 
               return (
                 <Link
                   key={p.id}
-                  href={`/s/${storeSlug}/p/${p.slug}`}
+                  href={productUrl}
                   className="group flex flex-col cursor-pointer"
                 >
                   {/* Portrait Image Container (aspect-[3/4]) */}
@@ -290,14 +270,14 @@ function FashionCatalogContent({
                       </div>
                     )}
 
-                    {/* Corner Badge */}
-                    {isLowStock ? (
+                    {/* Stock Status Badge */}
+                    {isOutOfStock ? (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-neutral-900/90 text-[10px] font-bold text-white shadow-2xs">
+                        Sold out
+                      </span>
+                    ) : isLowStock ? (
                       <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/95 text-[10px] font-bold text-neutral-900 shadow-2xs">
                         Only {availableQty} left
-                      </span>
-                    ) : isMadeToOrder ? (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/95 text-[10px] font-bold text-neutral-900 shadow-2xs">
-                        Made to order
                       </span>
                     ) : null}
                   </div>
@@ -310,9 +290,11 @@ function FashionCatalogContent({
                     <p className="text-xs font-bold text-neutral-900 mt-0.5">
                       ₦{priceNaira.toLocaleString("en-NG")}
                     </p>
-                    <p className="text-[11px] text-neutral-500 mt-0.5 font-normal truncate">
-                      {metaSubtitle}
-                    </p>
+                    {metaSubtitle && (
+                      <p className="text-[11px] text-neutral-500 mt-0.5 font-normal truncate">
+                        {metaSubtitle}
+                      </p>
+                    )}
                   </div>
                 </Link>
               );
@@ -326,7 +308,8 @@ function FashionCatalogContent({
             STORE INFORMATION
           </h4>
           <p className="text-xs text-neutral-600 leading-relaxed">
-            Pickup in {city}, {state}. Delivery across Nigeria from ₦2,500. Exchanges within 3 days if unworn and with tags. Made-to-order pieces are final sale.
+            Pickup available in {city}, {state}. Delivery options and exact rates computed at checkout.
+            {returnPolicy ? ` ${returnPolicy}` : ""}
           </p>
           {cleanWhatsapp && (
             <a

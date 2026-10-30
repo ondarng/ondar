@@ -6,19 +6,11 @@ import {
   Search,
   ShoppingBag,
   Zap,
-  ShieldCheck,
   Cpu,
-  Smartphone,
-  Laptop,
-  Headphones,
-  Check,
-  ExternalLink,
   ChevronRight,
-  ArrowRight,
   Plus,
 } from "lucide-react";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
-import { StorefrontFooter } from "./StorefrontFooter";
 
 interface ProductVariant {
   id: string;
@@ -54,7 +46,9 @@ interface ElectronicsCatalogClientProps {
   state?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  returnPolicy?: string | null;
   products: ElectronicsProduct[];
+  previewTemplate?: string;
 }
 
 export function ElectronicsCatalogClient(props: ElectronicsCatalogClientProps) {
@@ -69,16 +63,20 @@ function ElectronicsCatalogContent({
   businessName,
   storeSlug,
   description,
-  logoUrl,
   city = "Ikeja",
   state = "Lagos",
   whatsappNumber,
   phoneNumber,
+  returnPolicy,
   products,
+  previewTemplate,
 }: ElectronicsCatalogClientProps) {
   const { totalCount, addItem } = useCart();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
+  const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
 
   const formatNaira = (koboStr: string) => {
     const val = Math.round(Number(koboStr) / 100);
@@ -109,12 +107,14 @@ function ElectronicsCatalogContent({
     });
   }, [products, selectedCategory, search]);
 
+  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+
   return (
     <div className="min-h-screen bg-[#0F172A] text-slate-100 flex flex-col justify-between antialiased">
       {/* 1. Tech Store Header */}
       <header className="sticky top-0 z-40 bg-[#0F172A]/90 backdrop-blur-md border-b border-slate-800">
         <div className="w-full max-w-[430px] mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link href={storeUrl} className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00A859] to-[#38BDF8] flex items-center justify-center text-white font-black text-sm shadow-md">
               <Zap className="w-5 h-5 fill-white stroke-none" />
             </div>
@@ -124,14 +124,14 @@ function ElectronicsCatalogContent({
               </h1>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00A859] inline-block animate-pulse" />
-                Verified Tech Hub · {city}, {state}
+                {city}, {state}
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Cart Icon */}
           <Link
-            href={`/s/${storeSlug}/cart`}
+            href={cartUrl}
             className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white relative transition-colors"
           >
             <ShoppingBag className="w-5 h-5" />
@@ -151,47 +151,36 @@ function ElectronicsCatalogContent({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search specs, phones, gadgets, audio..."
+              placeholder="Search specs, gadgets, audio..."
               className="w-full h-10 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-[12px] text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#00A859] transition-all"
             />
           </div>
-        </div>
-
-        {/* Tech Specs Trust Bar */}
-        <div className="bg-slate-900/60 border-t border-slate-800/80 px-4 py-2 overflow-x-auto no-scrollbar flex items-center gap-4 text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-          <span className="flex items-center gap-1 shrink-0 text-slate-300">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#00A859]" /> 100% Tested
-          </span>
-          <span className="flex items-center gap-1 shrink-0 text-slate-300">
-            <Zap className="w-3.5 h-3.5 text-[#38BDF8]" /> Fast Dispatch
-          </span>
-          <span className="flex items-center gap-1 shrink-0 text-slate-300">
-            <Cpu className="w-3.5 h-3.5 text-amber-400" /> Warranty Included
-          </span>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="w-full max-w-[430px] mx-auto px-4 py-4 flex-1 space-y-4">
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {categories.map((cat) => {
-            const active = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-tight whitespace-nowrap transition-all border ${
-                  active
-                    ? "bg-[#00A859] border-[#00A859] text-white shadow-sm"
-                    : "bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
+        {categories.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            {categories.map((cat) => {
+              const active = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold tracking-tight whitespace-nowrap transition-all border ${
+                    active
+                      ? "bg-[#00A859] border-[#00A859] text-white shadow-sm"
+                      : "bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800"
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* 2-Column Electronics Grid */}
         <div className="grid grid-cols-2 gap-3">
@@ -201,13 +190,17 @@ function ElectronicsCatalogContent({
             const hasVariants = p.variants && p.variants.length > 0;
             const photoUrl = p.images[0]?.url;
 
+            const productUrl = previewTemplate
+              ? `/s/${storeSlug}/p/${p.slug}?previewTemplate=${previewTemplate}`
+              : `/s/${storeSlug}/p/${p.slug}`;
+
             return (
               <div
                 key={p.id}
                 className="bg-slate-900 border border-slate-800/90 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm group"
               >
                 <Link
-                  href={`/s/${storeSlug}/p/${p.slug}`}
+                  href={productUrl}
                   className="block relative aspect-square bg-slate-950 overflow-hidden"
                 >
                   {photoUrl ? (
@@ -239,11 +232,13 @@ function ElectronicsCatalogContent({
                 {/* Details */}
                 <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
                   <div>
-                    <span className="text-[10px] text-[#38BDF8] font-bold uppercase tracking-wider block">
-                      {p.category || "Gadget"}
-                    </span>
+                    {p.category && (
+                      <span className="text-[10px] text-[#38BDF8] font-bold uppercase tracking-wider block">
+                        {p.category}
+                      </span>
+                    )}
                     <Link
-                      href={`/s/${storeSlug}/p/${p.slug}`}
+                      href={productUrl}
                       className="text-[12px] font-bold text-slate-100 hover:text-white line-clamp-2 leading-snug"
                     >
                       {p.name}
@@ -252,7 +247,7 @@ function ElectronicsCatalogContent({
 
                   <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
                     <div>
-                      <span className="text-[13px] font-black text-white">
+                      <span className="text-[13px] font-black text-white font-mono">
                         {formatNaira(p.priceKobo)}
                       </span>
                     </div>
@@ -271,17 +266,17 @@ function ElectronicsCatalogContent({
                             imageUrl: photoUrl,
                           })
                         }
-                        className="w-8 h-8 rounded-lg bg-[#00A859] hover:bg-[#00924c] text-white flex items-center justify-center transition-colors shadow-2xs"
+                        className="w-8 h-8 rounded-lg bg-[#00A859] hover:bg-[#00924c] text-white flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                         aria-label="Add to cart"
                       >
                         <Plus className="w-4 h-4 stroke-[3]" />
                       </button>
                     ) : (
                       <Link
-                        href={`/s/${storeSlug}/p/${p.slug}`}
+                        href={productUrl}
                         className="text-[10px] font-bold text-slate-400 hover:text-white flex items-center gap-0.5"
                       >
-                        Specs <ChevronRight className="w-3 h-3" />
+                        Details <ChevronRight className="w-3 h-3" />
                       </Link>
                     )}
                   </div>
@@ -302,8 +297,23 @@ function ElectronicsCatalogContent({
 
       {/* Footer */}
       <footer className="w-full max-w-[430px] mx-auto px-4 py-6 border-t border-slate-800/80 text-center text-[11px] text-slate-500 space-y-2">
-        <p>© {new Date().getFullYear()} {businessName}. High performance tech shopping powered by Ondar.</p>
-        <p className="text-[10px] text-slate-600">Secure escrow-free payments via Paystack & Direct Bank Transfer.</p>
+        <p>Pickup available in {city}, {state}. Delivery calculated at checkout.</p>
+        {returnPolicy && <p className="text-[10px] text-slate-600">{returnPolicy}</p>}
+        {cleanWhatsapp && (
+          <p>
+            <a
+              href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                `Hello ${businessName}, I am browsing your store on Ondar and have a question.`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 hover:text-sky-300 underline font-semibold"
+            >
+              Chat on WhatsApp
+            </a>
+          </p>
+        )}
+        <p className="text-[10px] text-slate-600 pt-2">Powered by <span className="font-bold text-slate-400">Ondar</span></p>
       </footer>
     </div>
   );

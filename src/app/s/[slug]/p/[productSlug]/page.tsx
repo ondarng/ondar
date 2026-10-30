@@ -1,19 +1,27 @@
 import React from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Eye, X } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { resolveTemplateId, STOREFRONT_TEMPLATES } from "@/lib/storefront-templates";
 import { StorefrontProductClient } from "@/components/storefront/customer/StorefrontProductClient";
 import { FashionProductClient } from "@/components/storefront/customer/FashionProductClient";
 import { FoodProductClient } from "@/components/storefront/customer/FoodProductClient";
+import { ElectronicsProductClient } from "@/components/storefront/customer/ElectronicsProductClient";
 
 interface Props {
   params: Promise<{
     slug: string;
     productSlug: string;
   }>;
+  searchParams: Promise<{
+    previewTemplate?: string;
+  }>;
 }
 
-export default async function PublicProductPage({ params }: Props) {
+export default async function PublicProductPage({ params, searchParams }: Props) {
   const { slug, productSlug } = await params;
+  const { previewTemplate } = await searchParams;
 
   const profile = await prisma.businessProfile.findUnique({
     where: { slug },
@@ -62,49 +70,84 @@ export default async function PublicProductPage({ params }: Props) {
     })),
   };
 
-  if (profile.templateId === "food") {
-    return (
-      <FoodProductClient
-        businessName={profile.businessName}
-        storeSlug={slug}
-        city={profile.city}
-        state={profile.state}
-        tagline={profile.description}
-        whatsappNumber={profile.whatsappNumber}
-        phoneNumber={profile.phoneNumber || undefined}
-        returnPolicy={profile.returnPolicy}
-        product={product}
-      />
-    );
-  }
+  const templateId = resolveTemplateId(profile.templateId, previewTemplate);
+  const isPreviewing = Boolean(previewTemplate && previewTemplate in STOREFRONT_TEMPLATES);
+  const activeTemplateConfig = STOREFRONT_TEMPLATES[templateId];
 
-  if (profile.templateId === "fashion") {
-    return (
-      <FashionProductClient
-        businessName={profile.businessName}
-        storeSlug={slug}
-        city={profile.city}
-        state={profile.state}
-        tagline={profile.description}
-        whatsappNumber={profile.whatsappNumber}
-        phoneNumber={profile.phoneNumber || undefined}
-        returnPolicy={profile.returnPolicy}
-        product={product}
-      />
-    );
-  }
+  const previewBanner = isPreviewing ? (
+    <div className="sticky top-0 z-50 bg-neutral-900 text-white text-xs px-4 py-2 flex items-center justify-between border-b border-neutral-800 shadow-md">
+      <div className="flex items-center gap-2">
+        <Eye className="w-3.5 h-3.5 text-[#00A859]" />
+        <span>
+          Previewing <strong>{activeTemplateConfig.name}</strong> · Not saved
+        </span>
+      </div>
+      <Link
+        href={`/s/${slug}/p/${productSlug}`}
+        className="text-[11px] font-bold text-neutral-400 hover:text-white flex items-center gap-1"
+      >
+        <span>Exit preview</span>
+        <X className="w-3.5 h-3.5" />
+      </Link>
+    </div>
+  ) : null;
 
   return (
-    <StorefrontProductClient
-      businessName={profile.businessName}
-      storeSlug={slug}
-      city={profile.city}
-      state={profile.state}
-      tagline={profile.description}
-      whatsappNumber={profile.whatsappNumber}
-      phoneNumber={profile.phoneNumber || undefined}
-      returnPolicy={profile.returnPolicy}
-      product={product}
-    />
+    <>
+      {previewBanner}
+      {templateId === "food" ? (
+        <FoodProductClient
+          businessName={profile.businessName}
+          storeSlug={slug}
+          city={profile.city}
+          state={profile.state}
+          tagline={profile.description}
+          whatsappNumber={profile.whatsappNumber}
+          phoneNumber={profile.phoneNumber || undefined}
+          returnPolicy={profile.returnPolicy}
+          product={product}
+          previewTemplate={previewTemplate}
+        />
+      ) : templateId === "fashion" ? (
+        <FashionProductClient
+          businessName={profile.businessName}
+          storeSlug={slug}
+          city={profile.city}
+          state={profile.state}
+          tagline={profile.description}
+          whatsappNumber={profile.whatsappNumber}
+          phoneNumber={profile.phoneNumber || undefined}
+          returnPolicy={profile.returnPolicy}
+          product={product}
+          previewTemplate={previewTemplate}
+        />
+      ) : templateId === "electronics" ? (
+        <ElectronicsProductClient
+          businessName={profile.businessName}
+          storeSlug={slug}
+          city={profile.city}
+          state={profile.state}
+          tagline={profile.description}
+          whatsappNumber={profile.whatsappNumber}
+          phoneNumber={profile.phoneNumber || undefined}
+          returnPolicy={profile.returnPolicy}
+          product={product}
+          previewTemplate={previewTemplate}
+        />
+      ) : (
+        <StorefrontProductClient
+          businessName={profile.businessName}
+          storeSlug={slug}
+          city={profile.city}
+          state={profile.state}
+          tagline={profile.description}
+          whatsappNumber={profile.whatsappNumber}
+          phoneNumber={profile.phoneNumber || undefined}
+          returnPolicy={profile.returnPolicy}
+          product={product}
+          previewTemplate={previewTemplate}
+        />
+      )}
+    </>
   );
 }

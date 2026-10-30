@@ -8,10 +8,14 @@ interface Props {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<{
+    previewTemplate?: string;
+  }>;
 }
 
-export default async function PublicCartPage({ params }: Props) {
+export default async function PublicCartPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { previewTemplate } = await searchParams;
 
   const profile = await prisma.businessProfile.findUnique({
     where: { slug },
@@ -20,30 +24,6 @@ export default async function PublicCartPage({ params }: Props) {
   if (!profile) {
     notFound();
   }
-
-  // Pre-seed sample items matching the design if the user hasn't added anything yet,
-  // or fetch real products for seeding
-  const sampleProducts = await prisma.product.findMany({
-    where: {
-      merchantId: profile.merchantId,
-      status: "ACTIVE",
-    },
-    include: {
-      images: { orderBy: { position: "asc" } },
-    },
-    take: 2,
-  });
-
-  const defaultSeedItems = sampleProducts.map((p, idx) => ({
-    id: `seed-${p.id}`,
-    productId: p.id,
-    productName: p.name,
-    productSlug: p.slug,
-    imageUrl: p.images[0]?.url || "/sample-product.png",
-    priceKobo: Number(p.priceKobo),
-    variantTitle: idx === 0 ? "Indigo · Size M" : "Natural",
-    quantity: 1,
-  }));
 
   // Fetch shipping configuration for Coverage Preview banner
   const rawRates = await prisma.shippingRate.findMany({
@@ -105,8 +85,8 @@ export default async function PublicCartPage({ params }: Props) {
       whatsappNumber={profile.whatsappNumber}
       phoneNumber={profile.phoneNumber || undefined}
       returnPolicy={profile.returnPolicy}
-      defaultSeedItems={defaultSeedItems.length > 0 ? defaultSeedItems : undefined}
       coveragePreview={coveragePreview}
+      previewTemplate={previewTemplate}
     />
   );
 }

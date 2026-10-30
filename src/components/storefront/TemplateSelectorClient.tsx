@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Sparkles, Smartphone, Store, ShieldCheck, Zap } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Sparkles, Store, Zap } from "lucide-react";
 
 interface TemplateOption {
   id: string;
@@ -19,7 +19,7 @@ const TEMPLATES: TemplateOption[] = [
     id: "default",
     name: "Ondar Minimal",
     tagline: "Clean, light & universal",
-    description: "Single-column vertical feed with clean typography, category chips and fast cart drawer. Perfect for fashion, thrift, beauty and lifestyle.",
+    description: "Universal clean layout with category chips, vertical feed, and swift cart drawer. Perfect for fashion, thrift, beauty and lifestyle.",
     badge: "Free · Default",
     idealFor: "Fashion, Accessories, Bags, Beauty",
     previewColor: "bg-[#00A859]",
@@ -27,8 +27,8 @@ const TEMPLATES: TemplateOption[] = [
   {
     id: "fashion",
     name: "Zuri Luxe Fashion",
-    tagline: "Editorial portrait grid & bespoke sizing",
-    description: "High-end serif typography, circular category stories, live color swatches, out-of-stock strikes, size guide, and bespoke custom measurements add-on (+₦3,000).",
+    tagline: "Editorial portrait grid & refined styling",
+    description: "Editorial serif typography, 2-column portrait imagery, circular category stories, in-stock/sold-out badges, and high-fashion boutique aesthetics.",
     badge: "Free · Designer",
     idealFor: "Ready-to-wear, Made-to-order, Nigerian Designers & Tailors",
     previewColor: "bg-neutral-900",
@@ -36,8 +36,8 @@ const TEMPLATES: TemplateOption[] = [
   {
     id: "food",
     name: "Mama's Kitchen & Dining",
-    tagline: "Appetizing food menu & custom meal extras",
-    description: "Warm peach & terracotta theme (#FCE7D2) with operating hours, portion toggles (Regular vs Large), custom food extras (Extra chicken/plantain), quantity steppers, and minimum order notices.",
+    tagline: "Appetizing food menu & culinary styling",
+    description: "Warm peach & terracotta theme (#FCE7D2), 1-tap quick add actions, category tabs, quantity steppers, and appetizing culinary presentation.",
     badge: "Free · Kitchen",
     idealFor: "Restaurants, Cloud Kitchens, Caterers, Bakeries & Food Vendors",
     previewColor: "bg-[#BA3C1D]",
@@ -45,8 +45,8 @@ const TEMPLATES: TemplateOption[] = [
   {
     id: "electronics",
     name: "Cyber Tech & Gadgets",
-    tagline: "High-density dark grid & spec badges",
-    description: "Futuristic dark slate theme (#0F172A) with 2-column tech grid, warranty and verification badges, and 1-tap quick add buttons.",
+    tagline: "High-density dark grid & spec chips",
+    description: "Futuristic dark slate theme (#0F172A) with 2-column tech grid, specification chips, monospace pricing, and dark-mode product detail page.",
     badge: "Free · New",
     idealFor: "Smartphones, Laptops, Audio, Computer Village Vendors",
     previewColor: "bg-[#38BDF8]",
@@ -62,11 +62,13 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
   const [selected, setSelected] = useState(currentTemplateId);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSelectTemplate = async (templateId: string) => {
-    setSelected(templateId);
+    if (isSaving || templateId === selected) return;
     setIsSaving(true);
     setSavedSuccess(false);
+    setSaveError(null);
 
     try {
       const res = await fetch("/api/settings/profile", {
@@ -74,12 +76,16 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateId }),
       });
+      const data = await res.json();
       if (res.ok) {
+        setSelected(data.profile.templateId);
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);
+      } else {
+        setSaveError(data.error || "Template selection could not be saved.");
       }
-    } catch (e) {
-      alert("Failed to save template selection");
+    } catch {
+      setSaveError("Template selection could not be saved. Check your connection and try again.");
     } finally {
       setIsSaving(false);
     }
@@ -118,20 +124,25 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
           </div>
         )}
 
+        {saveError && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-[13px] font-semibold text-red-700">
+            {saveError}
+          </div>
+        )}
+
         <div className="space-y-4">
           {TEMPLATES.map((tmpl) => {
             const isCurrent = selected === tmpl.id;
             return (
               <div
                 key={tmpl.id}
-                onClick={() => handleSelectTemplate(tmpl.id)}
-                className={`bg-white rounded-2xl p-5 border-2 transition-all cursor-pointer space-y-3 shadow-sm ${
+                className={`bg-white rounded-2xl p-5 border-2 transition-all space-y-3 shadow-sm ${
                   isCurrent
                     ? "border-[#00A859] ring-2 ring-[#00A859]/20"
                     : "border-neutral-200/80 hover:border-neutral-300"
                 }`}
               >
-                <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${tmpl.previewColor} shadow-xs`}
@@ -164,7 +175,7 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
                 <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-[11px]">
                   <span className="text-neutral-500">Ideal for: <strong className="text-neutral-800">{tmpl.idealFor}</strong></span>
                   <Link
-                    href={`/s/${storeSlug}`}
+                    href={`/s/${storeSlug}?previewTemplate=${tmpl.id}`}
                     target="_blank"
                     className="text-[#00A859] font-bold hover:underline"
                     onClick={(e) => e.stopPropagation()}
@@ -172,6 +183,16 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
                     Preview storefront →
                   </Link>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTemplate(tmpl.id)}
+                  disabled={isSaving || isCurrent}
+                  className="w-full h-10 rounded-xl bg-neutral-900 text-white text-[12px] font-bold transition-colors hover:bg-neutral-700 disabled:bg-neutral-100 disabled:text-neutral-500 disabled:cursor-default"
+                >
+                  {isSaving && !isCurrent ? (
+                    <span className="inline-flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</span>
+                  ) : isCurrent ? "Current template" : "Use this template"}
+                </button>
               </div>
             );
           })}

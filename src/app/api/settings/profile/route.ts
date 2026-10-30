@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentMerchant } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const TEMPLATE_IDS = ["default", "fashion", "food", "electronics"] as const;
+type TemplateId = (typeof TEMPLATE_IDS)[number];
+
+function isTemplateId(value: unknown): value is TemplateId {
+  return typeof value === "string" && (TEMPLATE_IDS as readonly string[]).includes(value);
+}
+
 export async function GET() {
   const merchant = await getCurrentMerchant();
   if (!merchant) {
@@ -83,6 +90,38 @@ export async function POST(req: NextRequest) {
     console.error("Profile settings update error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update profile settings." },
+      { status: 500 }
+    );
+  }
+}
+
+/** Changes storefront presentation only; commerce data stays untouched. */
+export async function PATCH(req: NextRequest) {
+  const merchant = await getCurrentMerchant();
+  if (!merchant) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { templateId } = await req.json();
+    if (!isTemplateId(templateId)) {
+      return NextResponse.json(
+        { success: false, error: "Choose a valid storefront template." },
+        { status: 400 }
+      );
+    }
+
+    const profile = await prisma.businessProfile.update({
+      where: { merchantId: merchant.id },
+      data: { templateId },
+      select: { templateId: true, slug: true },
+    });
+
+    return NextResponse.json({ success: true, profile });
+  } catch (error: unknown) {
+    console.error("Template update error:", error);
+    return NextResponse.json(
+      { success: false, error: "Could not update the storefront template." },
       { status: 500 }
     );
   }

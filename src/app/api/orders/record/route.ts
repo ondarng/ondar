@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      items = [], // Array of { productId, name, priceKobo, quantity }
+      items = [], // Array of { productId, quantity }; server supplies name and price
       customerName,
       customerPhone,
       paymentMethod = "Cash", // "Bank transfer" | "Cash" | "POS" | "Other"
@@ -23,26 +23,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "At least one sale item is required" }, { status: 400 });
     }
 
-    // Calculate line totals and subtotal
-    let subtotalKobo = BigInt(0);
-    const orderLinesData = items.map((item: any) => {
-      const priceKobo = BigInt(item.priceKobo);
-      const quantity = Number(item.quantity);
-      const lineTotal = priceKobo * BigInt(quantity);
-      subtotalKobo += lineTotal;
-      return {
-        productId: item.productId,
-        name: item.name || "Item",
-        priceKobo,
-        quantity,
-        lineTotal,
-      };
-    });
+    if (!items.every((item: unknown) => {
+      const candidate = item as { productId?: unknown; quantity?: unknown };
+      return typeof candidate.productId === "string" &&
+        typeof candidate.quantity === "number" &&
+        Number.isSafeInteger(candidate.quantity) && candidate.quantity > 0;
+    })) {
+      return NextResponse.json({ error: "Each sale item needs a product and whole quantity above zero." }, { status: 400 });
+    }
 
     const now = new Date();
     const finalOrderStatus = alreadyHandedOver ? "COMPLETED" : "TO_FULFIL";
 
     const newOrder = await prisma.$transaction(async (tx) => {
+      let subtotalKobo = BigInt(0);
+      const orderLinesData: {
+        productId: string;
+        name: string;
+        priceKobo: bigint;
+        quantity: number;
+        lineTotal: bigint;
+      }[] = [];
+
       // 1. Immediately commit stock for recorded sale - verify product belongs to merchant
       for (const item of items) {
         const product = await tx.product.findFirst({
@@ -51,27 +53,37 @@ export async function POST(req: NextRequest) {
         if (!product) {
           throw new Error(`Product ${item.name || item.productId} not found or does not belong to this store.`);
         }
+        const quantity = Number(item.quantity);
+        const lineTotal = product.priceKobo * BigInt(quantity);
+        subtotalKobo += lineTotal;
+        orderLinesData.push({
+          productId: product.id,
+          name: product.name,
+          priceKobo: product.priceKobo,
+          quantity,
+          lineTotal,
+        });
         if (product.trackStock) {
           const beforeOnHand = product.stockOnHand;
           const beforeReserved = product.stockReserved;
           const beforeAvailable = Math.max(0, beforeOnHand - beforeReserved);
 
-          if (beforeAvailable < item.quantity) {
+          if (beforeAvailable < quantity) {
             throw new Error(`Insufficient stock for ${product.name}. Available: ${beforeAvailable}`);
           }
 
-          const afterOnHand = Math.max(0, beforeOnHand - item.quantity);
+          const afterOnHand = beforeOnHand - quantity;
           const afterAvailable = Math.max(0, afterOnHand - beforeReserved);
 
           await tx.product.update({
-            where: { id: item.productId },
+            where: { id: product.id },
             data: { stockOnHand: afterOnHand },
           });
 
           await tx.stockAudit.create({
             data: {
-              productId: item.productId,
-              changeQty: -item.quantity,
+              productId: product.id,
+              changeQty: -quantity,
               beforeAvailable,
               afterAvailable,
               beforeOnHand,

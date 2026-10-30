@@ -25,9 +25,11 @@ import {
   Store,
   Truck,
   Users,
+  Palette,
 } from "lucide-react";
 import { OndarLogo } from "@/components/OndarLogo";
 import { MerchantBottomNav } from "@/components/merchant/MerchantBottomNav";
+import { StorefrontCanvasModal } from "@/components/storefront/StorefrontCanvasModal";
 
 export interface StorefrontProduct {
   id: string;
@@ -45,6 +47,8 @@ export interface StorefrontHubProps {
   displayStoreUrl: string;
   state: string;
   city: string;
+  description?: string | null;
+  logoUrl?: string | null;
   returnPolicy: string;
   deliveryCoverage?: string;
   activeProducts: StorefrontProduct[];
@@ -75,6 +79,8 @@ export function StorefrontHub({
   displayStoreUrl,
   state,
   city,
+  description: initialDescription,
+  logoUrl: initialLogoUrl,
   returnPolicy: initialReturnPolicy,
   deliveryCoverage = "Lagos - Ikeja, Yaba and Lekki",
   activeProducts,
@@ -88,6 +94,12 @@ export function StorefrontHub({
   // Active view: "hub" | "share" | "delivery-returns" | "reviews"
   const urlView = (searchParams.get("view") as any) || initialView;
   const [currentView, setCurrentView] = useState<"hub" | "share" | "delivery-returns" | "reviews">(urlView);
+
+  // Storefront Canvas & Banner State
+  const [currentBusinessName, setCurrentBusinessName] = useState(businessName);
+  const [currentDescription, setCurrentDescription] = useState(initialDescription || "");
+  const [currentBannerUrl, setCurrentBannerUrl] = useState(initialLogoUrl || null);
+  const [isCanvasModalOpen, setIsCanvasModalOpen] = useState(false);
 
   // Settings & Toggles
   const [showReviews, setShowReviews] = useState(true);
@@ -397,8 +409,64 @@ export function StorefrontHub({
                 </div>
 
                 {/* Section: Your storefront */}
-                <div>
-                  <h2 className="text-sm font-bold text-neutral-900 mb-2">Your storefront</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold text-neutral-900">Your storefront</h2>
+                    <Link
+                      href="/settings/templates"
+                      className="text-xs font-bold text-[#00A859] hover:underline"
+                    >
+                      Change template →
+                    </Link>
+                  </div>
+
+                  {/* Banner Canvas Customizer Action Card */}
+                  <div className="rounded-2xl border border-neutral-200/90 bg-white p-4 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#E8F8EF] text-[#00A859] flex items-center justify-center">
+                          <Palette className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-neutral-900">Store Banner & Highlights Canvas</p>
+                          <p className="text-[11px] text-neutral-500">Live preview window for your hero banner and text</p>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#E8F8EF] text-[#00A859] text-[10px] font-bold">
+                        New
+                      </span>
+                    </div>
+
+                    {currentBannerUrl ? (
+                      <div className="relative aspect-[16/7] w-full rounded-xl overflow-hidden border border-neutral-200 bg-neutral-900 flex items-end p-3 text-white">
+                        <img
+                          src={currentBannerUrl}
+                          alt="Store banner"
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]" />
+                        <div className="relative z-10">
+                          <p className="text-xs font-serif font-black">{currentBusinessName}</p>
+                          <p className="text-[10px] text-white/80 line-clamp-1">{currentDescription || "No announcement set"}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200/60 text-[11px] text-neutral-500 flex items-center justify-between">
+                        <span>No banner image uploaded yet.</span>
+                        <span className="text-[#00A859] font-bold">Use Canvas</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCanvasModalOpen(true)}
+                      className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                    >
+                      <Palette className="w-3.5 h-3.5 text-[#00A859]" />
+                      <span>Open Banner & Text Canvas</span>
+                    </button>
+                  </div>
+
                   <div className="rounded-2xl border border-neutral-200/90 bg-white p-3.5 flex items-center gap-3.5 shadow-2xs">
                     <div className="w-14 h-14 rounded-xl bg-[#F4F4F4] overflow-hidden flex-shrink-0 flex items-center justify-center border border-neutral-100">
                       {activeProducts[0]?.images[0]?.url ? (
@@ -413,13 +481,13 @@ export function StorefrontHub({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-neutral-900">Ondar default</p>
+                        <p className="text-sm font-bold text-neutral-900">Storefront Vibe</p>
                         <span className="px-2 py-0.5 rounded-md bg-[#E8F8EF] text-[#00A859] text-[10px] font-bold">
-                          Free · In use
+                          Live
                         </span>
                       </div>
                       <p className="text-xs text-neutral-400 mt-1 font-normal truncate">
-                        One simple, mobile-first template.
+                        Choose between 4 responsive templates.
                       </p>
                     </div>
                   </div>
@@ -1052,6 +1120,23 @@ export function StorefrontHub({
 
       {/* 5-Tab Merchant Bottom Nav */}
       <MerchantBottomNav active="more" pendingBadgeCount={pendingBadgeCount} />
+
+      {/* Storefront Canvas & Banner Editor Modal */}
+      <StorefrontCanvasModal
+        isOpen={isCanvasModalOpen}
+        onClose={() => setIsCanvasModalOpen(false)}
+        initialBusinessName={currentBusinessName}
+        initialDescription={currentDescription}
+        initialBannerUrl={currentBannerUrl}
+        initialCity={city}
+        initialState={state}
+        storeSlug={storeSlug}
+        onSaved={({ businessName: bName, description: bDesc, bannerUrl: bBanner }) => {
+          setCurrentBusinessName(bName);
+          setCurrentDescription(bDesc);
+          setCurrentBannerUrl(bBanner);
+        }}
+      />
     </div>
   );
 }

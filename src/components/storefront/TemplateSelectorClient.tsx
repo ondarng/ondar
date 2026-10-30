@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Loader2, Sparkles, Store, Zap } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Palette, Sparkles, Store, Zap } from "lucide-react";
+import { StorefrontCanvasModal } from "@/components/storefront/StorefrontCanvasModal";
 
 interface TemplateOption {
   id: string;
@@ -56,13 +57,32 @@ const TEMPLATES: TemplateOption[] = [
 interface TemplateSelectorProps {
   currentTemplateId: string;
   storeSlug: string;
+  businessName?: string;
+  description?: string | null;
+  logoUrl?: string | null;
+  city?: string;
+  state?: string;
 }
 
-export function TemplateSelectorClient({ currentTemplateId, storeSlug }: TemplateSelectorProps) {
+export function TemplateSelectorClient({
+  currentTemplateId,
+  storeSlug,
+  businessName: initialBusinessName = "My Store",
+  description: initialDescription,
+  logoUrl: initialLogoUrl,
+  city = "Lagos",
+  state = "Nigeria",
+}: TemplateSelectorProps) {
   const [selected, setSelected] = useState(currentTemplateId);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Storefront Canvas Modal State
+  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+  const [businessName, setBusinessName] = useState(initialBusinessName);
+  const [description, setDescription] = useState(initialDescription || "");
+  const [bannerUrl, setBannerUrl] = useState(initialLogoUrl || null);
 
   const handleSelectTemplate = async (templateId: string) => {
     if (isSaving || templateId === selected) return;
@@ -113,6 +133,26 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
           <p className="text-[12px] text-neutral-600 leading-relaxed">
             Switching templates instantly updates your storefront layout. Your products, inventory, prices, and orders remain 100% untouched.
           </p>
+        </div>
+
+        {/* Store Banner & Highlights Canvas Button Card */}
+        <div className="bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#E8F8EF] text-[#00A859] flex items-center justify-center flex-shrink-0">
+              <Palette className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-neutral-900">Banner & Highlights Canvas</h3>
+              <p className="text-[11px] text-neutral-500">Live preview window for store imagery & text</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsCanvasOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition-all cursor-pointer flex-shrink-0 shadow-2xs"
+          >
+            Open Canvas
+          </button>
         </div>
 
         {savedSuccess && (
@@ -198,6 +238,23 @@ export function TemplateSelectorClient({ currentTemplateId, storeSlug }: Templat
           })}
         </div>
       </div>
+
+      {/* Storefront Canvas & Banner Editor Modal */}
+      <StorefrontCanvasModal
+        isOpen={isCanvasOpen}
+        onClose={() => setIsCanvasOpen(false)}
+        initialBusinessName={businessName}
+        initialDescription={description}
+        initialBannerUrl={bannerUrl}
+        initialCity={city}
+        initialState={state}
+        storeSlug={storeSlug}
+        onSaved={({ businessName: bName, description: bDesc, bannerUrl: bBanner }) => {
+          setBusinessName(bName);
+          setDescription(bDesc);
+          setBannerUrl(bBanner);
+        }}
+      />
     </div>
   );
 }

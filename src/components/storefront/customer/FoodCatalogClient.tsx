@@ -32,6 +32,7 @@ function FoodCatalogContent({
   businessName,
   storeSlug,
   description,
+  logoUrl,
   city = "Lagos",
   state = "Nigeria",
   whatsappNumber,
@@ -126,22 +127,39 @@ function FoodCatalogContent({
         </header>
 
         {/* 2. APPETIZING HERO BANNER */}
-        <section className="p-5 rounded-2xl bg-[#FCE7D2] text-neutral-900 mb-6 relative overflow-hidden shadow-2xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 text-[10px] font-bold text-[#BA3C1D] shadow-2xs">
-              <UtensilsCrossed className="w-3 h-3" />
-              {city}, {state}
-            </span>
-          </div>
-
-          <h2 className="font-serif font-black text-2xl text-neutral-900 tracking-tight leading-snug">
-            {businessName}
-          </h2>
-          {description && (
-            <p className="text-xs font-medium text-neutral-700 mt-2 line-clamp-2">
-              {description}
-            </p>
+        <section
+          className="p-5 rounded-2xl bg-[#FCE7D2] text-neutral-900 mb-6 relative overflow-hidden shadow-2xs"
+          style={
+            logoUrl
+              ? {
+                  backgroundImage: `url(${logoUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : undefined
+          }
+        >
+          {logoUrl && (
+            <div className="absolute inset-0 bg-[#FCE7D2]/85 backdrop-blur-[0.5px]" />
           )}
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 text-[10px] font-bold text-[#BA3C1D] shadow-2xs">
+                <UtensilsCrossed className="w-3 h-3" />
+                {city}, {state}
+              </span>
+            </div>
+
+            <h2 className="font-serif font-black text-2xl text-neutral-900 tracking-tight leading-snug">
+              {businessName}
+            </h2>
+            {description && (
+              <p className="text-xs font-medium text-neutral-800 mt-2 line-clamp-2">
+                {description}
+              </p>
+            )}
+          </div>
         </section>
 
         {/* 3. CATEGORY NAVIGATION TABS (if categories exist) */}

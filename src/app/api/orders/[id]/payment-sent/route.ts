@@ -14,6 +14,12 @@ export async function POST(
       return NextResponse.json({ error: "Order ID required" }, { status: 400 });
     }
 
+    // This route is customer-facing. An order ID alone must never be enough
+    // to extend a stock hold for another customer's order.
+    if (typeof publicToken !== "string" || !publicToken) {
+      return NextResponse.json({ error: "Order access token required" }, { status: 401 });
+    }
+
     // Verify order exists and matches public token
     const order = await prisma.order.findUnique({
       where: { id },
@@ -30,7 +36,7 @@ export async function POST(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (publicToken && order.publicToken !== publicToken) {
+    if (order.publicToken !== publicToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

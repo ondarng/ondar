@@ -35,7 +35,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const feeKobo = isFree ? BigInt(0) : BigInt(Math.round((Number(feeNaira) || 0) * 100));
+    const parsedFee = Number(feeNaira);
+    if (!isFree && (!Number.isFinite(parsedFee) || parsedFee < 0)) {
+      return NextResponse.json(
+        { success: false, error: "Delivery fee must be a non-negative number." },
+        { status: 400 }
+      );
+    }
+    const feeKobo = isFree ? BigInt(0) : BigInt(Math.round(parsedFee * 100));
 
     let record;
     if (id) {
@@ -61,6 +68,17 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Create new
+      if (parentId) {
+        const parent = await prisma.shippingRate.findFirst({
+          where: { id: parentId, merchantId: merchant.id, parentId: null },
+        });
+        if (!parent) {
+          return NextResponse.json(
+            { success: false, error: "Parent shipping rate not found." },
+            { status: 404 }
+          );
+        }
+      }
       record = await prisma.shippingRate.create({
         data: {
           merchantId: merchant.id,

@@ -14,7 +14,9 @@ import {
   Loader2,
   ChevronDown,
   CheckCircle2,
+  Palette,
 } from "lucide-react";
+import { StorefrontCanvasModal } from "@/components/storefront/StorefrontCanvasModal";
 
 export default function BusinessProfileSettingsPage() {
   const router = useRouter();
@@ -24,6 +26,7 @@ export default function BusinessProfileSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isCanvasModalOpen, setIsCanvasModalOpen] = useState(false);
 
   // Profile Form States
   const [businessName, setBusinessName] = useState("Ada's Edit");
@@ -266,6 +269,15 @@ export default function BusinessProfileSettingsPage() {
                   <Upload className="w-5 h-5" />
                 </div>
               </label>
+
+              <button
+                type="button"
+                onClick={() => setIsCanvasModalOpen(true)}
+                className="mt-2 w-full py-2.5 px-3 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-xs font-bold text-neutral-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+              >
+                <Palette className="w-3.5 h-3.5 text-[#00A859]" />
+                <span>Customize in Visual Banner Canvas</span>
+              </button>
             </div>
 
             {/* Short description */}
@@ -511,6 +523,23 @@ export default function BusinessProfileSettingsPage() {
           </div>
         </form>
       </div>
+
+      {/* Storefront Canvas & Banner Editor Modal */}
+      <StorefrontCanvasModal
+        isOpen={isCanvasModalOpen}
+        onClose={() => setIsCanvasModalOpen(false)}
+        initialBusinessName={businessName}
+        initialDescription={description}
+        initialBannerUrl={logoPreview}
+        initialCity={city}
+        initialState={selectedState}
+        storeSlug={slug}
+        onSaved={({ businessName: bName, description: bDesc, bannerUrl: bBanner }) => {
+          setBusinessName(bName);
+          setDescription(bDesc);
+          if (bBanner) setLogoPreview(bBanner);
+        }}
+      />
     </main>
   );
 }

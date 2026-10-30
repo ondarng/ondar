@@ -32,6 +32,7 @@ function FashionCatalogContent({
   businessName,
   storeSlug,
   description,
+  logoUrl,
   city = "Lagos",
   state = "Nigeria",
   whatsappNumber,
@@ -135,6 +136,24 @@ function FashionCatalogContent({
             )}
           </Link>
         </header>
+
+        {/* Editorial Highlight Banner (if banner/logo uploaded) */}
+        {logoUrl && (
+          <div className="relative aspect-[16/7] w-full overflow-hidden mb-5 bg-neutral-900 shadow-2xs">
+            <img
+              src={logoUrl}
+              alt={businessName}
+              className="w-full h-full object-cover opacity-90"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute bottom-3 left-3 text-white">
+              <span className="text-[9px] font-black tracking-widest uppercase bg-white text-black px-1.5 py-0.5">
+                HIGHLIGHT
+              </span>
+              <p className="font-serif font-black text-base mt-1">{businessName}</p>
+            </div>
+          </div>
+        )}
 
         {/* 3. CIRCULAR CATEGORY STORIES (only rendered if merchant has categories) */}
         {categories.length > 0 && (

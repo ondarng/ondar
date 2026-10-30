@@ -201,6 +201,27 @@ export function StorefrontCatalogClient({
             )}
           </div>
 
+          {/* Highlight Hero Banner if banner/logo exists */}
+          {logoUrl && (
+            <div className="relative aspect-[16/7] w-full rounded-2xl overflow-hidden mb-4 border border-neutral-200/80 shadow-2xs flex flex-col justify-end p-4 text-white">
+              <img
+                src={logoUrl}
+                alt={businessName}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+              <div className="relative z-10 space-y-0.5">
+                <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[9px] font-black uppercase tracking-wider text-white border border-white/30">
+                  HIGHLIGHT
+                </span>
+                <p className="font-serif font-black text-base leading-tight drop-shadow-sm">{businessName}</p>
+                {description && (
+                  <p className="text-xs text-white/90 line-clamp-1 drop-shadow-xs">{description}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 mb-4">
             {categories.map((cat) => {

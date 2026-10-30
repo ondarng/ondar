@@ -2,6 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentMerchant } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function isWholePositiveQuantity(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+}
+
+function canRunOrderAction(order: {
+  orderStatus: string;
+  paymentStatus: string;
+  deliveryType: string;
+}, action: unknown) {
+  switch (action) {
+    case "CONFIRM_PAYMENT":
+      return order.paymentStatus === "AWAITING_PAYMENT" &&
+        (order.orderStatus === "AWAITING_PAYMENT" || order.orderStatus === "PAYMENT_SENT");
+    case "MARK_READY_FOR_PICKUP":
+      return order.paymentStatus === "PAID" && order.deliveryType === "pickup" && order.orderStatus === "TO_FULFIL";
+    case "MARK_OUT_FOR_DELIVERY":
+      return order.paymentStatus === "PAID" && order.deliveryType !== "pickup" && order.orderStatus === "TO_FULFIL";
+    case "MARK_COMPLETED":
+      return order.paymentStatus === "PAID" && (order.orderStatus === "OUT_FOR_DELIVERY" || order.orderStatus === "READY_FOR_PICKUP");
+    case "RECORD_REFUND":
+      return ["PAID", "PARTIALLY_REFUNDED"].includes(order.paymentStatus);
+    case "CANCEL_ORDER":
+      return !["CANCELLED", "COMPLETED"].includes(order.orderStatus);
+    default:
+      return true;
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,6 +51,13 @@ export async function PATCH(
 
     if (!order || order.merchantId !== merchant.id) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    if (!canRunOrderAction(order, action)) {
+      return NextResponse.json(
+        { error: `Cannot ${String(action).toLowerCase().replaceAll("_", " ")} from this order state.` },
+        { status: 409 }
+      );
     }
 
     const now = new Date();
@@ -63,13 +98,29 @@ export async function PATCH(
 
     if (action === "RECORD_REFUND") {
       const { refundKobo, reason, returnItems = [] } = body;
-      const amountKobo = BigInt(refundKobo || 0);
+      let amountKobo: bigint;
+      try {
+        amountKobo = BigInt(refundKobo);
+      } catch {
+        return NextResponse.json({ error: "Invalid refund amount" }, { status: 400 });
+      }
       if (amountKobo <= 0) {
         return NextResponse.json({ error: "Invalid refund amount" }, { status: 400 });
       }
 
       const currentRefunded = order.refundedKobo || BigInt(0);
       const newTotalRefunded = currentRefunded + amountKobo;
+      if (newTotalRefunded > order.totalKobo) {
+        return NextResponse.json({ error: "Refund cannot exceed the order total." }, { status: 400 });
+      }
+
+      const orderedQuantities = new Map(order.lines.map((line) => [line.productId, line.quantity]));
+      if (!Array.isArray(returnItems) || returnItems.some((item) =>
+        !item || typeof item.productId !== "string" || !isWholePositiveQuantity(item.quantity) ||
+        item.quantity > (orderedQuantities.get(item.productId) || 0)
+      )) {
+        return NextResponse.json({ error: "Returned items must be products and quantities from this order." }, { status: 400 });
+      }
 
       const newPaymentStatus =
         newTotalRefunded >= order.totalKobo ? "REFUNDED" : "PARTIALLY_REFUNDED";
@@ -77,8 +128,8 @@ export async function PATCH(
       await prisma.$transaction(async (tx) => {
         // Restock returned items if requested
         for (const ret of returnItems) {
-          const product = await tx.product.findUnique({ where: { id: ret.productId } });
-          if (product && ret.quantity > 0) {
+          const product = await tx.product.findFirst({ where: { id: ret.productId, merchantId: merchant.id } });
+          if (product && isWholePositiveQuantity(ret.quantity)) {
             const beforeOnHand = product.stockOnHand;
             const beforeReserved = product.stockReserved;
             const beforeAvailable = Math.max(0, beforeOnHand - beforeReserved);
@@ -87,7 +138,7 @@ export async function PATCH(
             const afterAvailable = Math.max(0, afterOnHand - beforeReserved);
 
             await tx.product.update({
-              where: { id: ret.productId },
+              where: { id: product.id },
               data: { stockOnHand: afterOnHand },
             });
 
@@ -137,7 +188,7 @@ export async function PATCH(
       await prisma.$transaction(async (tx) => {
         // 1. Commit stock reduction from reserved
         for (const line of order.lines) {
-          const product = await tx.product.findUnique({ where: { id: line.productId } });
+          const product = await tx.product.findFirst({ where: { id: line.productId, merchantId: merchant.id } });
           if (product) {
             const beforeOnHand = product.stockOnHand;
             const beforeReserved = product.stockReserved;
@@ -148,7 +199,7 @@ export async function PATCH(
             const afterAvailable = Math.max(0, afterOnHand - afterReserved);
 
             await tx.product.update({
-              where: { id: line.productId },
+            where: { id: product.id },
               data: {
                 stockOnHand: afterOnHand,
                 stockReserved: afterReserved,
@@ -260,12 +311,19 @@ export async function PATCH(
 
     if (action === "CANCEL_ORDER") {
       const { itemsToRestock = [] } = body; // Array of { productId, quantity }
+      const orderedQuantities = new Map(order.lines.map((line) => [line.productId, line.quantity]));
+      if (!Array.isArray(itemsToRestock) || itemsToRestock.some((item) =>
+        !item || typeof item.productId !== "string" || !isWholePositiveQuantity(item.quantity) ||
+        item.quantity > (orderedQuantities.get(item.productId) || 0)
+      )) {
+        return NextResponse.json({ error: "Restocked items must be products and quantities from this order." }, { status: 400 });
+      }
 
       await prisma.$transaction(async (tx) => {
         // If stock was reserved and unpaid, release reserved
         if (order.paymentStatus === "AWAITING_PAYMENT") {
           for (const line of order.lines) {
-            const product = await tx.product.findUnique({ where: { id: line.productId } });
+            const product = await tx.product.findFirst({ where: { id: line.productId, merchantId: merchant.id } });
             if (product) {
               const beforeOnHand = product.stockOnHand;
               const beforeReserved = product.stockReserved;
@@ -275,7 +333,7 @@ export async function PATCH(
               const afterAvailable = Math.max(0, beforeOnHand - afterReserved);
 
               await tx.product.update({
-                where: { id: line.productId },
+                where: { id: product.id },
                 data: { stockReserved: afterReserved },
               });
 
@@ -300,8 +358,8 @@ export async function PATCH(
         } else {
           // Order was PAID: Return selected items back to onHand
           for (const item of itemsToRestock) {
-            const product = await tx.product.findUnique({ where: { id: item.productId } });
-            if (product && item.quantity > 0) {
+            const product = await tx.product.findFirst({ where: { id: item.productId, merchantId: merchant.id } });
+            if (product && isWholePositiveQuantity(item.quantity)) {
               const beforeOnHand = product.stockOnHand;
               const beforeReserved = product.stockReserved;
               const beforeAvailable = Math.max(0, beforeOnHand - beforeReserved);
@@ -310,7 +368,7 @@ export async function PATCH(
               const afterAvailable = Math.max(0, afterOnHand - beforeReserved);
 
               await tx.product.update({
-                where: { id: item.productId },
+                where: { id: product.id },
                 data: { stockOnHand: afterOnHand },
               });
 

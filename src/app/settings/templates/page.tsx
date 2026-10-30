@@ -11,13 +11,26 @@ export default async function TemplatesPage() {
 
   const profile = await prisma.businessProfile.findUnique({
     where: { merchantId: merchant.id },
-    select: { templateId: true, slug: true },
+    select: {
+      templateId: true,
+      slug: true,
+      businessName: true,
+      description: true,
+      logoUrl: true,
+      city: true,
+      state: true,
+    },
   });
 
   return (
     <TemplateSelectorClient
       currentTemplateId={profile?.templateId || "default"}
       storeSlug={profile?.slug || "shop"}
+      businessName={profile?.businessName || "My Store"}
+      description={profile?.description}
+      logoUrl={profile?.logoUrl}
+      city={profile?.city}
+      state={profile?.state}
     />
   );
 }

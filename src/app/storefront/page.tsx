@@ -70,6 +70,8 @@ export default async function StorefrontPage({ searchParams }: PageProps) {
       displayStoreUrl={urls.displayStore}
       state={state}
       city={city}
+      description={business?.description}
+      logoUrl={business?.logoUrl}
       returnPolicy={returnPolicy}
       deliveryCoverage={deliveryCoverage}
       activeProducts={activeProducts}

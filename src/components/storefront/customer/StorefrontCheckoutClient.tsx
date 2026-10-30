@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Store,
   Truck,
+  User,
 } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
@@ -304,23 +305,39 @@ function CheckoutContent({
     setDetailsError("");
     setDeliveryError("");
 
+    if (!fullName.trim()) {
+      setDetailsError("Please enter your full name.");
+      const el = document.getElementById("customer-fullname-input");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
+      }
+      return;
+    }
+
+    if (!phone.trim()) {
+      setDetailsError("Please enter your phone number.");
+      const el = document.getElementById("customer-phone-input");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
+      }
+      return;
+    }
+
     if (deliveryType === "delivery" && !selectedArea) {
       setDeliveryError("Please choose your delivery area.");
       setIsAreaModalOpen(true);
       return;
     }
 
-    if (!fullName.trim()) {
-      setDetailsError("Please enter your full name.");
-      return;
-    }
-    if (!phone.trim()) {
-      setDetailsError("Please enter your phone number.");
-      return;
-    }
-
     if (deliveryType === "delivery" && !streetAddress.trim()) {
       setDeliveryError("Please enter your street address.");
+      const el = document.getElementById("customer-address-input");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
+      }
       return;
     }
 
@@ -865,265 +882,266 @@ function CheckoutContent({
                     <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
                       This store is currently configuring delivery options. Please contact the merchant directly via WhatsApp.
                     </div>
-                  ) : deliveryType === "delivery" ? (
-                    /* DELIVERY DETAILS */
+                  ) : (
                     <div className="space-y-4">
-                      {/* State Dropdown */}
-                      <div>
-                        <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                          State
-                        </label>
-                        <div className="relative">
-                          <select
-                            value={selectedState}
+                      {/* 1. CUSTOMER CONTACT DETAILS (Prominent at top of checkout) */}
+                      <div className="p-4 rounded-2xl border border-neutral-200 bg-white space-y-3.5 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-[#00A859]" />
+                            <span>Your contact details</span>
+                          </h2>
+                          <span className="text-[11px] font-semibold text-neutral-400">* Required</span>
+                        </div>
+
+                        {/* Full Name */}
+                        <div>
+                          <label htmlFor="customer-fullname-input" className="text-xs font-bold text-neutral-900 block mb-1.5">
+                            Full name *
+                          </label>
+                          <input
+                            id="customer-fullname-input"
+                            type="text"
+                            required
+                            value={fullName}
                             onChange={(e) => {
-                              setSelectedState(e.target.value);
-                              setSelectedArea(null);
+                              setFullName(e.target.value);
+                              if (detailsError) setDetailsError("");
                             }}
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 bg-white appearance-none focus:outline-none focus:border-[#00A859] cursor-pointer"
+                            placeholder="Enter your full name"
+                            className={`w-full border rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none transition-colors bg-white ${
+                              detailsError && !fullName.trim()
+                                ? "border-red-500 focus:border-red-600 bg-red-50/20 ring-1 ring-red-500"
+                                : "border-neutral-200 focus:border-[#00A859]"
+                            }`}
+                          />
+                          {detailsError && !fullName.trim() && (
+                            <p className="text-xs text-red-600 mt-1.5 font-semibold">
+                              Please enter your full name to continue.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Phone Number */}
+                        <div>
+                          <label htmlFor="customer-phone-input" className="text-xs font-bold text-neutral-900 block mb-1.5">
+                            Phone number *
+                          </label>
+                          <div
+                            className={`flex items-center border rounded-xl bg-white overflow-hidden transition-colors ${
+                              detailsError && !phone.trim()
+                                ? "border-red-500 ring-1 ring-red-500"
+                                : "border-neutral-200 focus-within:border-[#00A859]"
+                            }`}
                           >
-                            {availableStates.map((st) => (
-                              <option key={st} value={st}>
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <span className="px-3 py-3 text-xs font-bold text-neutral-500 bg-neutral-50 border-r border-neutral-200 select-none">
+                              +234
+                            </span>
+                            <input
+                              id="customer-phone-input"
+                              type="tel"
+                              required
+                              value={phone}
+                              onChange={(e) => {
+                                setPhone(e.target.value);
+                                if (detailsError) setDetailsError("");
+                              }}
+                              placeholder="801 234 5678"
+                              className="flex-1 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none bg-transparent"
+                            />
+                          </div>
+                          <p className="text-[11px] text-neutral-400 mt-1">
+                            Used for delivery and order updates. Saved as {formattedPhonePreview}.
+                          </p>
+                          {detailsError && !phone.trim() && (
+                            <p className="text-xs text-red-600 mt-1.5 font-semibold">
+                              Please enter your phone number to continue.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label htmlFor="customer-email-input" className="text-xs font-bold text-neutral-900">
+                              Email address
+                            </label>
+                            <span className="text-xs text-neutral-400">Optional</span>
+                          </div>
+                          <input
+                            id="customer-email-input"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Add email for digital payment receipt"
+                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
+                          />
                         </div>
                       </div>
 
-                      {/* Area Trigger */}
-                      <div>
-                        <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                          Area
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setIsAreaModalOpen(true)}
-                          className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-left bg-white hover:border-neutral-300 transition-colors flex items-center justify-between group cursor-pointer"
-                        >
-                          {selectedArea && currentSelectedAreaObj ? (
-                            <div className="min-w-0 pr-2">
-                              <p className="text-sm font-bold text-neutral-900 truncate">
-                                {currentSelectedAreaObj.name}
+                      {/* 2. FULFILMENT DETAILS */}
+                      {deliveryType === "delivery" ? (
+                        <div className="space-y-4">
+                          {/* State Dropdown */}
+                          <div>
+                            <label className="text-xs font-bold text-neutral-900 block mb-1.5">
+                              State
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={selectedState}
+                                onChange={(e) => {
+                                  setSelectedState(e.target.value);
+                                  setSelectedArea(null);
+                                }}
+                                className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 bg-white appearance-none focus:outline-none focus:border-[#00A859] cursor-pointer"
+                              >
+                                {availableStates.map((st) => (
+                                  <option key={st} value={st}>
+                                    {st}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-4 h-4 text-neutral-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
+                          </div>
+
+                          {/* Area Trigger */}
+                          <div>
+                            <label className="text-xs font-bold text-neutral-900 block mb-1.5">
+                              Area *
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => setIsAreaModalOpen(true)}
+                              className={`w-full border rounded-xl px-4 py-3 text-left bg-white hover:border-neutral-300 transition-colors flex items-center justify-between group cursor-pointer ${
+                                deliveryError && !selectedArea ? "border-red-500 ring-1 ring-red-500" : "border-neutral-200"
+                              }`}
+                            >
+                              {selectedArea && currentSelectedAreaObj ? (
+                                <div className="min-w-0 pr-2">
+                                  <p className="text-sm font-bold text-neutral-900 truncate">
+                                    {currentSelectedAreaObj.name}
+                                  </p>
+                                  <p className="text-xs text-neutral-500 mt-0.5 truncate">
+                                    {currentSelectedAreaObj.deliveryName} · {currentSelectedAreaObj.isFree ? "Free" : `₦${currentSelectedAreaObj.feeNaira.toLocaleString("en-NG")}`} · {currentSelectedAreaObj.estimatedDelivery || "1–2 business days"}
+                                  </p>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-neutral-400 font-normal">
+                                  Choose delivery area...
+                                </span>
+                              )}
+                              <ChevronDown className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600 flex-shrink-0" />
+                            </button>
+                            {deliveryError && !selectedArea && (
+                              <p className="text-xs text-red-600 mt-1 font-semibold">
+                                Please select a delivery area.
                               </p>
-                              <p className="text-xs text-neutral-500 mt-0.5 truncate">
-                                {currentSelectedAreaObj.deliveryName} · {currentSelectedAreaObj.isFree ? "Free" : `₦${currentSelectedAreaObj.feeNaira.toLocaleString("en-NG")}`} · {currentSelectedAreaObj.estimatedDelivery || "1–2 business days"}
-                              </p>
+                            )}
+                          </div>
+
+                          {/* Fee indicator Callout */}
+                          {!selectedArea ? (
+                            <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 flex items-start gap-3">
+                              <Info className="w-4 h-4 text-neutral-500 flex-shrink-0 mt-0.5" />
+                              <div className="text-xs text-neutral-600 leading-relaxed">
+                                <p className="font-bold text-neutral-800">Your fee will appear here</p>
+                                <p className="mt-0.5">
+                                  We calculate your fee from {businessName}&apos;s rates as soon as you pick an area.
+                                </p>
+                              </div>
                             </div>
                           ) : (
-                            <span className="text-sm text-neutral-400 font-normal">
-                              Choose delivery area...
-                            </span>
+                            <div className="p-3.5 rounded-xl bg-[#E8F8EF] border border-[#A7F3D0] flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-bold text-[#00A859]">
+                                  Delivery to {currentSelectedAreaObj?.name}
+                                </p>
+                                <p className="text-xs text-neutral-600 mt-0.5">
+                                  {currentSelectedAreaObj?.deliveryName} · {currentSelectedAreaObj?.estimatedDelivery || "1–2 business days"}
+                                </p>
+                              </div>
+                              <span className="text-sm font-black text-neutral-900">
+                                {currentSelectedAreaObj?.isFree ? (
+                                  <span className="text-[#00A859]">Free</span>
+                                ) : (
+                                  `₦${(currentSelectedAreaObj?.feeNaira || 0).toLocaleString("en-NG")}`
+                                )}
+                              </span>
+                            </div>
                           )}
-                          <ChevronDown className="w-4 h-4 text-neutral-400 group-hover:text-neutral-600 flex-shrink-0" />
-                        </button>
-                      </div>
 
-                      {/* Fee indicator Callout */}
-                      {!selectedArea ? (
-                        <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 flex items-start gap-3">
-                          <Info className="w-4 h-4 text-neutral-500 flex-shrink-0 mt-0.5" />
-                          <div className="text-xs text-neutral-600 leading-relaxed">
-                            <p className="font-bold text-neutral-800">Your fee will appear here</p>
-                            <p className="mt-0.5">
-                              We calculate your fee from {businessName}&apos;s rates as soon as you pick an area.
-                            </p>
+                          {/* Delivery Address */}
+                          <div>
+                            <label htmlFor="customer-address-input" className="text-xs font-bold text-neutral-900 block mb-1.5">
+                              Delivery address *
+                            </label>
+                            <input
+                              id="customer-address-input"
+                              type="text"
+                              required
+                              value={streetAddress}
+                              onChange={(e) => {
+                                setStreetAddress(e.target.value);
+                                if (deliveryError) setDeliveryError("");
+                              }}
+                              placeholder="e.g. 14 Aina Street, Off Allen Avenue"
+                              className={`w-full border rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none transition-colors bg-white ${
+                                deliveryError && !streetAddress.trim()
+                                  ? "border-red-500 focus:border-red-600 bg-red-50/20 ring-1 ring-red-500"
+                                  : "border-neutral-200 focus:border-[#00A859]"
+                              }`}
+                            />
+                            {deliveryError && !streetAddress.trim() && (
+                              <p className="text-xs text-red-600 mt-1 font-semibold">
+                                Please enter your delivery address.
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Delivery instructions */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="text-xs font-bold text-neutral-900">
+                                Delivery instructions
+                              </label>
+                              <span className="text-xs text-neutral-400">Optional</span>
+                            </div>
+                            <input
+                              type="text"
+                              value={deliveryInstructions}
+                              onChange={(e) => setDeliveryInstructions(e.target.value)}
+                              placeholder="e.g. Call when outside, leave at security"
+                              className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
+                            />
                           </div>
                         </div>
                       ) : (
-                        <div className="p-3.5 rounded-xl bg-[#E8F8EF] border border-[#A7F3D0] flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-bold text-[#00A859]">
-                              Delivery to {currentSelectedAreaObj?.name}
-                            </p>
-                            <p className="text-xs text-neutral-600 mt-0.5">
-                              {currentSelectedAreaObj?.deliveryName} · {currentSelectedAreaObj?.estimatedDelivery || "1–2 business days"}
-                            </p>
-                          </div>
-                          <span className="text-sm font-black text-neutral-900">
-                            {currentSelectedAreaObj?.isFree ? (
-                              <span className="text-[#00A859]">Free</span>
-                            ) : (
-                              `₦${(currentSelectedAreaObj?.feeNaira || 0).toLocaleString("en-NG")}`
-                            )}
-                          </span>
+                        /* PICKUP DETAILS */
+                        <div className="space-y-4">
+                          <InteractivePickupMap
+                            businessName={businessName}
+                            city={city}
+                            state={state}
+                            pickupAddress={pickupAddress}
+                          />
                         </div>
                       )}
 
-                      {/* Address Fields */}
-                      <div>
-                        <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                          Delivery address *
-                        </label>
-                        <input
-                          type="text"
-                          value={streetAddress}
-                          onChange={(e) => setStreetAddress(e.target.value)}
-                          placeholder="e.g. 14 Aina Street, Off Allen Avenue"
-                          className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                        />
-                      </div>
-
+                      {/* Order Note */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-bold text-neutral-900">
-                            Delivery instructions
-                          </label>
+                          <label className="text-xs font-bold text-neutral-900">Order note</label>
                           <span className="text-xs text-neutral-400">Optional</span>
                         </div>
                         <input
                           type="text"
-                          value={deliveryInstructions}
-                          onChange={(e) => setDeliveryInstructions(e.target.value)}
-                          placeholder="e.g. Call when outside, leave at security"
+                          value={orderNote}
+                          onChange={(e) => setOrderNote(e.target.value)}
+                          placeholder={`Anything you'd like ${businessName} to know?`}
                           className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
                         />
-                      </div>
-
-                      {/* Customer Details */}
-                      <div className="pt-2 border-t border-neutral-100 space-y-3.5">
-                        <h3 className="text-sm font-bold text-neutral-900">Your details</h3>
-
-                        <div>
-                          <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                            Full name *
-                          </label>
-                          <input
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Ada Obi"
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                            Phone number *
-                          </label>
-                          <div className="flex items-center border border-neutral-200 rounded-xl bg-white overflow-hidden focus-within:border-[#00A859]">
-                            <span className="px-3 py-3 text-xs font-bold text-neutral-500 bg-neutral-50 border-r border-neutral-200 select-none">
-                              +234
-                            </span>
-                            <input
-                              type="tel"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              placeholder="801 234 5678"
-                              className="flex-1 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none bg-transparent"
-                            />
-                          </div>
-                          <p className="text-[11px] text-neutral-400 mt-1">
-                            Used for order updates. Saved as {formattedPhonePreview}.
-                          </p>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-neutral-900">Email</label>
-                            <span className="text-xs text-neutral-400">Optional</span>
-                          </div>
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Add email for your receipt"
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-neutral-900">Order note</label>
-                            <span className="text-xs text-neutral-400">Optional</span>
-                          </div>
-                          <input
-                            type="text"
-                            value={orderNote}
-                            onChange={(e) => setOrderNote(e.target.value)}
-                            placeholder={`Anything you'd like ${businessName} to know?`}
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* PICKUP DETAILS */
-                    <div className="space-y-4">
-                      {/* Interactive Pickup Map with Draggable Customer Location */}
-                      <InteractivePickupMap
-                        businessName={businessName}
-                        city={city}
-                        state={state}
-                        pickupAddress={pickupAddress}
-                      />
-
-                      {/* Customer Details for Pickup */}
-                      <div className="space-y-3.5 pt-1">
-                        <h3 className="text-sm font-bold text-neutral-900">Your details</h3>
-
-                        <div>
-                          <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                            Full name *
-                          </label>
-                          <input
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="Ada Obi"
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-bold text-neutral-900 block mb-1.5">
-                            Phone number *
-                          </label>
-                          <div className="flex items-center border border-neutral-200 rounded-xl bg-white overflow-hidden focus-within:border-[#00A859]">
-                            <span className="px-3 py-3 text-xs font-bold text-neutral-500 bg-neutral-50 border-r border-neutral-200 select-none">
-                              +234
-                            </span>
-                            <input
-                              type="tel"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              placeholder="801 234 5678"
-                              className="flex-1 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none bg-transparent"
-                            />
-                          </div>
-                          <p className="text-[11px] text-neutral-400 mt-1">
-                            Used to contact you when ready. Saved as {formattedPhonePreview}.
-                          </p>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-neutral-900">Email</label>
-                            <span className="text-xs text-neutral-400">Optional</span>
-                          </div>
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Add email for your receipt"
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-neutral-900">Order note</label>
-                            <span className="text-xs text-neutral-400">Optional</span>
-                          </div>
-                          <input
-                            type="text"
-                            value={orderNote}
-                            onChange={(e) => setOrderNote(e.target.value)}
-                            placeholder={`Anything you'd like ${businessName} to know?`}
-                            className="w-full border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859] bg-white"
-                          />
-                        </div>
                       </div>
                     </div>
                   )}
@@ -1315,16 +1333,10 @@ function CheckoutContent({
             <div>
               <button
                 type="button"
-                onClick={
-                  deliveryType === "delivery" && !selectedArea
-                    ? () => setIsAreaModalOpen(true)
-                    : handleProceedToReview
-                }
-                className="w-full bg-[#00A859] hover:bg-[#008f4c] text-white font-bold rounded-xl py-3.5 flex items-center justify-center text-center cursor-pointer transition-colors"
+                onClick={handleProceedToReview}
+                className="w-full bg-[#00A859] hover:bg-[#008f4c] text-white font-bold rounded-xl py-3.5 flex items-center justify-center text-center cursor-pointer transition-colors shadow-sm active:scale-[0.99]"
               >
-                {deliveryType === "delivery" && !selectedArea
-                  ? "Choose location to continue"
-                  : deliveryType === "pickup"
+                {deliveryType === "pickup"
                   ? `Review pickup order · ₦${subtotalNaira}`
                   : `Continue to review · ₦${totalFormatted}`}
               </button>

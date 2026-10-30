@@ -1,57 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken } from "@/lib/auth";
+import { getRequestOrigin } from "@/lib/urls";
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url);
-  const code = searchParams.get("code");
+  const origin = getRequestOrigin(req);
+  const { searchParams } = new URL(req.url);
 
+  const code = searchParams.get("code");
+  const next = searchParams.get("next");
+  const errorParam = searchParams.get("error");
+  const errorDescription = searchParams.get("error_description");
+
+  // Determine fallback route based on where user originated
+  const errorBase = next === "/dashboard" ? `${origin}/login` : `${origin}/`;
+
+  // 1. Handle error returned by OAuth provider or Supabase
+  if (errorParam) {
+    console.error("OAuth error received in callback:", errorParam, errorDescription);
+    const redirectUrl = new URL(errorBase);
+    redirectUrl.searchParams.set("error", errorDescription || errorParam);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // 2. Check for missing code
   if (!code) {
-    return NextResponse.redirect(`${origin}/?error=missing_code`);
+    const redirectUrl = new URL(errorBase);
+    redirectUrl.searchParams.set("error", "missing_code");
+    return NextResponse.redirect(redirectUrl);
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseAnonKey) {
-    return NextResponse.redirect(`${origin}/?error=oauth_unavailable`);
+    const redirectUrl = new URL(errorBase);
+    redirectUrl.searchParams.set("error", "oauth_unavailable");
+    return NextResponse.redirect(redirectUrl);
   }
 
-  const destinationPlaceholder = new URL("/", origin);
-  const response = NextResponse.redirect(destinationPlaceholder);
+  const cookieStore = await cookies();
+  const cookiesToSetLater: Array<{ name: string; value: string; options?: any }> = [];
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
-        return req.cookies.getAll();
+        return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
-        });
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Handled if invoked from read-only context
+        }
+        cookiesToSetLater.push(...cookiesToSet);
       },
     },
   });
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  const isGoogle =
-    data?.user?.app_metadata?.provider === "google" ||
-    (Array.isArray(data?.user?.app_metadata?.providers) &&
-      data?.user?.app_metadata?.providers.includes("google")) ||
-    data?.user?.identities?.some((id: any) => id.provider === "google");
-
-  if (error || !data?.user || !data.user.email || !isGoogle) {
-    console.error("OAuth code exchange error:", error, data?.user?.app_metadata);
-    return NextResponse.redirect(`${origin}/?error=oauth_failed`);
+  if (error || !data?.user || !data.user.email) {
+    console.error("OAuth code exchange error:", error, data?.user);
+    const redirectUrl = new URL(errorBase);
+    redirectUrl.searchParams.set("error", error?.message || "oauth_failed");
+    return NextResponse.redirect(redirectUrl);
   }
 
   const email = data.user.email.toLowerCase().trim();
   const googleId = data.user.id;
 
   // Find or create merchant in Prisma
-  let merchant = await prisma.merchant.findUnique({
-    where: { email },
+  let merchant = await prisma.merchant.findFirst({
+    where: {
+      OR: [
+        { googleId },
+        { email },
+      ],
+    },
   });
 
   if (!merchant) {
@@ -70,17 +99,36 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Set secure 30-day session cookie directly on response
-  const sessionToken = createSessionToken(merchant.id);
-  response.cookies.set("ondar_session", sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60,
+  // Determine redirection destination
+  const destination = merchant.onboardingState === "COMPLETED" ? (next || "/dashboard") : "/onboarding";
+  const redirectResponse = NextResponse.redirect(new URL(destination, origin));
+
+  // Mirror any Supabase cookies to redirectResponse
+  const isHttps = origin.startsWith("https:");
+  cookiesToSetLater.forEach(({ name, value, options }) => {
+    redirectResponse.cookies.set(name, value, {
+      ...options,
+      secure: isHttps ? options?.secure : false,
+    });
   });
 
-  const destination = merchant.onboardingState === "COMPLETED" ? "/dashboard" : "/onboarding";
-  response.headers.set("Location", new URL(destination, origin).toString());
-  return response;
+  // Set secure 30-day session cookie
+  const sessionToken = createSessionToken(merchant.id);
+  const sessionCookieOptions = {
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 30 * 24 * 60 * 60,
+  };
+
+  redirectResponse.cookies.set("ondar_session", sessionToken, sessionCookieOptions);
+
+  try {
+    cookieStore.set("ondar_session", sessionToken, sessionCookieOptions);
+  } catch {
+    // If not permitted
+  }
+
+  return redirectResponse;
 }

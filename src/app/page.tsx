@@ -29,6 +29,8 @@ export default function SignUpPage() {
         setErrorMessage("An account with this email exists with a different login method.");
       } else if (err === "oauth_unavailable") {
         setErrorMessage("OAuth service is temporarily unavailable.");
+      } else if (err) {
+        setErrorMessage(decodeURIComponent(err));
       }
     }
   }, []);
@@ -78,7 +80,7 @@ export default function SignUpPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding`,
           queryParams: {
             prompt: "select_account",
           },

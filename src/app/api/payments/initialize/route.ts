@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { initializePaystackTransaction } from "@/lib/paystack";
 import { decryptSecretKey } from "@/lib/encryption";
+import { getRequestOrigin } from "@/lib/urls";
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
     const reference = order.paymentReference || `OND-${order.id}-${crypto.randomUUID()}`;
 
     // Callback URL
-    const { origin } = new URL(req.url);
+    const origin = getRequestOrigin(req);
     const storeSlug = order.merchant.businessProfile?.slug || "shop";
     const callbackUrl = `${origin}/s/${storeSlug}/order/${order.publicToken}`;
 

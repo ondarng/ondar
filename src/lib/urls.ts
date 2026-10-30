@@ -79,3 +79,30 @@ export function getStoreUrls(
     fullProduct,
   };
 }
+
+/**
+ * Accurately determines the request origin across Localhost, Vercel preview, and Production.
+ * Prioritizes x-forwarded-host and x-forwarded-proto so redirects and callbacks never send
+ * users to internal proxy hosts or localhost when deployed on production or preview environments.
+ */
+export function getRequestOrigin(req: Request | { headers: Headers; url?: string }): string {
+  const headers = req.headers instanceof Headers ? req.headers : new Headers(req.headers as any);
+  const forwardedHost = headers.get("x-forwarded-host");
+  const forwardedProto = headers.get("x-forwarded-proto") || "https";
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+  const host = headers.get("host");
+  if (host) {
+    const proto = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+    return `${proto}://${host}`;
+  }
+  if ("url" in req && typeof req.url === "string") {
+    try {
+      return new URL(req.url).origin;
+    } catch {
+      // Fallback
+    }
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}

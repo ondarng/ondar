@@ -21,6 +21,24 @@ export default function LoginPage() {
   const [attemptCount, setAttemptCount] = useState(0);
   const isLocked = attemptCount >= 5;
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      if (err === "oauth_failed") {
+        setErrorMessage("Google authentication failed. Please try again or log in with email.");
+      } else if (err === "missing_code") {
+        setErrorMessage("Authentication code was missing. Please try again.");
+      } else if (err === "oauth_account_mismatch") {
+        setErrorMessage("An account with this email exists with a different login method.");
+      } else if (err === "oauth_unavailable") {
+        setErrorMessage("OAuth service is temporarily unavailable.");
+      } else if (err) {
+        setErrorMessage(decodeURIComponent(err));
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -72,7 +90,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`,
           queryParams: {
             prompt: "select_account",
           },

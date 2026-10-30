@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Create new
+      let resolvedParentId = parentId || null;
       if (parentId) {
         const parent = await prisma.shippingRate.findFirst({
           where: { id: parentId, merchantId: merchant.id, parentId: null },
@@ -78,11 +79,30 @@ export async function POST(req: NextRequest) {
             { status: 404 }
           );
         }
+      } else if (area) {
+        // If an area/zone is added without an explicit parentId, find or auto-create the parent state rate
+        let parent = await prisma.shippingRate.findFirst({
+          where: { merchantId: merchant.id, state: state.trim(), parentId: null },
+        });
+        if (!parent) {
+          parent = await prisma.shippingRate.create({
+            data: {
+              merchantId: merchant.id,
+              state: state.trim(),
+              deliveryName: `${state.trim()} standard delivery`,
+              isFree: false,
+              feeKobo,
+              estimatedDelivery: estimatedDelivery ? estimatedDelivery.trim() : "1–3 business days",
+            },
+          });
+        }
+        resolvedParentId = parent.id;
       }
+
       record = await prisma.shippingRate.create({
         data: {
           merchantId: merchant.id,
-          parentId: parentId || null,
+          parentId: resolvedParentId,
           state: state.trim(),
           area: area ? area.trim() : null,
           deliveryName: deliveryName.trim(),

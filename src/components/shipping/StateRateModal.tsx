@@ -129,10 +129,10 @@ export function StateRateModal({
           {/* Heading */}
           <div className="mb-6">
             <h1 className="text-2xl font-black text-neutral-900 tracking-tight">
-              {isEditing ? "Edit state rate" : "Add state rate"}
+              {isEditing ? "Edit delivery location" : "Add delivery location"}
             </h1>
             <p className="text-xs text-neutral-600 mt-1 font-normal">
-              One fee for all areas in a state, unless you add an area override.
+              Set where you are available for delivery and your fee. You can also add specific delivery zones and custom prices.
             </p>
           </div>
 

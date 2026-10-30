@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentMerchant } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { resolveBankAccount } from "@/lib/paystack";
+import { createPaystackSubaccount, resolveBankAccount, updatePaystackSubaccount } from "@/lib/paystack";
 
 export async function GET() {
   const merchant = await getCurrentMerchant();
@@ -19,7 +19,7 @@ export async function GET() {
       ? {
           bankName: payoutAccount.bankName,
           bankCode: payoutAccount.bankCode,
-          accountNumber: payoutAccount.accountNumber,
+          accountNumber: `••••••${payoutAccount.accountNumber.slice(-4)}`,
           accountName: payoutAccount.accountName,
           isVerified: payoutAccount.isVerified,
           updatedAt: payoutAccount.updatedAt,
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { bankName, bankCode, accountNumber, accountName } = body;
+    const { bankName, bankCode, accountNumber } = body;
 
     if (!bankName || !bankCode || !accountNumber) {
       return NextResponse.json(
@@ -53,49 +53,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Attempt to verify with Paystack using Ondar platform key
-    let verifiedAccountName = accountName?.trim() || "";
-    try {
-      const resolved = await resolveBankAccount(cleanAccount, String(bankCode).trim());
-      if (resolved && resolved.account_name) {
-        verifiedAccountName = resolved.account_name;
-      }
-    } catch (resolveErr: any) {
-      console.warn("Paystack bank resolve warning:", resolveErr.message);
-      // If manual fallback is provided (e.g. daily test mode limit reached), allow saving with warning
-      if (!verifiedAccountName) {
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              resolveErr.message ||
-              "Could not verify this bank account with Paystack. Please check the number and bank.",
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Create or update Paystack subaccount using Ondar platform key
-    let subaccountCode = `SUB_${merchant.id.slice(0, 10)}`;
-    try {
-      const { createPaystackSubaccount } = await import("@/lib/paystack");
-      const business = await prisma.businessProfile.findUnique({
-        where: { merchantId: merchant.id },
-      });
-      const bName = business?.businessName || merchant.email;
-      const sub = await createPaystackSubaccount({
-        businessName: bName,
-        settlementBank: String(bankCode).trim(),
-        accountNumber: cleanAccount,
-        percentageCharge: 1.0,
-      });
-      if (sub?.subaccount_code) {
-        subaccountCode = sub.subaccount_code;
-      }
-    } catch (subErr: any) {
-      console.warn("Paystack subaccount creation warning:", subErr.message);
-    }
+    // Resolve every save on the server. A browser-supplied account name is
+    // display-only and must never be accepted as a verification result.
+    const resolved = await resolveBankAccount(cleanAccount, String(bankCode).trim());
+    const business = await prisma.businessProfile.findUnique({ where: { merchantId: merchant.id } });
+    const existing = await prisma.payoutAccount.findUnique({ where: { merchantId: merchant.id } });
+    const subaccountCode = existing?.paystackSubaccountCode?.startsWith("ACCT_")
+      ? (await updatePaystackSubaccount(existing.paystackSubaccountCode, { settlementBank: String(bankCode).trim(), accountNumber: cleanAccount })).subaccount_code
+      : (await createPaystackSubaccount({
+          businessName: business?.businessName || merchant.email,
+          settlementBank: String(bankCode).trim(),
+          accountNumber: cleanAccount,
+          percentageCharge: 0,
+        })).subaccount_code;
 
     const updated = await prisma.payoutAccount.upsert({
       where: { merchantId: merchant.id },
@@ -104,7 +74,7 @@ export async function POST(req: NextRequest) {
         bankName: String(bankName).trim(),
         bankCode: String(bankCode).trim(),
         accountNumber: cleanAccount,
-        accountName: verifiedAccountName,
+        accountName: resolved.account_name,
         paystackSubaccountCode: subaccountCode,
         isVerified: true,
       },
@@ -112,7 +82,7 @@ export async function POST(req: NextRequest) {
         bankName: String(bankName).trim(),
         bankCode: String(bankCode).trim(),
         accountNumber: cleanAccount,
-        accountName: verifiedAccountName,
+        accountName: resolved.account_name,
         paystackSubaccountCode: subaccountCode,
         isVerified: true,
       },

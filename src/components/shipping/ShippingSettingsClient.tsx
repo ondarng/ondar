@@ -296,7 +296,7 @@ export function ShippingSettingsClient({
             {/* Delivery Locations Header */}
             <div className="flex items-center justify-between px-1">
               <h2 className="text-base font-black text-neutral-900 tracking-tight">
-                Delivery locations
+                Delivery Zones & Pricing
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-700 text-xs font-bold">
                 {stateRates.length} {stateRates.length === 1 ? "state" : "states"}
@@ -312,7 +312,7 @@ export function ShippingSettingsClient({
                 {/* Statewide Fallback Header */}
                 <div>
                   <span className="inline-block px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-[11px] font-semibold mb-2.5">
-                    Statewide fallback
+                    Statewide / Base rate
                   </span>
 
                   <div className="flex items-start justify-between">
@@ -362,7 +362,7 @@ export function ShippingSettingsClient({
                 {stateRate.overrides.length > 0 && (
                   <div className="pt-3 border-t border-neutral-100 space-y-3">
                     <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#E8F8EF] text-[#00A859] text-[11px] font-bold">
-                      Area overrides
+                      Configured Delivery Zones & Prices
                     </span>
 
                     <div className="divide-y divide-neutral-100">
@@ -426,7 +426,7 @@ export function ShippingSettingsClient({
                   }}
                   className="w-full py-3 rounded-xl border border-neutral-200 text-xs font-bold text-[#00A859] hover:bg-neutral-50 transition-colors flex items-center justify-center cursor-pointer"
                 >
-                  Add area override
+                  + Add delivery zone & price
                 </button>
               </div>
             ))}
@@ -508,7 +508,7 @@ export function ShippingSettingsClient({
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>
-              {hasLocations ? "Add delivery location" : "Add your first location"}
+              {hasLocations ? "+ Add state / delivery zone" : "Add your first delivery zone"}
             </span>
           </button>
           {!hasLocations && (

@@ -143,7 +143,7 @@ export async function createPaystackSubaccount(
     businessName: string;
     settlementBank: string;
     accountNumber: string;
-    percentageCharge?: number; // 1.0 for Ondar's 1%
+    percentageCharge?: number;
     description?: string;
   },
   secretKey?: string
@@ -156,9 +156,11 @@ export async function createPaystackSubaccount(
     },
     body: JSON.stringify({
       business_name: params.businessName,
-      settlement_bank: params.settlementBank,
+      bank_code: params.settlementBank,
       account_number: params.accountNumber,
-      percentage_charge: params.percentageCharge ?? 1.0,
+      // Ondar's platform fee is a flat, server-computed transaction charge.
+      // Keep the subaccount default at zero so no stale percentage is applied.
+      percentage_charge: params.percentageCharge ?? 0,
       description: params.description ?? `Ondar payout subaccount for ${params.businessName}`,
     }),
   });
@@ -168,6 +170,29 @@ export async function createPaystackSubaccount(
     throw new Error(data.message || "Failed to create Paystack payout subaccount");
   }
 
+  return data.data as SubaccountResponse;
+}
+
+export async function updatePaystackSubaccount(
+  subaccountCode: string,
+  params: { settlementBank: string; accountNumber: string; active?: boolean }
+): Promise<SubaccountResponse> {
+  const response = await fetch(`${PAYSTACK_BASE_URL}/subaccount/${encodeURIComponent(subaccountCode)}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${getSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      bank_code: params.settlementBank,
+      account_number: params.accountNumber,
+      active: params.active ?? true,
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok || !data.status) {
+    throw new Error(data.message || "Failed to update Paystack payout subaccount");
+  }
   return data.data as SubaccountResponse;
 }
 
@@ -288,6 +313,8 @@ export interface InitializeTransactionParams {
   reference: string;
   metadata?: Record<string, any>;
   subaccount?: string | null;
+  transactionChargeKobo?: number | bigint;
+  bearer?: "account" | "subaccount";
 }
 
 export interface InitializeTransactionResponse {
@@ -320,7 +347,10 @@ export async function initializePaystackTransaction(
 
   if (params.subaccount) {
     payload.subaccount = params.subaccount;
-    payload.bearer = "account"; // Merchant account absorbs Paystack processing fee
+    payload.transaction_charge = params.transactionChargeKobo === undefined
+      ? undefined
+      : Number(params.transactionChargeKobo);
+    payload.bearer = params.bearer || "subaccount";
   }
 
   const response = await fetch(`${PAYSTACK_BASE_URL}/transaction/initialize`, {

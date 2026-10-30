@@ -37,3 +37,8 @@ export const NIGERIAN_STATES = [
   "Yobe",
   "Zamfara",
 ];
+
+export const ONDAR_SUPPORT_RAW_PHONE = "07070911530";
+export const ONDAR_SUPPORT_WHATSAPP = "2347070911530";
+export const ONDAR_SUPPORT_DISPLAY_PHONE = "+234 707 091 1530";
+export const ONDAR_SUPPORT_EMAIL = "support@ondar.ng";

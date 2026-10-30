@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeft, Info, Trash2 } from "lucide-react";
+import { ArrowLeft, Info, Trash2, MapPin, Check } from "lucide-react";
 import { POPULAR_STATE_AREAS, ShippingOverride, ShippingStateRate } from "@/lib/shipping";
 import { getLgasForState, getPopularAreasForState } from "@/lib/nigeriaData";
 import { OndarLogo } from "@/components/OndarLogo";
@@ -27,34 +27,25 @@ export function AreaRateModal({
 }: AreaRateModalProps) {
   const isEditing = !!initialOverride;
 
-  const lgas = getLgasForState(parentStateRate.state);
   const statePopular = getPopularAreasForState(parentStateRate.state);
-  const popularList = statePopular.length > 0 ? statePopular : (POPULAR_STATE_AREAS[parentStateRate.state] || [
-    "Central Area",
-    "GRA",
-    "Township",
-    "Expressway",
-  ]);
+  const popularList =
+    statePopular.length > 0
+      ? statePopular
+      : POPULAR_STATE_AREAS[parentStateRate.state] || [
+          "Central Area",
+          "Mainland",
+          "Island",
+          "GRA",
+          "Expressway",
+        ];
 
-  const [area, setArea] = useState(
-    initialOverride?.area ||
-      popularList.find((a) => !parentStateRate.overrides.some((o) => o.area === a)) ||
-      popularList[0] ||
-      ""
-  );
-  const [customArea, setCustomArea] = useState(
-    initialOverride && !popularList.includes(initialOverride.area) ? initialOverride.area : ""
-  );
-  const [isCustom, setIsCustom] = useState(
-    initialOverride ? !popularList.includes(initialOverride.area) : false
-  );
-
+  const [areaInput, setAreaInput] = useState(initialOverride?.area || "");
   const [deliveryName, setDeliveryName] = useState(
-    initialOverride?.deliveryName || (area ? `${area} delivery` : "")
+    initialOverride?.deliveryName || (initialOverride?.area ? `${initialOverride.area} delivery` : "")
   );
   const [isFree, setIsFree] = useState<boolean>(initialOverride?.isFree ?? false);
   const [feeInput, setFeeInput] = useState<string>(
-    initialOverride ? (initialOverride.isFree ? "0" : initialOverride.feeNaira.toLocaleString()) : "2,500"
+    initialOverride ? (initialOverride.isFree ? "0" : initialOverride.feeNaira.toLocaleString()) : "2,000"
   );
   const [estimatedDelivery, setEstimatedDelivery] = useState(
     initialOverride?.estimatedDelivery || "1–2 business days"
@@ -65,27 +56,21 @@ export function AreaRateModal({
 
   if (!isOpen) return null;
 
-  const currentArea = isCustom ? customArea.trim() : area;
-
-  const handleAreaChange = (val: string) => {
-    if (val === "__custom__") {
-      setIsCustom(true);
-      return;
-    }
-    setIsCustom(false);
-    setArea(val);
-    if (!initialOverride) {
-      setDeliveryName(isFree ? `${val} free delivery` : `${val} delivery`);
+  const handleAreaSelect = (chosen: string) => {
+    setAreaInput(chosen);
+    if (!deliveryName || deliveryName.endsWith("delivery")) {
+      setDeliveryName(isFree ? `${chosen} free delivery` : `${chosen} delivery`);
     }
   };
 
   const handleFeeToggle = (free: boolean) => {
     setIsFree(free);
+    const effective = areaInput.trim() || "Area";
     if (!initialOverride) {
       if (free) {
-        setDeliveryName(`${currentArea || "Area"} free delivery`);
+        setDeliveryName(`${effective} free delivery`);
       } else {
-        setDeliveryName(`${currentArea || "Area"} delivery`);
+        setDeliveryName(`${effective} delivery`);
       }
     }
   };
@@ -104,22 +89,20 @@ export function AreaRateModal({
     e.preventDefault();
     setError(null);
 
-    const effectiveArea = isCustom ? customArea.trim() : area.trim();
+    const effectiveArea = areaInput.trim();
     if (!effectiveArea) {
-      setError("Please select or specify an area");
-      return;
-    }
-
-    if (!deliveryName.trim()) {
-      setError("Please enter a delivery name");
+      setError("Please enter or select a delivery zone / area name.");
       return;
     }
 
     const numericFee = isFree ? 0 : parseInt(feeInput.replace(/,/g, ""), 10) || 0;
     if (!isFree && numericFee <= 0) {
-      setError("Please enter a valid fee or select Free delivery");
+      setError("Please enter a valid delivery fee or select Free delivery");
       return;
     }
+
+    const finalDeliveryName =
+      deliveryName.trim() || (isFree ? `${effectiveArea} free delivery` : `${effectiveArea} delivery`);
 
     setIsSubmitting(true);
     try {
@@ -131,7 +114,7 @@ export function AreaRateModal({
           parentId: parentStateRate.id,
           state: parentStateRate.state,
           area: effectiveArea,
-          deliveryName: deliveryName.trim(),
+          deliveryName: finalDeliveryName,
           isFree,
           feeNaira: numericFee,
           estimatedDelivery: estimatedDelivery.trim() || null,
@@ -140,13 +123,13 @@ export function AreaRateModal({
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to save area rate");
+        throw new Error(data.error || "Failed to save delivery zone");
       }
 
       onSaved();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      setError(err.message || "Something went wrong saving the delivery zone.");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +137,7 @@ export function AreaRateModal({
 
   const handleDelete = async () => {
     if (!initialOverride?.id) return;
-    if (!confirm(`Are you sure you want to remove the rate for ${initialOverride.area}?`)) {
+    if (!confirm(`Are you sure you want to remove the delivery zone "${initialOverride.area}"?`)) {
       return;
     }
 
@@ -165,14 +148,14 @@ export function AreaRateModal({
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to remove area rate");
+        throw new Error(data.error || "Failed to remove delivery zone");
       }
 
       if (onDeleted) onDeleted();
       onSaved();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Failed to remove area rate");
+      setError(err.message || "Failed to remove delivery zone");
     } finally {
       setIsDeleting(false);
     }
@@ -183,7 +166,7 @@ export function AreaRateModal({
     : `₦${parentStateRate.feeNaira.toLocaleString()}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#FDFDFD] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#FDFDFD] overflow-y-auto antialiased">
       <div className="w-full max-w-[430px] min-h-screen mx-auto flex flex-col justify-between px-4 pt-4 pb-8">
         <div>
           {/* Top Header */}
@@ -204,124 +187,95 @@ export function AreaRateModal({
           {/* Heading */}
           <div className="mb-4">
             <h1 className="text-2xl font-black text-neutral-900 tracking-tight">
-              {isEditing ? "Edit area rate" : "Add area rate"}
+              {isEditing ? "Edit delivery zone" : "Add delivery zone"}
             </h1>
             <p className="text-xs text-neutral-600 mt-1 font-normal">
-              Give this area its own fee instead of the statewide rate.
+              Choose an area in <strong className="text-neutral-900">{parentStateRate.state}</strong> and set its exact delivery price.
             </p>
           </div>
 
           {/* Overrides badge */}
-          <div className="mb-5">
+          <div className="mb-5 flex items-center justify-between">
             <span className="inline-block px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 text-xs font-bold">
-              Overrides {parentStateRate.state} · {formattedParentFee}
+              State: {parentStateRate.state} · Base rate: {formattedParentFee}
             </span>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 font-medium">
                 {error}
               </div>
             )}
 
-            {/* State (locked) */}
+            {/* Zone / Area Name */}
             <div>
               <label className="block text-xs font-bold text-neutral-800 mb-1.5">
-                State
+                Delivery Zone / Area Name *
               </label>
               <input
                 type="text"
-                disabled
-                value={parentStateRate.state}
-                className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-neutral-100 text-sm font-semibold text-neutral-500 cursor-not-allowed"
+                required
+                value={areaInput}
+                onChange={(e) => {
+                  setAreaInput(e.target.value);
+                  if (!deliveryName || deliveryName.endsWith("delivery")) {
+                    setDeliveryName(isFree ? `${e.target.value} free delivery` : `${e.target.value} delivery`);
+                  }
+                }}
+                placeholder="e.g. Lekki Phase 1, Mainland, Ikeja, Island, Garki..."
+                className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#00A859] transition-colors"
               />
-            </div>
 
-            {/* Area Dropdown / Selection */}
-            <div>
-              <label className="block text-xs font-bold text-neutral-800 mb-1.5">
-                Area
-              </label>
-              {!isCustom ? (
-                <div className="relative">
-                  <select
-                    value={area}
-                    onChange={(e) => handleAreaChange(e.target.value)}
-                    className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#00A859] appearance-none cursor-pointer"
-                  >
-                    {lgas.length > 0 && (
-                      <optgroup label={`Local Government Areas (LGAs) in ${parentStateRate.state}`}>
-                        {lgas.map((l) => (
-                          <option key={`lga-${l}`} value={l}>
-                            {l} LGA
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <optgroup label={`Popular Neighborhoods / Districts in ${parentStateRate.state}`}>
-                      {popularList.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Other">
-                      <option value="__custom__">+ Enter custom area name...</option>
-                    </optgroup>
-                  </select>
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </div>
+              {/* Quick suggestions */}
+              <div className="mt-2 space-y-1">
+                <span className="text-[11px] text-neutral-400 font-medium">Quick tap suggestions:</span>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {popularList.slice(0, 8).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handleAreaSelect(p)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                        areaInput.toLowerCase() === p.toLowerCase()
+                          ? "bg-[#E8F8EF] border-[#A7F3D0] text-[#00A859] font-bold"
+                          : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={customArea}
-                    onChange={(e) => setCustomArea(e.target.value)}
-                    placeholder="Enter area name (e.g. Alausa)"
-                    className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#00A859]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsCustom(false)}
-                    className="text-xs text-[#00A859] font-bold hover:underline"
-                  >
-                    ← Choose from popular areas
-                  </button>
-                </div>
-              )}
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Choose a known area. Customers select this exact area at checkout.
-              </p>
+              </div>
             </div>
 
             {/* Delivery name */}
             <div>
               <label className="block text-xs font-bold text-neutral-800 mb-1.5">
-                Delivery name
+                Display name at checkout
               </label>
               <input
                 type="text"
                 value={deliveryName}
                 onChange={(e) => setDeliveryName(e.target.value)}
-                placeholder="e.g. Ikeja free delivery"
+                placeholder="e.g. Lekki standard delivery"
                 className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#00A859]"
               />
             </div>
 
             {/* Paid / Free radio cards */}
             <div className="space-y-2.5">
+              <label className="block text-xs font-bold text-neutral-800 mb-0.5">
+                Delivery Pricing *
+              </label>
+
               {/* Paid delivery */}
               <button
                 type="button"
                 onClick={() => handleFeeToggle(false)}
                 className={`w-full p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
                   !isFree
-                    ? "border-[#00A859] bg-[#E8F8EF]/40"
+                    ? "border-[#00A859] bg-[#E8F8EF]/40 ring-1 ring-[#00A859]"
                     : "border-neutral-200 bg-white hover:border-neutral-300"
                 }`}
               >
@@ -335,9 +289,9 @@ export function AreaRateModal({
                   {!isFree && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-neutral-900">Paid delivery</p>
+                  <p className="text-sm font-bold text-neutral-900">Custom Delivery Fee</p>
                   <p className="text-xs text-neutral-500 font-normal">
-                    Enter a fee in NGN
+                    Enter the fee customers will pay for delivery to this zone
                   </p>
                 </div>
               </button>
@@ -348,7 +302,7 @@ export function AreaRateModal({
                 onClick={() => handleFeeToggle(true)}
                 className={`w-full p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
                   isFree
-                    ? "border-[#00A859] bg-[#E8F8EF]/40"
+                    ? "border-[#00A859] bg-[#E8F8EF]/40 ring-1 ring-[#00A859]"
                     : "border-neutral-200 bg-white hover:border-neutral-300"
                 }`}
               >
@@ -364,69 +318,76 @@ export function AreaRateModal({
                 <div>
                   <p className="text-sm font-bold text-neutral-900">Free delivery</p>
                   <p className="text-xs text-neutral-500 font-normal">
-                    ₦0 for this area
+                    Delivery to this zone is completely free of charge
                   </p>
                 </div>
               </button>
             </div>
 
-            {/* Fee (NGN) if paid */}
+            {/* Fee Input (if paid) */}
             {!isFree && (
-              <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1.5">
-                  Fee (NGN)
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-neutral-800">
+                  Fee Amount (NGN) *
                 </label>
-                <input
-                  type="text"
-                  value={feeInput}
-                  onChange={(e) => handleFeeChange(e.target.value)}
-                  placeholder="2,500"
-                  className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-bold text-neutral-900 focus:outline-none focus:border-[#00A859]"
-                />
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-neutral-400">
+                    ₦
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={feeInput}
+                    onChange={(e) => handleFeeChange(e.target.value)}
+                    placeholder="2,500"
+                    className="w-full h-12 pl-8 pr-4 rounded-2xl border border-neutral-200 bg-white text-base font-bold text-neutral-900 focus:outline-none focus:border-[#00A859]"
+                  />
+                </div>
               </div>
             )}
 
             {/* Estimated delivery */}
             <div>
               <label className="block text-xs font-bold text-neutral-800 mb-1.5">
-                Estimated delivery · Optional
+                Estimated delivery timeframe
               </label>
               <input
                 type="text"
                 value={estimatedDelivery}
                 onChange={(e) => setEstimatedDelivery(e.target.value)}
-                placeholder="1–2 business days"
+                placeholder="e.g. 1–2 business days, Same-day delivery"
                 className="w-full h-12 px-3.5 rounded-2xl border border-neutral-200 bg-white text-sm font-semibold text-neutral-900 focus:outline-none focus:border-[#00A859]"
               />
-            </div>
-
-            {/* Info callout */}
-            <div className="rounded-2xl bg-[#E8F8EF] p-4 border border-[#A7F3D0]/60 flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00A859]/15 text-[#00A859] flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Info className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[#064E3B]">
-                  {currentArea || "Area"} customers pay {isFree ? "no delivery fee" : `₦${feeInput}`}
-                </p>
-                <p className="text-xs text-[#064E3B]/80 mt-0.5 leading-relaxed">
-                  This replaces the {parentStateRate.state} {formattedParentFee} rate. Your other {parentStateRate.state} areas keep their existing rates.
-                </p>
+              <div className="flex gap-2 mt-2">
+                {["Same-day delivery", "1–2 business days", "2–4 business days"].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setEstimatedDelivery(preset)}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition-colors cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <p className="text-[11px] text-neutral-500 text-center">
-              Changes apply to new orders only. Existing orders keep their delivery fee.
-            </p>
+            {/* Info note */}
+            <div className="rounded-2xl bg-[#F8FAF9] p-3.5 border border-neutral-200 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-neutral-500 flex-shrink-0 mt-0.5" />
+              <p className="text-[11px] text-neutral-600 leading-relaxed">
+                Customers selecting this zone at checkout will pay exactly this fee. Area fees replace the statewide rate.
+              </p>
+            </div>
 
-            {/* Action buttons */}
-            <div className="pt-2 space-y-3">
+            {/* Submit button */}
+            <div className="pt-2 space-y-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-13 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-sm flex items-center justify-center transition-all cursor-pointer shadow-sm disabled:opacity-60"
+                className="w-full h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-[0.99]"
               >
-                {isSubmitting ? "Saving..." : "Save area rate"}
+                {isSubmitting ? "Saving delivery zone..." : "Save Delivery Zone"}
               </button>
 
               {isEditing && (
@@ -434,10 +395,10 @@ export function AreaRateModal({
                   type="button"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full py-2.5 text-xs font-bold text-red-600 hover:text-red-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-full h-11 rounded-2xl border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  <span>{isDeleting ? "Removing..." : "Remove area rate"}</span>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isDeleting ? "Removing..." : "Remove this delivery zone"}</span>
                 </button>
               )}
             </div>

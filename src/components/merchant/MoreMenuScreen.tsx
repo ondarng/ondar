@@ -27,7 +27,10 @@ import {
   Truck,
   Users,
   X,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
+import { ONDAR_SUPPORT_DISPLAY_PHONE, ONDAR_SUPPORT_WHATSAPP } from "@/lib/constants";
 import { OndarLogo } from "@/components/OndarLogo";
 import { MerchantBottomNav } from "./MerchantBottomNav";
 import { NotificationsModal } from "./NotificationsModal";
@@ -603,17 +606,27 @@ export function MoreMenuScreen({
 
             <div className="space-y-2">
               <a
-                href="https://wa.me/2348000000000?text=Hello%20Ondar%20Support%2C%20I%20need%20help%20with%20my%20store"
+                href={`https://wa.me/${ONDAR_SUPPORT_WHATSAPP}?text=${encodeURIComponent(
+                  "Hello Ondar Support, I need help with my store."
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
               >
-                Chat on WhatsApp with Support
+                <MessageCircle className="w-4 h-4 fill-current" />
+                <span>Chat on WhatsApp with Support</span>
+              </a>
+              <a
+                href={`tel:${ONDAR_SUPPORT_DISPLAY_PHONE.replace(/\s+/g, "")}`}
+                className="w-full h-12 rounded-2xl border border-neutral-200 hover:bg-neutral-50 text-neutral-800 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Phone className="w-4 h-4 text-neutral-500" />
+                <span>Call Support ({ONDAR_SUPPORT_DISPLAY_PHONE})</span>
               </a>
               <button
                 type="button"
                 onClick={() => setIsHelpModalOpen(false)}
-                className="w-full h-12 rounded-2xl border border-neutral-200 text-neutral-700 font-bold text-xs flex items-center justify-center"
+                className="w-full h-11 rounded-2xl bg-neutral-100 text-neutral-700 font-bold text-xs flex items-center justify-center hover:bg-neutral-200 transition-colors"
               >
                 Close
               </button>

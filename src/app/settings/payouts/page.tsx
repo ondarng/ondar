@@ -64,9 +64,11 @@ export default function PayoutSettingsPage() {
           const accData = await accRes.json();
           if (accData.payoutAccount) {
             setCurrentAccount(accData.payoutAccount);
-            setAccountNumber(accData.payoutAccount.accountNumber || "");
-            setAccountName(accData.payoutAccount.accountName || "");
-            setIsNameResolved(true);
+            // The API deliberately returns a masked account number. Require a
+            // fresh number and a new server-side resolve before any update.
+            setAccountNumber("");
+            setAccountName("");
+            setIsNameResolved(false);
           }
         }
 

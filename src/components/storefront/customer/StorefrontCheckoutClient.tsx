@@ -195,8 +195,12 @@ function CheckoutContent({
   };
 
   const availableStates = useMemo(() => {
-    return getAllStateNames();
-  }, []);
+    if (hasRealRates) {
+      const configured = Array.from(new Set(shippingRates.map((s) => s.state)));
+      if (configured.length > 0) return configured;
+    }
+    return [state || "Lagos"];
+  }, [hasRealRates, shippingRates, state]);
 
   const deliveryAreaOptions: DeliveryAreaOption[] = useMemo(() => {
     if (hasRealRates) {
@@ -206,6 +210,7 @@ function CheckoutContent({
       if (stateObj) {
         const list: DeliveryAreaOption[] = [];
 
+        // Exact merchant configured delivery zones
         stateObj.overrides.forEach((o) => {
           list.push({
             name: o.area,
@@ -218,34 +223,51 @@ function CheckoutContent({
           });
         });
 
-        list.push({
-          name: `Other area in ${stateObj.state}`,
-          deliveryName: stateObj.deliveryName,
-          feeKobo: stateObj.feeKobo,
-          feeNaira: stateObj.feeNaira,
-          isFree: stateObj.isFree,
-          estimatedDelivery: stateObj.estimatedDelivery,
-          isFallback: true,
-        });
+        // General statewide fallback rate if configured
+        if (stateObj.feeKobo > 0 || stateObj.isFree || list.length === 0) {
+          list.push({
+            name: `Other areas in ${stateObj.state}`,
+            deliveryName: stateObj.deliveryName,
+            feeKobo: stateObj.feeKobo,
+            feeNaira: stateObj.feeNaira,
+            isFree: stateObj.isFree,
+            estimatedDelivery: stateObj.estimatedDelivery,
+            isFallback: true,
+          });
+        }
 
         return list;
       }
 
       // If the merchant has configured shipping rates but NOT for this state,
-      // do NOT invent fake rates. Return empty so the customer gets the SHP-03 uncovered notice.
+      // return empty so the customer gets the uncovered notice.
       return [];
     }
 
-    return LAGOS_AREAS.map((a) => ({
-      name: a.name,
-      deliveryName: "Standard delivery",
-      feeKobo: a.standardFee * 100,
-      feeNaira: a.standardFee,
-      isFree: false,
-      estimatedDelivery: "1–2 business days",
-      isFallback: false,
-    }));
-  }, [hasRealRates, shippingRates, selectedState]);
+    // Default fallback based on merchant's actual business city and state
+    const localCity = city || "Local";
+    const localState = state || "Lagos";
+    return [
+      {
+        name: `${localCity} & Environs`,
+        deliveryName: "Standard Local Delivery",
+        feeKobo: 200000,
+        feeNaira: 2000,
+        isFree: false,
+        estimatedDelivery: "1–2 business days",
+        isFallback: false,
+      },
+      {
+        name: `Other areas in ${localState}`,
+        deliveryName: "State Delivery",
+        feeKobo: 350000,
+        feeNaira: 3500,
+        isFree: false,
+        estimatedDelivery: "2–3 business days",
+        isFallback: true,
+      },
+    ];
+  }, [hasRealRates, shippingRates, selectedState, city, state]);
 
   const currentSelectedAreaObj = useMemo(() => {
     if (!selectedArea) return null;

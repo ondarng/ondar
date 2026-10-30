@@ -36,6 +36,13 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentAttemptStatus {
+  PENDING
+  PAID
+  FAILED
+  FLAGGED
+}
+
 enum StockChangeReason {
   INITIAL_STOCK
   RESERVE_HOLD
@@ -62,6 +69,7 @@ model Merchant {
   customers       Customer[]
   payoutAccount   PayoutAccount?
   paymentConfig   MerchantPaymentConfig?
+  paymentAttempts PaymentAttempt[]
   customCheckoutLinks CustomCheckoutLink[]
   shippingRates   ShippingRate[]
   orderCounter    OrderCounter?
@@ -112,6 +120,30 @@ model PayoutAccount {
 
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+// Immutable record of each platform Paystack authorization. This is separate
+// from Order.paymentStatus, which describes the commercial order lifecycle.
+model PaymentAttempt {
+  id                    String               @id @default(cuid())
+  orderId               String
+  order                 Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  merchantId            String
+  merchant              Merchant             @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reference             String               @unique
+  chargedKobo           BigInt
+  orderTotalKobo        BigInt
+  ondarShareKobo        BigInt
+  subaccountCode        String
+  authorizationUrl      String?
+  status                PaymentAttemptStatus @default(PENDING)
+  flag                  String?
+  paidAt                DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([orderId, status, createdAt])
+  @@index([merchantId, status, createdAt])
 }
 
 model MerchantPaymentConfig {
@@ -276,6 +308,7 @@ model Order {
 
   lines                OrderLine[]
   events               OrderEvent[]
+  paymentAttempts      PaymentAttempt[]
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 

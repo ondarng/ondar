@@ -26,6 +26,12 @@ import { ShippingStateRate } from "@/lib/shipping";
 import { ChooseDeliveryAreaModal, DeliveryAreaOption } from "./ChooseDeliveryAreaModal";
 import { InteractivePickupMap } from "./InteractivePickupMap";
 import { getAllStateNames } from "@/lib/nigeriaData";
+import {
+  formatToWhatsappNumber,
+  formatNigerianDisplayPhone,
+  validateAndNormalizeCustomerPhone,
+  getWhatsappChatUrl,
+} from "@/lib/phone";
 
 interface StorefrontCheckoutProps {
   businessName: string;
@@ -287,17 +293,8 @@ function CheckoutContent({
 
   // Phone normalization
   const formattedPhonePreview = useMemo(() => {
-    const raw = phone.trim().replace(/\s+/g, "");
-    if (!raw) return "+234 803 456 7812";
-    if (raw.startsWith("+234")) {
-      const rest = raw.slice(4);
-      return `+234 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`;
-    }
-    if (raw.startsWith("0")) {
-      const rest = raw.slice(1);
-      return `+234 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`;
-    }
-    return `+234 ${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
+    if (!phone.trim()) return "+234 803 456 7812";
+    return formatNigerianDisplayPhone(phone);
   }, [phone]);
 
   // Proceed from Step 1 (C02) to Step 3 Review
@@ -315,8 +312,9 @@ function CheckoutContent({
       return;
     }
 
-    if (!phone.trim()) {
-      setDetailsError("Please enter your phone number.");
+    const phoneValidation = validateAndNormalizeCustomerPhone(phone);
+    if (!phoneValidation.isValid) {
+      setDetailsError(phoneValidation.error || "Please enter a valid phone number.");
       const el = document.getElementById("customer-phone-input");
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -361,6 +359,13 @@ function CheckoutContent({
 
     setCreatedOrderDate(formattedDate);
 
+    const phoneValidation = validateAndNormalizeCustomerPhone(phone);
+    if (!phoneValidation.isValid) {
+      setPaymentError(phoneValidation.error || "Please enter a valid phone number.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -368,7 +373,7 @@ function CheckoutContent({
         body: JSON.stringify({
           storeSlug,
           customerName: fullName.trim(),
-          customerPhone: phone.trim(),
+          customerPhone: phoneValidation.normalized || phone.trim(),
           customerEmail: email.trim() || undefined,
           deliveryType,
           deliveryState: deliveryType === "delivery" ? selectedState : undefined,
@@ -441,7 +446,7 @@ function CheckoutContent({
     }
   };
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   // Pre-filled WhatsApp message with product image, description, order number and price
   const whatsappMessage = useMemo(() => {
@@ -509,7 +514,7 @@ function CheckoutContent({
       // Ignore clipboard write restrictions in certain browsers
     }
 
-    const targetUrl = `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`;
+    const targetUrl = getWhatsappChatUrl(cleanWhatsapp, whatsappMessage);
     window.open(targetUrl, "_blank");
   };
 
@@ -808,6 +813,55 @@ function CheckoutContent({
                   {email ? email : "Email not added"}
                 </p>
               </div>
+
+              {/* Live Order Tracking Card */}
+              {publicToken && (
+                <div className="bg-[#E8F8EF] border border-[#A7F3D0] rounded-2xl p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#00A859] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Live Order Tracking</span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-neutral-500">
+                      Order #OND-{createdOrderNumber || 1048}
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-700 leading-relaxed">
+                    Track your payment confirmation, order packaging, and delivery dispatch in real time.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Link
+                      href={`/s/${storeSlug}/order/${publicToken}`}
+                      className="flex-1 h-10 rounded-xl bg-[#00A859] hover:bg-[#008f4c] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                    >
+                      <span>Track Order Status</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        copyToClipboard(
+                          `${typeof window !== "undefined" ? window.location.origin : ""}/s/${storeSlug}/order/${publicToken}`,
+                          "trackingLink"
+                        )
+                      }
+                      className="h-10 px-3 rounded-xl bg-white border border-[#A7F3D0] text-[#00A859] text-xs font-bold hover:bg-neutral-50 flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      {copiedField === "trackingLink" ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <p className="text-xs text-gray-500 leading-relaxed pt-1">
                 If you leave now, use this order link to return. You won&apos;t need to create another order.
@@ -1397,6 +1451,16 @@ function CheckoutContent({
                     <span>Send confirmation on WhatsApp</span>
                   </button>
 
+                  {publicToken && (
+                    <Link
+                      href={`/s/${storeSlug}/order/${publicToken}`}
+                      className="w-full bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-bold rounded-xl py-3 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors text-xs"
+                    >
+                      <ExternalLink className="w-4 h-4 text-[#00A859]" />
+                      <span>View Live Order Tracking Page</span>
+                    </Link>
+                  )}
+
                   <p className="text-[11px] text-neutral-400 text-center">
                     Seller will verify your bank transfer and update the order status.
                   </p>
@@ -1428,6 +1492,16 @@ function CheckoutContent({
                     <MessageCircle className="w-5 h-5 fill-current" />
                     <span>Continue to WhatsApp</span>
                   </button>
+
+                  {publicToken && (
+                    <Link
+                      href={`/s/${storeSlug}/order/${publicToken}`}
+                      className="w-full bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-bold rounded-xl py-3 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors text-xs"
+                    >
+                      <ExternalLink className="w-4 h-4 text-[#00A859]" />
+                      <span>Track Order Progress</span>
+                    </Link>
+                  )}
 
                   <p className="text-[11px] text-neutral-400 text-center">
                     Ondar does not hold your payment, pay only to the account shown.

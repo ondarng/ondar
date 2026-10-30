@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap } from "lucide-react";
+import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap, FileText } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
@@ -67,7 +68,7 @@ function ElectronicsProductContent({
     setTimeout(() => setAddedToast(false), 2000);
   };
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   return (
     <main className="min-h-screen bg-[#0F172A] text-slate-100 pb-20 font-sans selection:bg-[#38BDF8] selection:text-slate-950">
@@ -244,7 +245,15 @@ function ElectronicsProductContent({
           <p>
             Pickup available in {city}, {state}. Delivery rates computed securely at checkout.
           </p>
-          {returnPolicy && <p className="text-[11px] text-slate-500">{returnPolicy}</p>}
+          <p className="pt-1">
+            <Link
+              href={`/s/${storeSlug}/policies`}
+              className="text-sky-400 hover:text-sky-300 font-semibold underline inline-flex items-center gap-1"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>View full store policies & warranty terms →</span>
+            </Link>
+          </p>
         </div>
 
         {/* Footer */}

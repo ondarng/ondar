@@ -9,7 +9,9 @@ import {
   Cpu,
   ChevronRight,
   Plus,
+  FileText,
 } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 
 interface ProductVariant {
@@ -107,7 +109,7 @@ function ElectronicsCatalogContent({
     });
   }, [products, selectedCategory, search]);
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   return (
     <div className="min-h-screen bg-[#0F172A] text-slate-100 flex flex-col justify-between antialiased">
@@ -298,7 +300,7 @@ function ElectronicsCatalogContent({
       {/* Footer */}
       <footer className="w-full max-w-[430px] mx-auto px-4 py-6 border-t border-slate-800/80 text-center text-[11px] text-slate-500 space-y-2">
         <p>Pickup available in {city}, {state}. Delivery calculated at checkout.</p>
-        {returnPolicy && <p className="text-[10px] text-slate-600">{returnPolicy}</p>}
+        <p className="pt-1"><Link href={`/s/${storeSlug}/policies`} className="text-sky-400 hover:text-sky-300 font-semibold underline inline-flex items-center gap-1"><FileText className="w-3 h-3" /><span>Store Policies & Warranty Terms →</span></Link></p>
         {cleanWhatsapp && (
           <p>
             <a

@@ -25,6 +25,7 @@ import {
   AlertCircle,
   Info,
 } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 
 export interface OrderItemLine {
   id: string;
@@ -304,12 +305,10 @@ export function OrderDetailView({
   };
 
   // WhatsApp prefilled message
-  const whatsappUrl = `https://wa.me/${order.customerPhone.replace(
-    /[^0-9]/g,
-    ""
-  )}?text=${encodeURIComponent(
+  const whatsappUrl = getWhatsappChatUrl(
+    order.customerPhone,
     `Hello ${order.customerName}, regarding your order #${order.orderNumber} on Ondar: ${paymentLink}`
-  )}`;
+  );
 
   const isAwaitingPayment = order.paymentStatus === "AWAITING_PAYMENT";
   const isPaid =
@@ -1065,13 +1064,27 @@ export function OrderDetailView({
             </div>
           </div>
 
+          {order.orderStatus === "PAYMENT_SENT" && (
+            <div className="p-3.5 rounded-xl bg-[#E8F8EF] border border-[#A7F3D0] text-[#00A859] text-xs font-semibold space-y-1">
+              <div className="flex items-center gap-2 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-[#00A859]" />
+                <span>Customer reported bank transfer sent</span>
+              </div>
+              <p className="text-neutral-600 text-[11px] leading-relaxed">
+                Verify receipt of {formatNaira(order.totalKobo)} in your bank account, then tap below to confirm and move order to packaging.
+              </p>
+            </div>
+          )}
+
           <p className="text-[12px] text-neutral-600 leading-relaxed">
             {isAwaitingPayment
-              ? "When payment is verified, Ondar automatically moves this order to To fulfil. You don't need to confirm it yourself."
+              ? order.orderStatus === "PAYMENT_SENT"
+                ? "Customer reported transfer sent. Verify in your bank app, then tap Confirm Payment Received."
+                : "Awaiting customer payment. If customer paid directly via bank transfer or outside Paystack, tap Confirm Payment Received."
               : order.orderStatus === "TO_FULFIL"
               ? isPickup
-                ? `Pack the items before letting ${order.customerName} know the order is ready.`
-                : "Pack the order, then mark it out for delivery when you hand it to your rider."
+                ? `Payment confirmed! Pack the items before letting ${order.customerName} know the order is ready.`
+                : `Payment confirmed! Pack the order, then mark it out for delivery when you hand it to your rider.`
               : order.orderStatus === "READY_FOR_PICKUP"
               ? `The order is ready at your pickup point. Once ${order.customerName} collects it, mark it completed.`
               : order.orderStatus === "OUT_FOR_DELIVERY"
@@ -1082,13 +1095,23 @@ export function OrderDetailView({
           {!isCancelled && (
             <div>
               {isAwaitingPayment ? (
-                <button
-                  onClick={handleCopyLink}
-                  className="w-full h-12 bg-[#00A859] hover:bg-[#00924c] text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
-                  {copiedLink ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                  {copiedLink ? "Payment link copied!" : "Resend payment link"}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleStatusAction("CONFIRM_PAYMENT")}
+                    disabled={isSubmitting}
+                    className="w-full h-12 bg-[#00A859] hover:bg-[#00924c] disabled:opacity-60 text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Confirm Payment Received</span>
+                  </button>
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full h-11 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    {copiedLink ? <Check className="w-4 h-4 text-[#00A859]" /> : <Link2 className="w-4 h-4" />}
+                    <span>{copiedLink ? "Payment link copied!" : "Resend / copy payment link"}</span>
+                  </button>
+                </div>
               ) : order.orderStatus === "TO_FULFIL" ? (
                 isPickup ? (
                   <button

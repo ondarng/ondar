@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Plus, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Check, Plus, ShoppingBag, UtensilsCrossed, FileText, ChevronRight, MessageCircle } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
 
@@ -99,7 +100,7 @@ function FoodCatalogContent({
     setTimeout(() => setQuickAddToast(null), 2000);
   };
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-neutral-900 pb-28 font-sans selection:bg-[#BA3C1D] selection:text-white">
@@ -284,12 +285,12 @@ function FoodCatalogContent({
 
         {/* 5. STORE INFORMATION */}
         <section className="mt-12 pt-6 border-t border-neutral-200">
-          <h4 className="font-serif font-black text-base text-neutral-900 tracking-tight mb-2">
-            Store information
-          </h4>
+          <div className="flex items-center justify-between mb-2"><h4 className="font-serif font-black text-base text-neutral-900 tracking-tight">Store Policies & Info</h4><Link href={`/s/${storeSlug}/policies`} className="text-xs font-bold text-[#BA3C1D] flex items-center gap-1 hover:underline"><span>View policies</span><ChevronRight className="w-3.5 h-3.5" /></Link></div>
+
+
           <p className="text-xs text-neutral-600 leading-relaxed">
             Pickup available in {city}, {state}. Delivery fees computed at checkout.
-            {returnPolicy ? ` ${returnPolicy}` : ""}
+            <Link href={`/s/${storeSlug}/policies`} className="ml-1 text-[#BA3C1D] font-bold underline">Read fulfillment policies →</Link>
           </p>
           {cleanWhatsapp && (
             <a

@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed, FileText } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
@@ -84,7 +85,7 @@ function FoodProductContent({
     }, 2000);
   };
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-neutral-900 pb-20 font-sans selection:bg-[#BA3C1D] selection:text-white">
@@ -282,7 +283,7 @@ function FoodProductContent({
           <p>
             Pickup available in {city}, {state}. Delivery fees computed at checkout.
           </p>
-          {returnPolicy && (
+          <p className="pt-1"><Link href={`/s/${storeSlug}/policies`} className="text-[#BA3C1D] font-bold underline underline-offset-4 inline-flex items-center gap-1"><FileText className="w-3.5 h-3.5" /><span>View store policies & delivery terms →</span></Link></p>{false && (
             <p className="text-[11px] text-neutral-500 pt-1 border-t border-neutral-200/80">
               {returnPolicy}
             </p>

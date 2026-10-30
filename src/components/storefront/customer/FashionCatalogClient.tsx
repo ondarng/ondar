@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, Search, ShoppingBag, X } from "lucide-react";
+import { ArrowLeft, MessageCircle, Search, ShoppingBag, X, FileText, ChevronRight } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
 
@@ -100,7 +101,7 @@ function FashionCatalogContent({
     });
   }, [products, activeStockFilter, selectedCategory, searchQuery]);
 
-  const cleanWhatsapp = (whatsappNumber || phoneNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   // Top announcement text: uses merchant description if available, otherwise city/state or brand headline
   const announcementText = description?.trim()
@@ -323,12 +324,12 @@ function FashionCatalogContent({
 
         {/* 6. STORE INFORMATION & POLICIES FOOTER */}
         <section className="mt-14 pt-6 border-t border-neutral-200">
-          <h4 className="text-[10px] font-black tracking-[0.18em] text-neutral-900 uppercase mb-2">
-            STORE INFORMATION
-          </h4>
+          <div className="flex items-center justify-between mb-2"><h4 className="text-[10px] font-black tracking-[0.18em] text-neutral-900 uppercase">STORE POLICIES</h4><Link href={`/s/${storeSlug}/policies`} className="text-xs font-bold text-neutral-900 flex items-center gap-1 hover:underline"><span>View policies</span><ChevronRight className="w-3.5 h-3.5" /></Link></div>
+
+
           <p className="text-xs text-neutral-600 leading-relaxed">
             Pickup available in {city}, {state}. Delivery options and exact rates computed at checkout.
-            {returnPolicy ? ` ${returnPolicy}` : ""}
+            <Link href={`/s/${storeSlug}/policies`} className="ml-1 text-[#00A859] font-bold underline">Read store policies →</Link>
           </p>
           {cleanWhatsapp && (
             <a

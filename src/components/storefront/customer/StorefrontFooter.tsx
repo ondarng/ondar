@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, Phone, MessageCircle, X, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Phone, MessageCircle, X, ShieldCheck, FileText } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 
 interface StorefrontFooterProps {
   businessName: string;
+  storeSlug?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
   city?: string;
@@ -15,6 +18,7 @@ interface StorefrontFooterProps {
 
 export function StorefrontFooter({
   businessName,
+  storeSlug,
   whatsappNumber,
   phoneNumber,
   city = "Lagos",
@@ -23,18 +27,31 @@ export function StorefrontFooter({
 }: StorefrontFooterProps) {
   const [modalType, setModalType] = useState<"info" | "contact" | null>(null);
 
-  const cleanWhatsapp = (whatsappNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
+  const waUrl = getWhatsappChatUrl(
+    cleanWhatsapp,
+    `Hello ${businessName}, I'm browsing your store on Ondar and have a question.`
+  );
 
   return (
     <>
       <footer className="mt-12 pt-6 border-t border-neutral-100 text-center pb-8">
-        <div className="flex items-center justify-center gap-6 text-xs font-semibold text-[#00A859]">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-[#00A859]">
+          {storeSlug ? (
+            <Link
+              href={`/s/${storeSlug}/policies`}
+              className="hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Store Policies</span>
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={() => setModalType("info")}
             className="hover:underline cursor-pointer"
           >
-            Store information
+            Store info
           </button>
           <button
             type="button"
@@ -62,7 +79,7 @@ export function StorefrontFooter({
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="p-1 text-neutral-400 hover:text-neutral-700"
+                className="p-1 text-neutral-400 hover:text-neutral-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -86,6 +103,19 @@ export function StorefrontFooter({
                 </div>
               )}
 
+              {storeSlug && (
+                <div className="pt-1">
+                  <Link
+                    href={`/s/${storeSlug}/policies`}
+                    onClick={() => setModalType(null)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-[#00A859] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>View Full Store Policies Page →</span>
+                  </Link>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 text-neutral-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-[#00A859]" />
                 <span>Verified Ondar Merchant Store</span>
@@ -95,7 +125,7 @@ export function StorefrontFooter({
             <button
               type="button"
               onClick={() => setModalType(null)}
-              className="w-full h-11 rounded-xl bg-neutral-100 text-neutral-800 text-xs font-bold hover:bg-neutral-200"
+              className="w-full h-11 rounded-xl bg-neutral-100 text-neutral-800 text-xs font-bold hover:bg-neutral-200 cursor-pointer"
             >
               Close
             </button>
@@ -112,7 +142,7 @@ export function StorefrontFooter({
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="p-1 text-neutral-400 hover:text-neutral-700"
+                className="p-1 text-neutral-400 hover:text-neutral-700 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -125,14 +155,12 @@ export function StorefrontFooter({
             <div className="space-y-2.5">
               {cleanWhatsapp && (
                 <a
-                  href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-                    `Hello ${businessName}, I'm browsing your store on Ondar and have a question.`
-                  )}`}
+                  href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-2xs"
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4 fill-current" />
                   <span>Chat on WhatsApp</span>
                 </a>
               )}
@@ -151,7 +179,7 @@ export function StorefrontFooter({
             <button
               type="button"
               onClick={() => setModalType(null)}
-              className="w-full h-10 rounded-xl bg-neutral-100 text-neutral-800 text-xs font-bold hover:bg-neutral-200"
+              className="w-full h-10 rounded-xl bg-neutral-100 text-neutral-800 text-xs font-bold hover:bg-neutral-200 cursor-pointer"
             >
               Cancel
             </button>

@@ -3,7 +3,8 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, MessageCircle, ShoppingBag, Truck } from "lucide-react";
+import { ArrowRight, MessageCircle, ShoppingBag, Truck, FileText } from "lucide-react";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { OndarLogo } from "@/components/OndarLogo";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 
@@ -46,6 +47,7 @@ function CartContent({
   state = "Lagos",
   tagline,
   whatsappNumber,
+  phoneNumber,
   coveragePreview,
   previewTemplate,
 }: StorefrontCartClientProps) {
@@ -62,13 +64,10 @@ function CartContent({
     .slice(0, 2)
     .toUpperCase() || "SS";
 
-  const waLink = whatsappNumber
-    ? `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-        `Hello ${businessName}, I have a question about my order.`
-      )}`
-    : `https://wa.me/2348000000000?text=${encodeURIComponent(
-        `Hello ${businessName}, I have a question about my order.`
-      )}`;
+  const waLink = getWhatsappChatUrl(
+    whatsappNumber || phoneNumber,
+    `Hello ${businessName}, I have a question about my cart / order.`
+  );
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] antialiased text-neutral-900 pb-32">

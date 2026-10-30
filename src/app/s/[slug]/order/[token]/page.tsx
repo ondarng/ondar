@@ -30,6 +30,14 @@ export default async function PublicOrderPage({ params, searchParams }: Props) {
     where: { publicToken: token },
     include: {
       lines: true,
+      events: {
+        orderBy: { createdAt: "asc" },
+      },
+      merchant: {
+        include: {
+          payoutAccount: true,
+        },
+      },
     },
   });
 
@@ -71,6 +79,21 @@ export default async function PublicOrderPage({ params, searchParams }: Props) {
       quantity: l.quantity,
       lineTotal: l.lineTotal.toString(),
     })),
+    events: rawOrder.events.map((e) => ({
+      id: e.id,
+      fromStatus: e.fromStatus,
+      toStatus: e.toStatus,
+      note: e.note,
+      actor: e.actor,
+      createdAt: e.createdAt.toISOString(),
+    })),
+    bankDetails: rawOrder.merchant.payoutAccount
+      ? {
+          bankName: rawOrder.merchant.payoutAccount.bankName,
+          accountNumber: rawOrder.merchant.payoutAccount.accountNumber,
+          accountName: rawOrder.merchant.payoutAccount.accountName,
+        }
+      : null,
   };
 
   const pickupAddress =

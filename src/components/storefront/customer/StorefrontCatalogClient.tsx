@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { StorefrontFooter } from "./StorefrontFooter";
+import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider } from "@/context/StorefrontCartContext";
 
 export interface CatalogProduct {
@@ -111,7 +112,7 @@ export function StorefrontCatalogClient({
 
   const isSearchActive = searchQuery.trim().length > 0;
 
-  const cleanWhatsapp = (whatsappNumber || "").replace(/[^0-9]/g, "");
+  const cleanWhatsapp = formatToWhatsappNumber(whatsappNumber || phoneNumber);
 
   return (
     <CartProvider storeSlug={storeSlug}>
@@ -420,6 +421,7 @@ export function StorefrontCatalogClient({
           {/* Storefront Footer */}
           <StorefrontFooter
             businessName={businessName}
+            storeSlug={storeSlug}
             whatsappNumber={whatsappNumber}
             phoneNumber={phoneNumber}
             city={city}

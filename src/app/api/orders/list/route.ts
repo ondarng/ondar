@@ -86,47 +86,56 @@ export async function GET(req: NextRequest) {
       where.createdAt = { gte: start, lte: end };
     }
 
-    // Fetch orders with lines and events
-    const orders = await prisma.order.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        lines: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                stockOnHand: true,
-                stockReserved: true,
+    // Pagination
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    const isPaginated = pageParam !== null || limitParam !== null;
+    const page = Math.max(1, parseInt(pageParam || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(limitParam || "25", 10)));
+    const skip = (page - 1) * limit;
+
+    // Fetch orders, total counts and filtered total concurrently
+    const [orders, totalOrdersCount, needsAttentionCount, filteredTotal] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        ...(isPaginated ? { take: limit, skip } : {}),
+        include: {
+          lines: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  stockOnHand: true,
+                  stockReserved: true,
+                },
               },
             },
           },
-        },
-        events: {
-          orderBy: { createdAt: "desc" },
-        },
-      },
-    });
-
-    // Count for needs attention badge
-    const needsAttentionCount = await prisma.order.count({
-      where: {
-        merchantId: merchant.id,
-        OR: [
-          { flag: { not: null } },
-          { paymentRoute: "BANK_TRANSFER", paymentStatus: "AWAITING_PAYMENT", paymentSentAt: { not: null } },
-          {
-            orderStatus: "TO_FULFIL",
-            createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          events: {
+            orderBy: { createdAt: "desc" },
           },
-        ],
-      },
-    });
-
-    const totalOrdersCount = await prisma.order.count({
-      where: { merchantId: merchant.id },
-    });
+        },
+      }),
+      prisma.order.count({
+        where: { merchantId: merchant.id },
+      }),
+      prisma.order.count({
+        where: {
+          merchantId: merchant.id,
+          OR: [
+            { flag: { not: null } },
+            { paymentRoute: "BANK_TRANSFER", paymentStatus: "AWAITING_PAYMENT", paymentSentAt: { not: null } },
+            {
+              orderStatus: "TO_FULFIL",
+              createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+          ],
+        },
+      }),
+      prisma.order.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -183,6 +192,14 @@ export async function GET(req: NextRequest) {
       counts: {
         total: totalOrdersCount,
         needsAttention: needsAttentionCount,
+        filtered: filteredTotal,
+      },
+      pagination: {
+        page: isPaginated ? page : 1,
+        limit: isPaginated ? limit : orders.length,
+        totalOrders: filteredTotal,
+        totalPages: isPaginated ? Math.ceil(filteredTotal / limit) : 1,
+        hasMore: isPaginated ? skip + orders.length < filteredTotal : false,
       },
     });
   } catch (error: any) {

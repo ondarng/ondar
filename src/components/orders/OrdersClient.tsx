@@ -33,6 +33,9 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderDetailData | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [copiedShopLink, setCopiedShopLink] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const [filters, setFilters] = useState<OrderFilterState>({
     orderStatus: [],
@@ -44,12 +47,19 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
     endDate: "",
   });
 
-  const loadOrders = async () => {
-    setLoading(true);
+  const loadOrders = async (targetPage = 1, append = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setLoading(true);
+      setPage(1);
+    }
     setHasNetworkError(false);
     try {
       const params = new URLSearchParams();
       params.set("tab", activeTab);
+      params.set("page", String(targetPage));
+      params.set("limit", "25");
       if (search) params.set("search", search);
 
       filters.orderStatus.forEach((s) => params.append("orderStatus", s));
@@ -68,11 +78,22 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
       const res = await fetch(`/api/orders/list?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.orders || []);
+        const incomingOrders = data.orders || [];
+        if (append) {
+          setOrders((prev) => {
+            const existingIds = new Set(prev.map((o) => o.id));
+            const newUnique = incomingOrders.filter((o: OrderDetailData) => !existingIds.has(o.id));
+            return [...prev, ...newUnique];
+          });
+        } else {
+          setOrders(incomingOrders);
+        }
         setCounts(data.counts || { total: 0, needsAttention: 0 });
+        setHasMore(Boolean(data.pagination?.hasMore));
+        setPage(targetPage);
 
         if (selectedOrder) {
-          const fresh = data.orders.find((o: OrderDetailData) => o.id === selectedOrder.id);
+          const fresh = incomingOrders.find((o: OrderDetailData) => o.id === selectedOrder.id);
           if (fresh) setSelectedOrder(fresh);
         }
       } else {
@@ -82,6 +103,7 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
       setHasNetworkError(true);
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -146,7 +168,7 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
         order={selectedOrder}
         storeSlug={storeSlug}
         onBack={() => setSelectedOrder(null)}
-        onRefresh={loadOrders}
+        onRefresh={() => loadOrders(1, false)}
       />
     );
   }
@@ -265,7 +287,7 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
               Check your connection and try again. Your search and filters have been kept.
             </p>
             <button
-              onClick={loadOrders}
+              onClick={() => loadOrders(1, false)}
               className="w-full h-11 bg-[#00A859] hover:bg-[#00924c] text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
@@ -419,6 +441,27 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Load more orders button */}
+        {hasMore && !loading && (
+          <div className="pt-2 pb-4 text-center">
+            <button
+              type="button"
+              disabled={isLoadingMore}
+              onClick={() => loadOrders(page + 1, true)}
+              className="w-full py-3.5 px-4 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 text-xs font-bold transition-all shadow-2xs active:scale-[0.99] disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
+                  <span>Loading more orders...</span>
+                </>
+              ) : (
+                <span>Load more orders</span>
+              )}
+            </button>
           </div>
         )}
 

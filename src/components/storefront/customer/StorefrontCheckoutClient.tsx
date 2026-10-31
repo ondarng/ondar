@@ -270,6 +270,13 @@ function CheckoutContent({
     ];
   }, [hasRealRates, shippingRates, selectedState, city, state]);
 
+  // Auto-select first area if none selected
+  useEffect(() => {
+    if (!selectedArea && deliveryAreaOptions.length > 0) {
+      setSelectedArea(deliveryAreaOptions[0].name);
+    }
+  }, [deliveryAreaOptions, selectedArea]);
+
   const currentSelectedAreaObj = useMemo(() => {
     if (!selectedArea) return null;
     return (
@@ -347,9 +354,13 @@ function CheckoutContent({
     }
 
     if (deliveryType === "delivery" && !selectedArea) {
-      setDeliveryError("Please choose your delivery area.");
-      setIsAreaModalOpen(true);
-      return;
+      if (deliveryAreaOptions.length > 0) {
+        setSelectedArea(deliveryAreaOptions[0].name);
+      } else {
+        setDeliveryError("Please choose your delivery area.");
+        setIsAreaModalOpen(true);
+        return;
+      }
     }
 
     if (deliveryType === "delivery" && !streetAddress.trim()) {
@@ -369,6 +380,7 @@ function CheckoutContent({
   // Step 3 Proceed to Place Order & Ready to Pay
   const handlePlaceOrder = async () => {
     setIsSubmitting(true);
+    setPaymentError(null);
     const now = new Date();
     const formattedDate = now.toLocaleDateString("en-GB", {
       day: "numeric",
@@ -1465,6 +1477,11 @@ function CheckoutContent({
               <p className="text-sm font-bold text-gray-900 mb-2">
                 You&apos;ll pay exactly ₦{totalFormatted}
               </p>
+              {paymentError && (
+                <div className="p-3 mb-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium text-center animate-in fade-in">
+                  {paymentError}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={handlePlaceOrder}

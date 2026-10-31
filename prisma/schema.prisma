@@ -96,7 +96,7 @@ model BusinessProfile {
   templateId     String   @default("default") // "default" | "electronics" | "boutique"
   tiktok         String?
   deliveryCoverage String? @default("Lagos - Ikeja, Yaba and Lekki")
-  deliveryEnabled  Boolean @default(false)
+  deliveryEnabled  Boolean @default(true)
   pickupEnabled    Boolean @default(false)
   pickupInstructions String? @default("Call on arrival. Please have your order number ready.")
   returnPolicy   String?  @default("Returns accepted within 7 days of delivery. Items must be unused and in their original condition. Message us on WhatsApp to arrange a return. Return delivery is paid by the customer unless the item is faulty.")

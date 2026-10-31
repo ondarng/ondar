@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
           whatsappNumber: "",
           city: "",
           state: "Lagos",
+          deliveryEnabled: true,
         },
       });
 

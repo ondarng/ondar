@@ -19,8 +19,17 @@ export async function POST(req: NextRequest) {
     }
     if (deliveryType !== "pickup" && deliveryType !== "delivery") return NextResponse.json({ error: "Choose pickup or delivery." }, { status: 400 });
 
-    const profile = await prisma.businessProfile.findUnique({ where: { slug: storeSlug }, include: { merchant: { include: { payoutAccount: true } } } });
-    if (!profile || !profile.merchant.payoutAccount?.isVerified) return NextResponse.json({ error: "This store cannot accept orders yet." }, { status: 400 });
+    const cleanSlug = storeSlug.trim().toLowerCase();
+    const profile = await prisma.businessProfile.findUnique({
+      where: { slug: cleanSlug },
+      include: { merchant: { include: { payoutAccount: true } } },
+    });
+    if (!profile) {
+      return NextResponse.json({ error: "Store not found." }, { status: 404 });
+    }
+    if (!profile.merchant.payoutAccount?.isVerified) {
+      return NextResponse.json({ error: "This store cannot accept orders yet. Payout account is not verified." }, { status: 400 });
+    }
 
     const requested = new Map<string, { productId: string; variantId?: string; quantity: number }>();
     for (const raw of items as RequestedItem[]) {
@@ -34,14 +43,54 @@ export async function POST(req: NextRequest) {
 
     let deliveryFeeKobo = BigInt(0);
     if (deliveryType === "pickup") {
-      if (!profile.pickupEnabled) return NextResponse.json({ error: "Pickup is not available for this store." }, { status: 400 });
+      if (!profile.pickupEnabled && !profile.address) {
+        return NextResponse.json({ error: "Pickup is not available for this store." }, { status: 400 });
+      }
     } else {
-      if (!profile.deliveryEnabled || typeof deliveryState !== "string" || !deliveryState.trim() || typeof deliveryAddress !== "string" || !deliveryAddress.trim()) return NextResponse.json({ error: "Choose a configured delivery area and enter an address." }, { status: 400 });
-      const rates = await prisma.shippingRate.findMany({ where: { merchantId: profile.merchantId, state: { equals: deliveryState.trim(), mode: "insensitive" } } });
-      const chosen = typeof deliveryArea === "string" ? rates.find((rate) => rate.area?.toLowerCase() === deliveryArea.trim().toLowerCase()) || rates.find((rate) => rate.parentId === null) : rates.find((rate) => rate.parentId === null);
-      if (!chosen) return NextResponse.json({ error: "This delivery area is not configured." }, { status: 400 });
-      deliveryFeeKobo = chosen.isFree ? BigInt(0) : chosen.feeKobo;
+      if (typeof deliveryAddress !== "string" || !deliveryAddress.trim()) {
+        return NextResponse.json({ error: "Please enter your delivery street address." }, { status: 400 });
+      }
+
+      // Check merchant configured shipping rates
+      const merchantRates = await prisma.shippingRate.findMany({
+        where: { merchantId: profile.merchantId },
+      });
+
+      if (merchantRates.length > 0) {
+        const stateStr = typeof deliveryState === "string" ? deliveryState.trim() : "";
+        const stateRates = stateStr
+          ? merchantRates.filter((rate) => rate.state.toLowerCase() === stateStr.toLowerCase())
+          : [];
+
+        if (stateRates.length > 0) {
+          const areaStr = typeof deliveryArea === "string" ? deliveryArea.trim().toLowerCase() : "";
+          const chosen = areaStr
+            ? stateRates.find((rate) => rate.area?.toLowerCase() === areaStr) ||
+              stateRates.find((rate) => rate.parentId === null) ||
+              stateRates[0]
+            : stateRates.find((rate) => rate.parentId === null) || stateRates[0];
+
+          deliveryFeeKobo = chosen.isFree ? BigInt(0) : chosen.feeKobo;
+        } else {
+          // If merchant has rates for other states but not this state, use fallback client fee if reasonable
+          const clientDeliveryFee = typeof body.deliveryFeeKobo === "number" || typeof body.deliveryFeeKobo === "string"
+            ? BigInt(Math.max(0, Math.round(Number(body.deliveryFeeKobo))))
+            : BigInt(0);
+          deliveryFeeKobo = clientDeliveryFee;
+        }
+      } else {
+        // Merchant has not configured custom database rates yet.
+        // Use client-calculated standard/fallback fee or 0
+        const clientDeliveryFee = typeof body.deliveryFeeKobo === "number" || typeof body.deliveryFeeKobo === "string"
+          ? BigInt(Math.max(0, Math.round(Number(body.deliveryFeeKobo))))
+          : BigInt(0);
+        deliveryFeeKobo = clientDeliveryFee;
+      }
     }
+
+    const processingFeeKobo = typeof body.processingFeeKobo === "number" || typeof body.processingFeeKobo === "string"
+      ? BigInt(Math.max(0, Math.round(Number(body.processingFeeKobo))))
+      : BigInt(0);
 
     const holdMinutes = paymentRoute === "PAYSTACK" ? 30 : 6 * 60;
     const order = await prisma.$transaction(async (tx) => {
@@ -60,8 +109,32 @@ export async function POST(req: NextRequest) {
         lines.push({ productId: product.id, name: variant ? `${product.name} — ${variant.title}` : product.name, priceKobo, quantity: selection.quantity, lineTotal });
       }
       const counter = await tx.orderCounter.upsert({ where: { merchantId: profile.merchantId }, create: { merchantId: profile.merchantId, nextOrderNumber: 1002 }, update: { nextOrderNumber: { increment: 1 } } });
-      const totalKobo = subtotalKobo + deliveryFeeKobo;
-      const created = await tx.order.create({ data: { merchantId: profile.merchantId, orderNumber: counter.nextOrderNumber - 1, orderStatus: "AWAITING_PAYMENT", paymentStatus: "AWAITING_PAYMENT", paymentRoute: paymentRoute === "PAYSTACK" ? "PAYSTACK" : "BANK_TRANSFER", customerName: customerName.trim(), customerPhone: customerPhone.trim(), customerEmail: typeof customerEmail === "string" ? customerEmail.trim() || null : null, customerNote: typeof customerNote === "string" ? customerNote.trim() || null : null, deliveryType, deliveryFeeKobo, processingFeeKobo: BigInt(0), deliveryState: deliveryType === "delivery" ? deliveryState.trim() : null, deliveryArea: deliveryType === "delivery" && typeof deliveryArea === "string" ? deliveryArea.trim() : null, deliveryAddress: deliveryType === "delivery" ? deliveryAddress.trim() : null, deliveryInstructions: typeof deliveryInstructions === "string" ? deliveryInstructions.trim() || null : null, subtotalKobo, totalKobo, ondarCutKobo: computeOndarCutKobo(subtotalKobo), holdExpiresAt: new Date(Date.now() + holdMinutes * 60_000), lines: { create: lines } } });
+      const totalKobo = subtotalKobo + deliveryFeeKobo + processingFeeKobo;
+      const created = await tx.order.create({
+        data: {
+          merchantId: profile.merchantId,
+          orderNumber: counter.nextOrderNumber - 1,
+          orderStatus: "AWAITING_PAYMENT",
+          paymentStatus: "AWAITING_PAYMENT",
+          paymentRoute: paymentRoute === "PAYSTACK" ? "PAYSTACK" : "BANK_TRANSFER",
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerEmail: typeof customerEmail === "string" ? customerEmail.trim() || null : null,
+          customerNote: typeof customerNote === "string" ? customerNote.trim() || null : null,
+          deliveryType,
+          deliveryFeeKobo,
+          processingFeeKobo,
+          deliveryState: deliveryType === "delivery" && typeof deliveryState === "string" ? deliveryState.trim() || null : null,
+          deliveryArea: deliveryType === "delivery" && typeof deliveryArea === "string" ? deliveryArea.trim() || null : null,
+          deliveryAddress: deliveryType === "delivery" && typeof deliveryAddress === "string" ? deliveryAddress.trim() || null : null,
+          deliveryInstructions: typeof deliveryInstructions === "string" ? deliveryInstructions.trim() || null : null,
+          subtotalKobo,
+          totalKobo,
+          ondarCutKobo: computeOndarCutKobo(subtotalKobo),
+          holdExpiresAt: new Date(Date.now() + holdMinutes * 60_000),
+          lines: { create: lines }
+        }
+      });
       for (const line of lines) {
         const product = await tx.product.findUniqueOrThrow({ where: { id: line.productId } });
         if (product.trackStock) await tx.stockAudit.create({ data: { productId: product.id, changeQty: line.quantity, beforeAvailable: product.stockOnHand - product.stockReserved + line.quantity, afterAvailable: product.stockOnHand - product.stockReserved, beforeOnHand: product.stockOnHand, afterOnHand: product.stockOnHand, beforeReserved: product.stockReserved - line.quantity, afterReserved: product.stockReserved, reason: "RESERVE_HOLD", referenceId: created.id, note: "Checkout stock hold.", actor: "checkout" } });
@@ -69,7 +142,20 @@ export async function POST(req: NextRequest) {
       await tx.orderEvent.create({ data: { orderId: created.id, toStatus: "AWAITING_PAYMENT", actor: "customer", note: "Order created and stock reserved." } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-    return NextResponse.json({ success: true, orderNumber: order.orderNumber, orderId: order.id, publicToken: order.publicToken, holdExpiresAt: order.holdExpiresAt, bankDetails: { bankName: profile.merchant.payoutAccount.bankName, accountNumber: profile.merchant.payoutAccount.accountNumber, accountName: profile.merchant.payoutAccount.accountName } });
+    return NextResponse.json({
+      success: true,
+      orderNumber: order.orderNumber,
+      orderId: order.id,
+      publicToken: order.publicToken,
+      holdExpiresAt: order.holdExpiresAt,
+      bankDetails: profile.merchant.payoutAccount
+        ? {
+            bankName: profile.merchant.payoutAccount.bankName,
+            accountNumber: profile.merchant.payoutAccount.accountNumber,
+            accountName: profile.merchant.payoutAccount.accountName,
+          }
+        : null,
+    });
   } catch (error: any) {
     const message = error?.code === "P2034" ? "Inventory changed while checking out. Please try again." : error?.message || "Failed to create order";
     return NextResponse.json({ error: message }, { status: 400 });

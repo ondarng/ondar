@@ -15,6 +15,11 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // If the pathname already starts with /s/, don't double-prefix it!
+  if (url.pathname.startsWith("/s/")) {
+    return NextResponse.next();
+  }
+
   if (url.pathname.startsWith("/p/")) {
     const productSlug = url.pathname.slice("/p/".length);
     return NextResponse.rewrite(new URL(`/s/${subdomain}/p/${productSlug}`, req.url));

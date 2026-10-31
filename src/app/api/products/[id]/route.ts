@@ -115,6 +115,8 @@ export async function PATCH(
     if (body.description !== undefined) updateData.description = body.description;
     if (body.trackStock !== undefined) updateData.trackStock = Boolean(body.trackStock);
     if (body.isOutOfStockManual !== undefined) updateData.isOutOfStockManual = Boolean(body.isOutOfStockManual);
+    if (body.isPreorder !== undefined) updateData.isPreorder = Boolean(body.isPreorder);
+    if (body.preorderNote !== undefined) updateData.preorderNote = body.preorderNote ? String(body.preorderNote).trim() : null;
     if (body.lowStockThreshold !== undefined) {
       updateData.lowStockThreshold = body.lowStockThreshold === null ? null : parseInt(body.lowStockThreshold, 10);
     }

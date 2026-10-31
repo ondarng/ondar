@@ -25,6 +25,8 @@ export interface CatalogProduct {
   stockReserved: number;
   trackStock: boolean;
   isOutOfStockManual: boolean;
+  isPreorder?: boolean;
+  preorderNote?: string | null;
   lowStockThreshold: number | null;
   images: { url: string }[];
   variants: {
@@ -298,15 +300,19 @@ export function StorefrontCatalogClient({
                 const nairaPrice = (Number(p.priceKobo) / 100).toLocaleString("en-NG");
                 const imageUrl = p.images[0]?.url || "/sample-product.png";
                 const availableStock = p.stockOnHand - p.stockReserved;
+                const isPreorder = Boolean(p.isPreorder);
                 const isOutOfStock =
-                  p.isOutOfStockManual || (p.trackStock && availableStock <= 0);
+                  !isPreorder && (p.isOutOfStockManual || (p.trackStock && availableStock <= 0));
                 const hasVariants = p.variants && p.variants.length > 0;
 
                 // Derive stock label matching the design
                 let stockLabel = "In stock";
                 let stockTone = "text-[#00A859]";
 
-                if (isOutOfStock) {
+                if (isPreorder) {
+                  stockLabel = "Pre-order";
+                  stockTone = "text-indigo-600 font-bold";
+                } else if (isOutOfStock) {
                   stockLabel = "Sold out";
                   stockTone = "text-neutral-400";
                 } else if (hasVariants) {
@@ -337,13 +343,19 @@ export function StorefrontCatalogClient({
                           isOutOfStock ? "opacity-60 grayscale-[25%]" : ""
                         }`}
                       />
-                      {isOutOfStock && (
+                      {isPreorder ? (
+                        <div className="absolute top-2 left-2">
+                          <span className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+                            Pre-order
+                          </span>
+                        </div>
+                      ) : isOutOfStock ? (
                         <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
                           <span className="bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
                             Sold out
                           </span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Product Info */}

@@ -37,6 +37,8 @@ export function ProductAvailabilityScreen({
   const [isOutOfStockManual, setIsOutOfStockManual] = useState<boolean>(
     Boolean(product.isOutOfStockManual)
   );
+  const [isPreorder, setIsPreorder] = useState<boolean>(Boolean(product.isPreorder));
+  const [preorderNote, setPreorderNote] = useState<string>(product.preorderNote || "");
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,8 @@ export function ProductAvailabilityScreen({
         body: JSON.stringify({
           trackStock,
           isOutOfStockManual,
+          isPreorder,
+          preorderNote,
         }),
       });
 
@@ -230,14 +234,71 @@ export function ProductAvailabilityScreen({
               </span>
             </div>
             <p className="text-[17px] font-black text-neutral-900">
-              {isOutOfStockManual ? "Out of stock" : "In stock"}
+              {isPreorder
+                ? "Pre-order"
+                : isOutOfStockManual
+                ? "Out of stock"
+                : "In stock"}
             </p>
             <p className="text-xs text-neutral-500 font-normal">
-              {isOutOfStockManual
+              {isPreorder
+                ? "Product is tagged as Pre-order. Instant bag checkout is disabled."
+                : isOutOfStockManual
                 ? "Ordering is unavailable."
                 : "Ordering is available to customers."}
             </p>
           </div>
+        </div>
+
+        {/* Pre-order Toggle Card */}
+        <div className="rounded-3xl border border-neutral-200 bg-[#F9FAFB] p-4 shadow-xs mb-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-bold text-neutral-900">Pre-order product</p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  Pre-order
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                {isPreorder
+                  ? "On · Product shows Pre-order badge; cart ordering button is replaced so customers don't pay upfront."
+                  : "Off · Standard shopping and ordering applies."}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPreorder(!isPreorder)}
+              className={`w-12 h-7 rounded-full p-0.5 transition-colors cursor-pointer ${
+                isPreorder ? "bg-[#00A859]" : "bg-neutral-300"
+              }`}
+            >
+              <div
+                className={`w-6 h-6 rounded-full bg-white transition-transform shadow-xs ${
+                  isPreorder ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {isPreorder && (
+            <div className="space-y-2 pt-2 border-t border-neutral-200">
+              <label className="text-xs font-bold text-neutral-700 block">
+                Pre-order release note or timeframe (optional)
+              </label>
+              <input
+                type="text"
+                value={preorderNote}
+                onChange={(e) => setPreorderNote(e.target.value)}
+                placeholder="e.g. Expected to ship Nov 20, or Limited batch"
+                className="w-full h-11 px-3.5 rounded-xl border border-neutral-300 bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#00A859]"
+              />
+              <p className="text-[11px] text-neutral-500">
+                Customers see this note on the product page and can register interest or contact on WhatsApp without an order button.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Amber warning callout when marked out of stock */}

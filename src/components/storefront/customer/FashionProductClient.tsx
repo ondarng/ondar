@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, ShieldCheck, ShoppingBag, FileText } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, ShoppingBag, FileText, Clock, MessageCircle } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
@@ -47,8 +47,9 @@ function FashionProductContent({
     ? Math.max(0, product.stockOnHand - product.stockReserved)
     : 99;
 
-  const isOutOfStock = product.isOutOfStockManual || stockRemaining <= 0;
-  const isLowStock = !isOutOfStock && stockRemaining > 0 && stockRemaining <= 3;
+  const isPreorder = Boolean(product.isPreorder);
+  const isOutOfStock = !isPreorder && (product.isOutOfStockManual || stockRemaining <= 0);
+  const isLowStock = !isPreorder && !isOutOfStock && stockRemaining > 0 && stockRemaining <= 3;
 
   // Price calculation
   const currentPriceKobo = activeVariant?.priceKobo
@@ -56,8 +57,9 @@ function FashionProductContent({
     : Number(product.priceKobo);
   const currentPriceNaira = Math.round(currentPriceKobo / 100);
 
-  // Added to bag visual feedback
+  // Added to bag visual feedback & Pre-order name
   const [addedToast, setAddedToast] = useState(false);
+  const [customerPreorderName, setCustomerPreorderName] = useState("");
 
   const handleAddToBag = () => {
     if (isOutOfStock) return;
@@ -129,7 +131,11 @@ function FashionProductContent({
           )}
 
           {/* Out of stock or low stock badge */}
-          {isOutOfStock ? (
+          {isPreorder ? (
+            <div className="absolute top-3 left-3 bg-indigo-900 text-white text-[10px] font-bold px-2.5 py-1 tracking-wider uppercase shadow-xs">
+              Pre-order
+            </div>
+          ) : isOutOfStock ? (
             <div className="absolute top-3 left-3 bg-neutral-900/90 text-white text-[10px] font-bold px-2.5 py-1 tracking-wider uppercase">
               Sold out
             </div>
@@ -162,6 +168,12 @@ function FashionProductContent({
               </span>
             )}
           </div>
+
+          {product.isPreorder && product.preorderNote && (
+            <p className="text-xs text-indigo-950 bg-indigo-50 border border-indigo-200 rounded-xl p-3 font-medium">
+              {product.preorderNote}
+            </p>
+          )}
 
           {product.description && (
             <p className="text-xs text-neutral-600 leading-relaxed pt-1 whitespace-pre-line">
@@ -204,45 +216,89 @@ function FashionProductContent({
           </div>
         )}
 
-        {/* 5. ADD TO BAG CTA */}
+        {/* 5. ADD TO BAG OR PRE-ORDER CTA */}
         <div className="space-y-3 mb-8">
-          <button
-            type="button"
-            disabled={isOutOfStock}
-            onClick={handleAddToBag}
-            className={`w-full py-4 text-xs font-black tracking-[0.15em] transition-all flex items-center justify-center gap-2 cursor-pointer uppercase ${
-              isOutOfStock
-                ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-                : "bg-black hover:bg-neutral-800 text-white shadow-md active:scale-[0.99]"
-            }`}
-          >
-            {addedToast ? (
-              <>
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>ADDED TO BAG</span>
-              </>
-            ) : isOutOfStock ? (
-              <span>SOLD OUT</span>
-            ) : (
-              <span>ADD TO BAG · ₦{currentPriceNaira.toLocaleString("en-NG")}</span>
-            )}
-          </button>
-
-          {cleanWhatsapp && (
-            <div className="text-center">
-              <a
-                href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-                  `Hello ${businessName}! I am interested in ${product.name}${
-                    activeVariant ? ` (${activeVariant.title})` : ""
-                  }. Is this available?`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs font-bold text-neutral-900 hover:text-neutral-600 underline underline-offset-4"
-              >
-                Inquire on WhatsApp
-              </a>
+          {isPreorder ? (
+            <div className="border border-neutral-900 bg-neutral-50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black tracking-widest uppercase text-neutral-900">
+                  Pre-order Enquiry
+                </span>
+                <span className="text-[10px] font-mono tracking-wider bg-black text-white px-2 py-0.5">
+                  NO PAYMENT NOW
+                </span>
+              </div>
+              <p className="text-xs text-neutral-600 leading-relaxed font-sans">
+                This item is available for pre-order. Enter your name below to register interest directly with the merchant.
+              </p>
+              <input
+                type="text"
+                value={customerPreorderName}
+                onChange={(e) => setCustomerPreorderName(e.target.value)}
+                placeholder="Your name (optional)"
+                className="w-full h-11 px-3 border border-neutral-300 bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-black font-sans"
+              />
+              {cleanWhatsapp ? (
+                <a
+                  href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                    `Hello ${businessName}! I would like to pre-order "${product.name}" (₦${currentPriceNaira.toLocaleString("en-NG")})${
+                      customerPreorderName.trim() ? " - My name is " + customerPreorderName.trim() : ""
+                    }.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 bg-black hover:bg-neutral-800 text-white text-xs font-black tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <span>PRE-ORDER ON WHATSAPP</span>
+                </a>
+              ) : (
+                <div className="w-full py-3.5 bg-neutral-200 text-neutral-700 text-xs font-black tracking-wider uppercase text-center">
+                  PRE-ORDER ONLY · GENERAL ORDERS CLOSED
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={handleAddToBag}
+                className={`w-full py-4 text-xs font-black tracking-[0.15em] transition-all flex items-center justify-center gap-2 cursor-pointer uppercase ${
+                  isOutOfStock
+                    ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                    : "bg-black hover:bg-neutral-800 text-white shadow-md active:scale-[0.99]"
+                }`}
+              >
+                {addedToast ? (
+                  <>
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>ADDED TO BAG</span>
+                  </>
+                ) : isOutOfStock ? (
+                  <span>SOLD OUT</span>
+                ) : (
+                  <span>ADD TO BAG · ₦{currentPriceNaira.toLocaleString("en-NG")}</span>
+                )}
+              </button>
+
+              {cleanWhatsapp && (
+                <div className="text-center">
+                  <a
+                    href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                      `Hello ${businessName}! I am interested in ${product.name}${
+                        activeVariant ? ` (${activeVariant.title})` : ""
+                      }. Is this available?`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-xs font-bold text-neutral-900 hover:text-neutral-600 underline underline-offset-4"
+                  >
+                    Inquire on WhatsApp
+                  </a>
+                </div>
+              )}
+            </>
           )}
         </div>
 

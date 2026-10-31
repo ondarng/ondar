@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap, FileText } from "lucide-react";
+import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap, FileText, Clock, MessageCircle } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
@@ -48,7 +48,9 @@ function ElectronicsProductContent({
     : product.trackStock
     ? product.stockOnHand - product.stockReserved
     : 99;
-  const isOutOfStock = product.isOutOfStockManual || availableStock <= 0;
+  const isPreorder = Boolean(product.isPreorder);
+  const isOutOfStock = !isPreorder && (product.isOutOfStockManual || availableStock <= 0);
+  const [customerPreorderName, setCustomerPreorderName] = useState("");
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -115,7 +117,11 @@ function ElectronicsProductContent({
             </div>
           )}
 
-          {isOutOfStock ? (
+          {isPreorder ? (
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+              Pre-order
+            </div>
+          ) : isOutOfStock ? (
             <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold uppercase tracking-wider">
               Out of stock
             </div>
@@ -146,6 +152,12 @@ function ElectronicsProductContent({
               ₦{currentPriceNaira.toLocaleString("en-NG")}
             </span>
           </div>
+
+          {product.isPreorder && product.preorderNote && (
+            <p className="text-xs text-indigo-300 bg-indigo-950/60 border border-indigo-800/60 rounded-xl p-3 font-mono">
+              {product.preorderNote}
+            </p>
+          )}
 
           {product.description && (
             <p className="text-xs text-slate-400 leading-relaxed pt-1 whitespace-pre-line">
@@ -194,45 +206,89 @@ function ElectronicsProductContent({
           </div>
         )}
 
-        {/* CTA Button */}
+        {/* CTA Button or Pre-order Box */}
         <div className="space-y-3 mb-8">
-          <button
-            type="button"
-            disabled={isOutOfStock}
-            onClick={handleAddToCart}
-            className={`w-full py-3.5 px-4 rounded-xl text-xs font-black tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer uppercase ${
-              isOutOfStock
-                ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                : "bg-[#38BDF8] hover:bg-[#0EA5E9] text-slate-950 shadow-md active:scale-[0.99]"
-            }`}
-          >
-            {addedToast ? (
-              <>
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>Added to cart!</span>
-              </>
-            ) : isOutOfStock ? (
-              <span>Currently Out of Stock</span>
-            ) : (
-              <span>Add to Cart · ₦{currentPriceNaira.toLocaleString("en-NG")}</span>
-            )}
-          </button>
-
-          {cleanWhatsapp && (
-            <div className="text-center">
-              <a
-                href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-                  `Hello ${businessName}! I am interested in ${product.name}${
-                    activeVariant ? ` (${activeVariant.title})` : ""
-                  }. Is this available?`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs font-bold text-sky-400 hover:text-sky-300 underline underline-offset-4"
-              >
-                Inquire on WhatsApp
-              </a>
+          {isPreorder ? (
+            <div className="rounded-2xl border border-indigo-500/40 bg-slate-900/90 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white font-mono uppercase tracking-wider">
+                  Pre-order Enquiry
+                </span>
+                <span className="text-[10px] font-bold text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded-md border border-indigo-800/60">
+                  NO PAYMENT NOW
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed font-sans">
+                This item is available for pre-order. Enter your name below to register interest directly with the store.
+              </p>
+              <input
+                type="text"
+                value={customerPreorderName}
+                onChange={(e) => setCustomerPreorderName(e.target.value)}
+                placeholder="Your name (optional)"
+                className="w-full h-11 px-3 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#38BDF8]"
+              />
+              {cleanWhatsapp ? (
+                <a
+                  href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                    `Hello ${businessName}! I would like to pre-order "${product.name}" (₦${currentPriceNaira.toLocaleString("en-NG")})${
+                      customerPreorderName.trim() ? " - My name is " + customerPreorderName.trim() : ""
+                    }.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 rounded-xl bg-[#00A859] hover:bg-[#008f4c] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md uppercase tracking-wider"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <span>Pre-order on WhatsApp</span>
+                </a>
+              ) : (
+                <div className="w-full py-3 bg-slate-800 text-slate-400 text-xs font-bold rounded-xl text-center">
+                  Pre-order Only · General ordering disabled
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={handleAddToCart}
+                className={`w-full py-3.5 px-4 rounded-xl text-xs font-black tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer uppercase ${
+                  isOutOfStock
+                    ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    : "bg-[#38BDF8] hover:bg-[#0EA5E9] text-slate-950 shadow-md active:scale-[0.99]"
+                }`}
+              >
+                {addedToast ? (
+                  <>
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>Added to cart!</span>
+                  </>
+                ) : isOutOfStock ? (
+                  <span>Currently Out of Stock</span>
+                ) : (
+                  <span>Add to Cart · ₦{currentPriceNaira.toLocaleString("en-NG")}</span>
+                )}
+              </button>
+
+              {cleanWhatsapp && (
+                <div className="text-center">
+                  <a
+                    href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                      `Hello ${businessName}! I am interested in ${product.name}${
+                        activeVariant ? ` (${activeVariant.title})` : ""
+                      }. Is this available?`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-xs font-bold text-sky-400 hover:text-sky-300 underline underline-offset-4"
+                  >
+                    Inquire on WhatsApp
+                  </a>
+                </div>
+              )}
+            </>
           )}
         </div>
 

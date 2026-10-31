@@ -218,7 +218,8 @@ function FoodCatalogContent({
             {filteredProducts.map((p) => {
               const priceNaira = Math.round(Number(p.priceKobo) / 100);
               const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
-              const isSoldOut = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
+              const isPreorder = Boolean(p.isPreorder);
+              const isSoldOut = !isPreorder && (p.isOutOfStockManual || (p.trackStock && availableQty <= 0));
 
               const productUrl = previewTemplate
                 ? `/s/${storeSlug}/p/${p.slug}?previewTemplate=${previewTemplate}`
@@ -247,15 +248,19 @@ function FoodCatalogContent({
                       </div>
                     )}
 
-                    {/* Sold out badge */}
-                    {isSoldOut && (
+                    {/* Pre-order or Sold out badge */}
+                    {isPreorder ? (
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-2xs">
+                        Pre-order
+                      </div>
+                    ) : isSoldOut ? (
                       <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-neutral-900/90 text-[10px] font-bold text-white shadow-2xs">
                         Sold out
                       </div>
-                    )}
+                    ) : null}
 
                     {/* Quick Add Button */}
-                    {!isSoldOut && (
+                    {!isSoldOut && !isPreorder && (
                       <button
                         type="button"
                         onClick={(e) => handleQuickAdd(e, p)}

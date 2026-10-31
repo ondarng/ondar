@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
       lowStockThreshold,
       status,
       trackStock,
+      isPreorder,
+      preorderNote,
       extraImages,
       variants,
     } = body;
@@ -155,6 +157,8 @@ export async function POST(req: NextRequest) {
         priceKobo,
         costKobo,
         trackStock: isTracked,
+        isPreorder: Boolean(isPreorder),
+        preorderNote: preorderNote ? String(preorderNote).trim() : null,
         stockOnHand: parsedStock,
         lowStockThreshold: parsedThreshold,
         status: productStatus,

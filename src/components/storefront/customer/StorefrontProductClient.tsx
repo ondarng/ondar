@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ShoppingBag, Truck } from "lucide-react";
+import { Check, ShoppingBag, Truck, MessageCircle, Clock } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 
@@ -28,6 +28,8 @@ export interface ProductDetailProps {
     stockReserved: number;
     trackStock: boolean;
     isOutOfStockManual: boolean;
+    isPreorder?: boolean;
+    preorderNote?: string | null;
     lowStockThreshold: number | null;
     images: { url: string }[];
     variants: {
@@ -54,6 +56,8 @@ function ProductContent({
   storeSlug,
   city = "Lagos",
   tagline,
+  whatsappNumber,
+  phoneNumber,
   previewTemplate,
   product,
 }: ProductDetailProps) {
@@ -93,6 +97,7 @@ function ProductContent({
 
   const [quantity, setQuantity] = useState(1);
   const [addedNotice, setAddedNotice] = useState(false);
+  const [customerPreorderName, setCustomerPreorderName] = useState("");
 
   const handleAddToCart = () => {
     if (stockRemaining <= 0) return;
@@ -171,7 +176,12 @@ function ProductContent({
 
           {/* Stock Badge & Category */}
           <div className="flex items-center justify-between mt-4">
-            {stockRemaining > 0 && stockRemaining <= 10 ? (
+            {product.isPreorder ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Pre-order</span>
+              </span>
+            ) : stockRemaining > 0 && stockRemaining <= 10 ? (
               <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#FEF3C7] text-[#92400E] text-xs font-semibold">
                 Only {stockRemaining} left
               </span>
@@ -188,6 +198,12 @@ function ProductContent({
               {product.category || "General"}
             </span>
           </div>
+
+          {product.isPreorder && product.preorderNote && (
+            <div className="mt-3 p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-900 leading-relaxed font-medium">
+              {product.preorderNote}
+            </div>
+          )}
 
           {/* Product Title & Price */}
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-2.5">
@@ -298,24 +314,71 @@ function ProductContent({
       {/* Sticky Bottom Bar */}
       <div className="sticky bottom-0 left-0 right-0 z-20 bg-white border-t border-gray-100 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
         <div className="w-full max-w-[440px] mx-auto p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-600 font-normal">
-              {quantity} {quantity === 1 ? "item" : "items"}
-            </span>
-            <span className="text-xl font-bold text-gray-900">
-              ₦{totalPrice}
-            </span>
-          </div>
+          {product.isPreorder ? (
+            <div className="space-y-3">
+              <div className="rounded-2xl bg-indigo-50/80 border border-indigo-200 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-indigo-700" />
+                    <span className="text-xs font-bold text-indigo-950">Pre-order Item</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-full border border-indigo-100">
+                    ₦{nairaPrice}
+                  </span>
+                </div>
+                <p className="text-[11px] text-indigo-800 leading-snug">
+                  This product is open for pre-order without immediate payment. You can enter your name below to reserve or message the merchant directly.
+                </p>
+                <input
+                  type="text"
+                  value={customerPreorderName}
+                  onChange={(e) => setCustomerPreorderName(e.target.value)}
+                  placeholder="Your name (optional)"
+                  className="w-full h-10 px-3 rounded-xl border border-indigo-200 bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-indigo-600 transition-colors"
+                />
+                {whatsappNumber || phoneNumber ? (
+                  <a
+                    href={`https://wa.me/${(whatsappNumber || phoneNumber || "").replace(/\D/g, "")}?text=${encodeURIComponent(
+                      `Hello ${businessName}, I would like to pre-order "${product.name}" (₦${nairaPrice})${
+                        customerPreorderName.trim() ? " - My name is " + customerPreorderName.trim() : ""
+                      }.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-11 bg-[#00A859] hover:bg-[#008f4c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-current" />
+                    <span>Pre-order on WhatsApp</span>
+                  </a>
+                ) : (
+                  <div className="w-full h-11 bg-indigo-100/70 border border-indigo-200 text-indigo-900 font-bold rounded-xl text-xs flex items-center justify-center">
+                    Pre-order Only · General checkout disabled
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-gray-600 font-normal">
+                  {quantity} {quantity === 1 ? "item" : "items"}
+                </span>
+                <span className="text-xl font-bold text-gray-900">
+                  ₦{totalPrice}
+                </span>
+              </div>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={stockRemaining <= 0}
-            className="w-full bg-[#00A859] hover:bg-[#008f4c] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl py-3.5 flex items-center justify-center gap-2 cursor-pointer transition-colors"
-          >
-            <ShoppingBag className="w-5 h-5 stroke-[2]" />
-            <span>{stockRemaining <= 0 ? "Sold out" : "Add to cart"}</span>
-          </button>
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={stockRemaining <= 0}
+                className="w-full bg-[#00A859] hover:bg-[#008f4c] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-xl py-3.5 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <ShoppingBag className="w-5 h-5 stroke-[2]" />
+                <span>{stockRemaining <= 0 ? "Sold out" : "Add to cart"}</span>
+              </button>
+            </>
+          )}
 
           <p className="text-xs text-gray-400 text-center mt-3">
             Checkout powered by ondar

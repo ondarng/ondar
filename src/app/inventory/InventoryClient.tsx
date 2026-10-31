@@ -38,6 +38,8 @@ export interface InventoryProduct {
   status: ProductStatusValue;
   trackStock: boolean;
   isOutOfStockManual?: boolean;
+  isPreorder?: boolean;
+  preorderNote?: string | null;
   stockOnHand: number;
   stockReserved: number;
   lowStockThreshold: number | null;

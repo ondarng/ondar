@@ -64,6 +64,8 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
     stockReserved: p.stockReserved,
     trackStock: p.trackStock,
     isOutOfStockManual: p.isOutOfStockManual,
+    isPreorder: p.isPreorder,
+    preorderNote: p.preorderNote,
     lowStockThreshold: p.lowStockThreshold,
     images: p.images.map((img) => ({ url: img.url })),
     variants: p.variants.map((v) => ({

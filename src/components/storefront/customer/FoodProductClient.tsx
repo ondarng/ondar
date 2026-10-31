@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed, FileText } from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed, FileText, Clock, MessageCircle } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 import type { ProductDetailProps } from "./StorefrontProductClient";
@@ -47,7 +47,8 @@ function FoodProductContent({
     ? Math.max(0, product.stockOnHand - product.stockReserved)
     : 99;
 
-  const isOutOfStock = product.isOutOfStockManual || stockRemaining <= 0;
+  const isPreorder = Boolean(product.isPreorder);
+  const isOutOfStock = !isPreorder && (product.isOutOfStockManual || stockRemaining <= 0);
 
   // Price calculation
   const unitPriceKobo = activeVariant?.priceKobo
@@ -55,9 +56,10 @@ function FoodProductContent({
     : Number(product.priceKobo);
   const unitPriceNaira = Math.round(unitPriceKobo / 100);
 
-  // Quantity Stepper
+  // Quantity Stepper & Pre-order
   const [quantity, setQuantity] = useState(1);
   const totalPriceNaira = unitPriceNaira * quantity;
+  const [customerPreorderName, setCustomerPreorderName] = useState("");
 
   // Added visual feedback
   const [addedToast, setAddedToast] = useState(false);
@@ -134,11 +136,15 @@ function FoodProductContent({
             </div>
           )}
 
-          {isOutOfStock && (
+          {isPreorder ? (
+            <div className="absolute top-3 left-3 bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase shadow-xs">
+              Pre-order
+            </div>
+          ) : isOutOfStock ? (
             <div className="absolute top-3 left-3 bg-neutral-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase">
               Sold out
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* 3. DISH TITLE & DESCRIPTION */}
@@ -156,6 +162,12 @@ function FoodProductContent({
           <p className="text-base font-bold text-neutral-900 pt-0.5">
             ₦{unitPriceNaira.toLocaleString("en-NG")}
           </p>
+
+          {product.isPreorder && product.preorderNote && (
+            <p className="text-xs text-indigo-950 bg-indigo-50 border border-indigo-200 rounded-xl p-3 font-medium">
+              {product.preorderNote}
+            </p>
+          )}
 
           {product.description && (
             <p className="text-xs text-neutral-600 leading-relaxed pt-1 whitespace-pre-line">
@@ -204,8 +216,50 @@ function FoodProductContent({
           </div>
         )}
 
-        {/* 5. QUANTITY STEPPER */}
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-100/80 mb-6">
+        {/* 5. PRE-ORDER ENQUIRY OR QUANTITY STEPPER + ORDER CTA */}
+        {isPreorder ? (
+          <div className="rounded-2xl border border-[#BA3C1D]/30 bg-[#FCE7D2]/40 p-4 space-y-3 mb-8">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral-900">
+                Pre-order Reservation
+              </span>
+              <span className="text-[10px] font-bold text-[#BA3C1D] bg-white px-2 py-0.5 rounded-full border border-[#BA3C1D]/20">
+                NO PAYMENT NOW
+              </span>
+            </div>
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              This meal or item is available for pre-order. You can leave your name below to reserve or message us directly on WhatsApp.
+            </p>
+            <input
+              type="text"
+              value={customerPreorderName}
+              onChange={(e) => setCustomerPreorderName(e.target.value)}
+              placeholder="Your name (optional)"
+              className="w-full h-11 px-3 rounded-xl border border-neutral-300 bg-white text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#BA3C1D]"
+            />
+            {cleanWhatsapp ? (
+              <a
+                href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
+                  `Hello ${businessName}! I would like to pre-order "${product.name}" (₦${unitPriceNaira.toLocaleString("en-NG")})${
+                    customerPreorderName.trim() ? " - My name is " + customerPreorderName.trim() : ""
+                  }.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-2xl bg-[#00A859] hover:bg-[#008f4c] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+              >
+                <MessageCircle className="w-4 h-4 fill-current" />
+                <span>Pre-order on WhatsApp</span>
+              </a>
+            ) : (
+              <div className="w-full py-3 bg-neutral-200 text-neutral-700 text-xs font-bold rounded-xl text-center">
+                Pre-order Only · General ordering disabled
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-100/80 mb-6">
           <span className="text-xs font-bold text-neutral-800">Quantity</span>
           <div className="flex items-center gap-4">
             <button
@@ -273,6 +327,8 @@ function FoodProductContent({
             </div>
           )}
         </div>
+      </>
+    )}
 
         {/* 7. STORE POLICIES */}
         <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 space-y-1.5">

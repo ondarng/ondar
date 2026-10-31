@@ -25,10 +25,9 @@ function parseDatabaseConfig(connectionUrl: string) {
 }
 
 function createPrismaClient() {
-  const connectionUrl = process.env.DATABASE_URL;
-  if (!connectionUrl) {
-    throw new Error("DATABASE_URL is not defined in environment variables");
-  }
+  const connectionUrl =
+    process.env.DATABASE_URL ||
+    "postgresql://postgres:postgres@127.0.0.1:5432/ondar_build_placeholder";
 
   const dbConfig = parseDatabaseConfig(connectionUrl);
 

@@ -189,6 +189,9 @@ model Product {
   lowStockThreshold Int?
   // Available = stockOnHand - stockReserved
 
+  isPreorder     Boolean       @default(false)
+  preorderNote   String?
+
   images         ProductImage[]
   variants       ProductVariant[]
   stockHistory   StockAudit[]

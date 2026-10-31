@@ -58,6 +58,8 @@ export default async function PublicProductPage({ params, searchParams }: Props)
     stockReserved: rawProduct.stockReserved,
     trackStock: rawProduct.trackStock,
     isOutOfStockManual: rawProduct.isOutOfStockManual,
+    isPreorder: rawProduct.isPreorder,
+    preorderNote: rawProduct.preorderNote,
     lowStockThreshold: rawProduct.lowStockThreshold,
     images: rawProduct.images.map((img) => ({ url: img.url })),
     variants: rawProduct.variants.map((v) => ({

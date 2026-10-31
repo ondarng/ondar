@@ -76,7 +76,8 @@ function FashionCatalogContent({
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
-      const isOutOfStock = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
+      const isPreorder = Boolean(p.isPreorder);
+      const isOutOfStock = !isPreorder && (p.isOutOfStockManual || (p.trackStock && availableQty <= 0));
 
       if (activeStockFilter === "in_stock" && isOutOfStock) {
         return false;
@@ -256,8 +257,9 @@ function FashionCatalogContent({
             {filteredProducts.map((p) => {
               const priceNaira = Math.round(Number(p.priceKobo) / 100);
               const availableQty = p.trackStock ? p.stockOnHand - p.stockReserved : 99;
-              const isOutOfStock = p.isOutOfStockManual || (p.trackStock && availableQty <= 0);
-              const isLowStock = !isOutOfStock && availableQty > 0 && availableQty <= 3;
+              const isPreorder = Boolean(p.isPreorder);
+              const isOutOfStock = !isPreorder && (p.isOutOfStockManual || (p.trackStock && availableQty <= 0));
+              const isLowStock = !isPreorder && !isOutOfStock && availableQty > 0 && availableQty <= 3;
 
               let metaSubtitle = "";
               if (p.variants && p.variants.length > 0) {
@@ -291,7 +293,11 @@ function FashionCatalogContent({
                     )}
 
                     {/* Stock Status Badge */}
-                    {isOutOfStock ? (
+                    {isPreorder ? (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-indigo-900 text-[10px] font-bold text-white shadow-2xs tracking-wider uppercase">
+                        Pre-order
+                      </span>
+                    ) : isOutOfStock ? (
                       <span className="absolute top-2 left-2 px-2 py-0.5 bg-neutral-900/90 text-[10px] font-bold text-white shadow-2xs">
                         Sold out
                       </span>

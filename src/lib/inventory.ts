@@ -28,9 +28,13 @@ export function getStockState(input: {
 export function isProductAvailable(product: {
   trackStock: boolean;
   isOutOfStockManual?: boolean | null;
+  isPreorder?: boolean | null;
   stockOnHand: number;
   stockReserved: number;
 }): boolean {
+  if (product.isPreorder) {
+    return false;
+  }
   if (product.isOutOfStockManual) {
     return false;
   }
@@ -43,14 +47,23 @@ export function isProductAvailable(product: {
 export function getCustomerAvailability(product: {
   trackStock: boolean;
   isOutOfStockManual?: boolean | null;
+  isPreorder?: boolean | null;
   stockOnHand: number;
   stockReserved: number;
   lowStockThreshold?: number | null;
 }): {
   isAvailable: boolean;
   label: string;
-  badgeType: "in" | "low" | "out";
+  badgeType: "in" | "low" | "out" | "preorder";
 } {
+  if (product.isPreorder) {
+    return {
+      isAvailable: false,
+      label: "Pre-order",
+      badgeType: "preorder",
+    };
+  }
+
   if (product.isOutOfStockManual) {
     return {
       isAvailable: false,

@@ -34,6 +34,8 @@ export interface ElectronicsProduct {
   stockReserved: number;
   trackStock: boolean;
   isOutOfStockManual?: boolean;
+  isPreorder?: boolean;
+  preorderNote?: string | null;
   lowStockThreshold?: number | null;
   images: { url: string }[];
   variants?: ProductVariant[];
@@ -188,7 +190,8 @@ function ElectronicsCatalogContent({
         <div className="grid grid-cols-2 gap-3">
           {filteredProducts.map((p) => {
             const avail = Math.max(0, p.stockOnHand - p.stockReserved);
-            const isOutOfStock = p.isOutOfStockManual || (p.trackStock && avail <= 0);
+            const isPreorder = Boolean(p.isPreorder);
+            const isOutOfStock = !isPreorder && (p.isOutOfStockManual || (p.trackStock && avail <= 0));
             const hasVariants = p.variants && p.variants.length > 0;
             const photoUrl = p.images[0]?.url;
 
@@ -219,7 +222,11 @@ function ElectronicsCatalogContent({
 
                   {/* Badges */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {isOutOfStock ? (
+                    {isPreorder ? (
+                      <span className="px-2 py-0.5 rounded-md bg-indigo-950/90 text-indigo-300 border border-indigo-700/60 text-[9px] font-extrabold uppercase">
+                        Pre-order
+                      </span>
+                    ) : isOutOfStock ? (
                       <span className="px-2 py-0.5 rounded-md bg-red-950/90 text-red-400 border border-red-800/50 text-[9px] font-extrabold uppercase">
                         Sold out
                       </span>
@@ -254,7 +261,7 @@ function ElectronicsCatalogContent({
                       </span>
                     </div>
 
-                    {!isOutOfStock && !hasVariants ? (
+                    {!isOutOfStock && !hasVariants && !isPreorder ? (
                       <button
                         type="button"
                         onClick={() =>

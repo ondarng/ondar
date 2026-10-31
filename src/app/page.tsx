@@ -16,6 +16,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -47,6 +48,11 @@ export default function SignUpPage() {
 
     if (!email || !password) {
       setErrorMessage("Please enter both email and password.");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setErrorMessage("Please confirm you are at least 18 years old and agree to the Terms of Service.");
       return;
     }
 
@@ -229,11 +235,33 @@ export default function SignUpPage() {
             <span>Continue with Google</span>
           </button>
 
+          {/* Age & Terms Checkbox */}
+          <label className="flex items-start gap-2.5 cursor-pointer mt-1 select-none">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              disabled={isLoading || isGoogleLoading}
+              className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-[#00A859] focus:ring-[#00A859]/30 focus:ring-offset-0 cursor-pointer accent-[#00A859]"
+            />
+            <span className="text-[12px] leading-snug text-neutral-600">
+              I confirm that I am at least 18 years old and agree to Ondar&apos;s{" "}
+              <Link href="/terms" target="_blank" className="text-[#00A859] font-semibold hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" target="_blank" className="text-[#00A859] font-semibold hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+
           {/* Primary CTA Button */}
           <button
             type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className="w-full mt-1 py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            disabled={isLoading || isGoogleLoading || !acceptedTerms}
+            className="w-full mt-1 py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <>

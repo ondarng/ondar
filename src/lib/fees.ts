@@ -22,11 +22,14 @@ export function computePaystackProcessingFeeKobo(netAmountKobo: number | bigint)
   const net = Number(netAmountKobo) / 100; // in Naira
   if (net <= 0) return BigInt(0);
 
+  // Paystack waives flat ₦100 fee when gross transaction is < ₦2,500.
+  // In terms of net amount: 2,500 * (1 - 0.015) = 2,462.50 Naira.
   let gross = 0;
-  if (net < 2500) {
-    // 100 waived
+  if (net < 2462.5) {
+    // ₦100 flat fee waived
     gross = net / 0.985;
   } else {
+    // ₦100 flat fee applies
     gross = (net + 100) / 0.985;
   }
 

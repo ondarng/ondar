@@ -7,12 +7,25 @@ interface RateLimitRecord {
 }
 
 const tracker = new Map<string, RateLimitRecord>();
+let cleanupCounter = 0;
+
+function pruneExpiredEntries(): void {
+  cleanupCounter++;
+  if (cleanupCounter % 50 !== 0 && tracker.size < 500) return;
+  const now = Date.now();
+  for (const [key, record] of tracker.entries()) {
+    if (record.resetAt < now) {
+      tracker.delete(key);
+    }
+  }
+}
 
 export function checkRateLimit(
   key: string,
   maxAttempts: number = 8,
   windowSeconds: number = 15 * 60
 ): { allowed: boolean; remaining: number; resetInSeconds: number } {
+  pruneExpiredEntries();
   const now = Date.now();
   const existing = tracker.get(key);
 

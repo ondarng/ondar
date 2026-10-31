@@ -15,8 +15,8 @@ export function getStoreUrls(
   serverHost?: string,
   serverProto?: string
 ) {
-  const cleanSlug = slug || "shop";
-  const cleanProductSlug = productSlug || "product";
+  const cleanSlug = (slug || "shop").toLowerCase().trim().replace(/[^a-z0-9-]/g, "") || "shop";
+  const cleanProductSlug = (productSlug || "product").toLowerCase().trim().replace(/[^a-z0-9-]/g, "") || "product";
 
   // Check if we are running in browser or given server host
   const isBrowser = typeof window !== "undefined";

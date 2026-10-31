@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
           businessName,
           settlementBank: bankCode,
           accountNumber,
-          percentageCharge: 1.0,
+          percentageCharge: 0,
         });
         if (sub?.subaccount_code) {
           subaccountCode = sub.subaccount_code;

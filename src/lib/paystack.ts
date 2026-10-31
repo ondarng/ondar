@@ -170,6 +170,9 @@ export async function updatePaystackSubaccount(
 export async function ensureOndarSubaccountOnMerchant(
   merchantSecretKey: string
 ): Promise<string> {
+  if (process.env.NODE_ENV === "production" && (!process.env.ONDAR_SETTLEMENT_BANK || !process.env.ONDAR_SETTLEMENT_ACCOUNT_NUMBER)) {
+    throw new Error("ONDAR_SETTLEMENT_BANK and ONDAR_SETTLEMENT_ACCOUNT_NUMBER environment variables must be configured in production.");
+  }
   const ondarBank = process.env.ONDAR_SETTLEMENT_BANK || "058";
   const ondarAccount = process.env.ONDAR_SETTLEMENT_ACCOUNT_NUMBER || "0123456789";
   const percentage = parseFloat(process.env.ONDAR_PERCENTAGE_CHARGE || "1.0");

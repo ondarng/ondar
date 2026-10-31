@@ -141,7 +141,7 @@ export function resolveTemplateId(
   previewParam?: string | null
 ): TemplateId {
   const candidate = (previewParam || savedId || "default").toLowerCase().trim();
-  if (candidate in STOREFRONT_TEMPLATES) {
+  if (Object.prototype.hasOwnProperty.call(STOREFRONT_TEMPLATES, candidate)) {
     return candidate as TemplateId;
   }
   return "default";

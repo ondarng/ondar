@@ -15,10 +15,14 @@ export async function POST(req: NextRequest) {
   // The reference is stored at initialization. Metadata is deliberately not
   // used to choose a tenant or signing key because it is sender-controlled.
   const order = await prisma.order.findUnique({ where: { paymentReference: event.data.reference }, include: { merchant: { include: { paymentConfig: true } } } });
-  if (!order || !order.merchant.paymentConfig?.isActive) return NextResponse.json({ error: "Unknown payment reference" }, { status: 404 });
+  if (!order) return NextResponse.json({ error: "Unknown payment reference" }, { status: 404 });
   try {
     const config = order.merchant.paymentConfig;
-    const secret = decryptSecretKey(config.encryptedSecretKey, config.secretKeyIv, config.secretKeyTag);
+    const secret = config?.isActive
+      ? decryptSecretKey(config.encryptedSecretKey, config.secretKeyIv, config.secretKeyTag)
+      : process.env.PAYSTACK_SECRET_KEY;
+
+    if (!secret) return NextResponse.json({ error: "Payment configuration not available" }, { status: 500 });
     const expected = crypto.createHmac("sha512", secret).update(rawBody).digest("hex");
     const valid = expected.length === signature.length && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
     if (!valid) return NextResponse.json({ error: "Invalid signature" }, { status: 401 });

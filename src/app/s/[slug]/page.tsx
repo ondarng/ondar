@@ -50,7 +50,7 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
   const rawProducts = profile.merchant.products;
   // Non-destructive preview: presentation-only, never persists to merchant profile
   const templateId = resolveTemplateId(profile.templateId, previewTemplate);
-  const isPreviewing = Boolean(previewTemplate && previewTemplate in STOREFRONT_TEMPLATES);
+  const isPreviewing = Boolean(previewTemplate && Object.prototype.hasOwnProperty.call(STOREFRONT_TEMPLATES, previewTemplate));
   const activeTemplateConfig = STOREFRONT_TEMPLATES[templateId];
 
   const products: CatalogProduct[] = rawProducts.map((p) => ({

@@ -125,4 +125,35 @@ describe("PR 4: Webhook and Verify Security", () => {
     expect(res.status).toBe(200);
     expect(markOrderPaid).toHaveBeenCalledWith(mockOrder.id, validReference, BigInt(500000), "NGN");
   });
+
+  it("accepts webhook signed with platform secret key when merchant has no custom keys", async () => {
+    process.env.PAYSTACK_SECRET_KEY = "sk_live_ondar_platform_secret_key";
+    const platformOrder = {
+      id: "ord_platform_1002",
+      paymentReference: "OND-platform-ref-123",
+      merchant: {
+        id: "merch_platform_user",
+        paymentConfig: null, // Standard onboarded merchant with platform subaccount
+      },
+    };
+
+    (prisma.order.findUnique as any).mockResolvedValue(platformOrder);
+    (markOrderPaid as any).mockResolvedValue("paid");
+
+    const rawPayload = JSON.stringify({
+      event: "charge.success",
+      data: { reference: "OND-platform-ref-123", amount: 250000, currency: "NGN" },
+    });
+    const platformSignature = crypto.createHmac("sha512", process.env.PAYSTACK_SECRET_KEY).update(rawPayload).digest("hex");
+
+    const req = new NextRequest("http://localhost:3000/api/webhooks/paystack", {
+      method: "POST",
+      headers: { "x-paystack-signature": platformSignature },
+      body: rawPayload,
+    });
+
+    const res = await webhookPOST(req);
+    expect(res.status).toBe(200);
+    expect(markOrderPaid).toHaveBeenCalledWith(platformOrder.id, "OND-platform-ref-123", BigInt(250000), "NGN");
+  });
 });

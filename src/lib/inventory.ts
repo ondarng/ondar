@@ -106,8 +106,13 @@ export function getCustomerAvailability(product: {
 }
 
 export function formatNairaFromKobo(priceKobo: string | number | bigint) {
-  const naira = Math.round(Number(priceKobo) / 100);
-  return `₦${naira.toLocaleString("en-NG")}`;
+  const naira = Number(priceKobo) / 100;
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(naira);
 }
 
 export function businessInitials(businessName: string, fallback = "AO") {

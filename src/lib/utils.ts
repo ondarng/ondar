@@ -1,5 +1,6 @@
 import { ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { validateAndNormalizeCustomerPhone } from "./phone";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,9 +17,6 @@ export function formatNaira(kobo: number | bigint): string {
 }
 
 export function normalizePhone(phone: string): string {
-  const cleaned = phone.replace(/[^0-9+]/g, "");
-  if (cleaned.startsWith("+234")) return cleaned;
-  if (cleaned.startsWith("234")) return `+${cleaned}`;
-  if (cleaned.startsWith("0")) return `+234${cleaned.slice(1)}`;
-  return `+234${cleaned}`;
+  const result = validateAndNormalizeCustomerPhone(phone);
+  return result.normalized || phone;
 }

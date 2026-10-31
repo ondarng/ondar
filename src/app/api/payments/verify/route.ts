@@ -19,10 +19,17 @@ async function verifyReference(reference: unknown) {
     where: { paymentReference: reference },
     include: { merchant: { include: { paymentConfig: true } } },
   });
-  if (!order || !order.merchant.paymentConfig?.isActive) return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+  if (!order) return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
   try {
     const config = order.merchant.paymentConfig;
-    const secret = decryptSecretKey(config.encryptedSecretKey, config.secretKeyIv, config.secretKeyTag);
+    const secret = config?.isActive
+      ? decryptSecretKey(config.encryptedSecretKey, config.secretKeyIv, config.secretKeyTag)
+      : process.env.PAYSTACK_SECRET_KEY;
+
+    if (!secret) {
+      return NextResponse.json({ success: false, error: "Payment gateway key not configured" }, { status: 500 });
+    }
+
     const transaction = await verifyPaystackTransaction(reference, secret);
     if (transaction.reference !== reference) return NextResponse.json({ success: false, error: "Payment reference mismatch" }, { status: 400 });
     const result = await markOrderPaid(order.id, reference, BigInt(transaction.amount), transaction.currency);

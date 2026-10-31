@@ -15,7 +15,10 @@ function getSessionSecret() {
   if (secret) {
     return createHmac("sha256", secret).update("ondar_session_salt_2026").digest("hex");
   }
-  return "ondar_production_session_fallback_secret_key_minimum_32_bytes_long_2026";
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET environment variable is missing or insecure in production");
+  }
+  return "ondar_development_session_fallback_secret_key_minimum_32_bytes_long_2026";
 }
 
 function signSessionPayload(payload: string) {

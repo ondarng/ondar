@@ -13,6 +13,9 @@ async function releaseProductHold(tx: Prisma.TransactionClient, merchantId: stri
 }
 
 export async function releaseExpiredHolds(): Promise<ReleaseHoldsResult> {
+  if (!prisma.order?.findMany || !prisma.customCheckoutLink?.findMany) {
+    return { releasedOrdersCount: 0, releasedItemsCount: 0, orderIds: [] };
+  }
   const now = new Date();
   const candidates = await prisma.order.findMany({ where: { orderStatus: "AWAITING_PAYMENT", holdExpiresAt: { lt: now } }, select: { id: true } });
   const orderIds: string[] = [];
@@ -47,4 +50,23 @@ export async function releaseExpiredHolds(): Promise<ReleaseHoldsResult> {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
   return { releasedOrdersCount: orderIds.length, releasedItemsCount, orderIds };
+}
+
+let lastLazyRun = 0;
+const LAZY_COOLDOWN_MS = 60_000; // Throttle to run at most once per minute
+
+/**
+ * Opportunistically checks and releases overdue stock holds in the background.
+ * Safe to call from request handlers; does not block execution.
+ */
+export function triggerLazyHoldRelease(): void {
+  const now = Date.now();
+  if (now - lastLazyRun < LAZY_COOLDOWN_MS) {
+    return;
+  }
+  lastLazyRun = now;
+  // Fire and forget in the background
+  releaseExpiredHolds().catch((err) => {
+    console.warn("Opportunistic hold release warning:", err);
+  });
 }

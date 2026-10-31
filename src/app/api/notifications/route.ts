@@ -21,83 +21,67 @@ export async function GET(req: NextRequest) {
 
     const alerts: MerchantAlert[] = [];
 
-    // 1. Bank transfer orders awaiting confirmation
-    const transferOrders = await prisma.order.findMany({
-      where: {
-        merchantId: merchant.id,
-        paymentRoute: "BANK_TRANSFER",
-        paymentStatus: "AWAITING_PAYMENT",
-        paymentSentAt: { not: null },
-      },
-      orderBy: { paymentSentAt: "desc" },
-      take: 10,
-    });
+    // Consolidated concurrent query: 1 for orders (bank transfer, flag, to fulfil) and 1 for low-stock products
+    const [relevantOrders, products] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          merchantId: merchant.id,
+          OR: [
+            { paymentRoute: "BANK_TRANSFER", paymentStatus: "AWAITING_PAYMENT", paymentSentAt: { not: null } },
+            { flag: { not: null } },
+            { orderStatus: "TO_FULFIL" },
+          ],
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 30,
+      }),
+      prisma.product.findMany({
+        where: {
+          merchantId: merchant.id,
+          status: "ACTIVE",
+          trackStock: true,
+        },
+        take: 20,
+      }),
+    ]);
 
-    transferOrders.forEach((o) => {
-      alerts.push({
-        id: `transfer_${o.id}`,
-        type: "bank_transfer_pending",
-        title: `Bank transfer claimed on #${o.orderNumber}`,
-        description: `${o.customerName} marked payment sent (₦${(Number(o.totalKobo) / 100).toLocaleString()}). Confirm receipt to commit stock.`,
-        timestamp: (o.paymentSentAt || o.updatedAt).toISOString(),
-        link: `/orders?tab=needs_attention&search=${o.orderNumber}`,
-        severity: "warning",
-      });
-    });
+    for (const o of relevantOrders) {
+      if (o.paymentRoute === "BANK_TRANSFER" && o.paymentStatus === "AWAITING_PAYMENT" && o.paymentSentAt) {
+        alerts.push({
+          id: `transfer_${o.id}`,
+          type: "bank_transfer_pending",
+          title: `Bank transfer claimed on #${o.orderNumber}`,
+          description: `${o.customerName} marked payment sent (₦${(Number(o.totalKobo) / 100).toLocaleString()}). Confirm receipt to commit stock.`,
+          timestamp: (o.paymentSentAt || o.updatedAt).toISOString(),
+          link: `/orders?tab=needs_attention&search=${o.orderNumber}`,
+          severity: "warning",
+        });
+      }
 
-    // 2. Orders with flags (Payment Mismatch, Paid Out of Stock, Stale)
-    const flaggedOrders = await prisma.order.findMany({
-      where: {
-        merchantId: merchant.id,
-        flag: { not: null },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 10,
-    });
+      if (o.flag) {
+        alerts.push({
+          id: `flag_${o.id}`,
+          type: "flag",
+          title: `Order #${o.orderNumber} flagged: ${o.flag.replace(/_/g, " ")}`,
+          description: o.flagDetails || "This order requires your review before processing.",
+          timestamp: o.updatedAt.toISOString(),
+          link: `/orders?tab=needs_attention&search=${o.orderNumber}`,
+          severity: "danger",
+        });
+      }
 
-    flaggedOrders.forEach((o) => {
-      alerts.push({
-        id: `flag_${o.id}`,
-        type: "flag",
-        title: `Order #${o.orderNumber} flagged: ${o.flag?.replace(/_/g, " ")}`,
-        description: o.flagDetails || "This order requires your review before processing.",
-        timestamp: o.updatedAt.toISOString(),
-        link: `/orders?tab=needs_attention&search=${o.orderNumber}`,
-        severity: "danger",
-      });
-    });
-
-    // 3. New paid orders to fulfil
-    const toFulfilOrders = await prisma.order.findMany({
-      where: {
-        merchantId: merchant.id,
-        orderStatus: "TO_FULFIL",
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
-
-    toFulfilOrders.forEach((o) => {
-      alerts.push({
-        id: `fulfil_${o.id}`,
-        type: "order_to_fulfil",
-        title: `Paid order #${o.orderNumber} to fulfil`,
-        description: `${o.customerName} · ₦${(Number(o.totalKobo) / 100).toLocaleString()} · ${o.deliveryType}`,
-        timestamp: o.createdAt.toISOString(),
-        link: `/orders?search=${o.orderNumber}`,
-        severity: "success",
-      });
-    });
-
-    // 4. Low stock products
-    const products = await prisma.product.findMany({
-      where: {
-        merchantId: merchant.id,
-        status: "ACTIVE",
-        trackStock: true,
-      },
-      take: 20,
-    });
+      if (o.orderStatus === "TO_FULFIL") {
+        alerts.push({
+          id: `fulfil_${o.id}`,
+          type: "order_to_fulfil",
+          title: `Paid order #${o.orderNumber} to fulfil`,
+          description: `${o.customerName} · ₦${(Number(o.totalKobo) / 100).toLocaleString()} · ${o.deliveryType}`,
+          timestamp: o.createdAt.toISOString(),
+          link: `/orders?search=${o.orderNumber}`,
+          severity: "success",
+        });
+      }
+    }
 
     products.forEach((p) => {
       const available = Math.max(0, p.stockOnHand - p.stockReserved);

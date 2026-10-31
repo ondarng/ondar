@@ -29,16 +29,14 @@ export async function GET(req: NextRequest) {
       orderBy: [{ totalSpentKobo: "desc" }, { updatedAt: "desc" }],
     });
 
-    // Also get latest order date and recent order preview for each customer
-    const customersWithHistory = await Promise.all(
-      customers.map(async (c) => {
-        const recentOrders = await prisma.order.findMany({
+    const customerPhones = customers.map((c) => c.phone);
+    const recentOrders = customerPhones.length > 0
+      ? await prisma.order.findMany({
           where: {
             merchantId: merchant.id,
-            customerPhone: c.phone,
+            customerPhone: { in: customerPhones },
           },
           orderBy: { createdAt: "desc" },
-          take: 5,
           select: {
             id: true,
             orderNumber: true,
@@ -49,28 +47,49 @@ export async function GET(req: NextRequest) {
             deliveryType: true,
             deliveryArea: true,
             deliveryState: true,
+            customerPhone: true,
           },
-        });
+        })
+      : [];
 
-        const isRepeat = c.totalOrders >= 2;
-        const lastOrderAt = recentOrders[0]?.createdAt || c.updatedAt;
+    // Group up to 5 latest orders per customer phone
+    const ordersByPhone = new Map<string, typeof recentOrders>();
+    for (const order of recentOrders) {
+      const list = ordersByPhone.get(order.customerPhone);
+      if (!list) {
+        ordersByPhone.set(order.customerPhone, [order]);
+      } else if (list.length < 5) {
+        list.push(order);
+      }
+    }
 
-        return {
-          id: c.id,
-          name: c.name,
-          phone: c.phone,
-          email: c.email,
-          totalOrders: c.totalOrders,
-          totalSpentKobo: c.totalSpentKobo.toString(),
-          isRepeat,
-          lastOrderAt,
-          recentOrders: recentOrders.map((o) => ({
-            ...o,
-            totalKobo: o.totalKobo.toString(),
-          })),
-        };
-      })
-    );
+    const customersWithHistory = customers.map((c) => {
+      const orders = ordersByPhone.get(c.phone) || [];
+      const isRepeat = c.totalOrders >= 2;
+      const lastOrderAt = orders[0]?.createdAt || c.updatedAt;
+
+      return {
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        email: c.email,
+        totalOrders: c.totalOrders,
+        totalSpentKobo: c.totalSpentKobo.toString(),
+        isRepeat,
+        lastOrderAt,
+        recentOrders: orders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          orderStatus: o.orderStatus,
+          paymentStatus: o.paymentStatus,
+          totalKobo: o.totalKobo.toString(),
+          createdAt: o.createdAt,
+          deliveryType: o.deliveryType,
+          deliveryArea: o.deliveryArea,
+          deliveryState: o.deliveryState,
+        })),
+      };
+    });
 
     return NextResponse.json({
       success: true,

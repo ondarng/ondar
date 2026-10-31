@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentMerchant } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { triggerLazyHoldRelease } from "@/lib/holdExpiry";
 
 export async function GET(req: NextRequest) {
   try {
+    triggerLazyHoldRelease();
+
     const merchant = await getCurrentMerchant();
     if (!merchant) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

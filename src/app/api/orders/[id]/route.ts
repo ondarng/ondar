@@ -237,7 +237,34 @@ export async function PATCH(
           },
         });
 
-        // 3. Log event
+        // 3. Upsert customer record
+        const cleanPhone = order.customerPhone.replace(/[^0-9+]/g, "");
+        if (cleanPhone) {
+          await tx.customer.upsert({
+            where: {
+              merchantId_phone: {
+                merchantId: merchant.id,
+                phone: cleanPhone,
+              },
+            },
+            create: {
+              merchantId: merchant.id,
+              phone: cleanPhone,
+              name: order.customerName,
+              email: order.customerEmail,
+              totalOrders: 1,
+              totalSpentKobo: order.totalKobo,
+            },
+            update: {
+              name: order.customerName,
+              email: order.customerEmail || undefined,
+              totalOrders: { increment: 1 },
+              totalSpentKobo: { increment: order.totalKobo },
+            },
+          });
+        }
+
+        // 4. Log event
         await tx.orderEvent.create({
           data: {
             orderId: id,

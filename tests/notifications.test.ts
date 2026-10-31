@@ -29,37 +29,31 @@ describe("PRD NOT-02: Notifications API", () => {
   });
 
   it("derives live alerts for transfer orders, flagged orders, and low stock", async () => {
-    // 1st call: transferOrders
-    // 2nd call: flaggedOrders
-    // 3rd call: toFulfilOrders
-    let orderFindCalls = 0;
     (prisma.order.findMany as any).mockImplementation(({ where }: any) => {
       expect(where.merchantId).toBe(merchant.id);
-      orderFindCalls++;
-      if (orderFindCalls === 1) {
-        return Promise.resolve([
-          {
-            id: "ord_transfer_1",
-            orderNumber: 1010,
-            customerName: "Tolu",
-            totalKobo: BigInt(300000),
-            paymentSentAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]);
-      }
-      if (orderFindCalls === 2) {
-        return Promise.resolve([
-          {
-            id: "ord_flag_1",
-            orderNumber: 1011,
-            flag: "PAYMENT_MISMATCH",
-            flagDetails: "Expected ₦5,000, received ₦3,000",
-            updatedAt: new Date(),
-          },
-        ]);
-      }
-      return Promise.resolve([]);
+      return Promise.resolve([
+        {
+          id: "ord_transfer_1",
+          orderNumber: 1010,
+          customerName: "Tolu",
+          totalKobo: BigInt(300000),
+          paymentRoute: "BANK_TRANSFER",
+          paymentStatus: "AWAITING_PAYMENT",
+          paymentSentAt: new Date(),
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          deliveryType: "delivery",
+        },
+        {
+          id: "ord_flag_1",
+          orderNumber: 1011,
+          flag: "PAYMENT_MISMATCH",
+          flagDetails: "Expected ₦5,000, received ₦3,000",
+          updatedAt: new Date(),
+          createdAt: new Date(),
+          deliveryType: "delivery",
+        },
+      ]);
     });
 
     (prisma.product.findMany as any).mockImplementation(({ where }: any) => {

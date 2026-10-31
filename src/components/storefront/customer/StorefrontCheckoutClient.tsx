@@ -33,6 +33,7 @@ import {
   validateAndNormalizeCustomerPhone,
   getWhatsappChatUrl,
 } from "@/lib/phone";
+import { computePaystackProcessingFeeKobo } from "@/lib/fees";
 
 interface StorefrontCheckoutProps {
   businessName: string;
@@ -308,12 +309,7 @@ function CheckoutContent({
     if (activePaymentMethod !== "paystack" || feeBearer !== "CUSTOMER") {
       return 0;
     }
-    const netNaira = (subtotalKobo + deliveryFeeKobo) / 100;
-    if (netNaira <= 0) return 0;
-    const gross = netNaira < 2500 ? netNaira / 0.985 : (netNaira + 100) / 0.985;
-    let feeNaira = gross - netNaira;
-    if (feeNaira > 2000) feeNaira = 2000;
-    return Math.round(feeNaira * 100);
+    return Number(computePaystackProcessingFeeKobo(subtotalKobo + deliveryFeeKobo));
   }, [activePaymentMethod, feeBearer, subtotalKobo, deliveryFeeKobo]);
 
   const totalKobo = subtotalKobo + deliveryFeeKobo + processingFeeKobo;

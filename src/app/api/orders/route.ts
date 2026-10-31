@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { computeOndarCutKobo } from "@/lib/paystack";
+import { triggerLazyHoldRelease } from "@/lib/holdExpiry";
 
 type RequestedItem = { productId?: unknown; variantId?: unknown; quantity?: unknown };
 
@@ -12,6 +13,8 @@ function validQuantity(value: unknown): number | null {
 
 export async function POST(req: NextRequest) {
   try {
+    triggerLazyHoldRelease();
+
     const body = await req.json();
     const { storeSlug, customerName, customerPhone, customerEmail, customerNote, deliveryType, deliveryState, deliveryArea, deliveryAddress, deliveryInstructions, paymentRoute, items } = body;
     if (typeof storeSlug !== "string" || typeof customerName !== "string" || !customerName.trim() || typeof customerPhone !== "string" || !customerPhone.trim() || !Array.isArray(items) || items.length === 0) {

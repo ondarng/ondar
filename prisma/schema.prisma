@@ -316,6 +316,11 @@ model Order {
   updatedAt            DateTime      @updatedAt
 
   @@unique([merchantId, orderNumber])
+  @@index([merchantId, createdAt])
+  @@index([merchantId, orderStatus])
+  @@index([merchantId, paymentStatus])
+  @@index([orderStatus, holdExpiresAt])
+  @@index([merchantId, customerPhone])
 }
 
 /** Allocates human-readable order numbers without a latest-plus-one race. */

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +15,17 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown-ip";
+    const rateCheck = checkRateLimit(`register:${ip}`, 5, 15 * 60);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Too many registration attempts. Please wait ${Math.ceil(rateCheck.resetInSeconds / 60)} minutes and try again.`,
+        },
+        { status: 429 }
+      );
+    }
 
     // Basic email format check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

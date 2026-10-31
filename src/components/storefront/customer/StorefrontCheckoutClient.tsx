@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Building2,
   Check,
@@ -95,8 +96,8 @@ function CheckoutContent({
   const { items, totalCount, subtotalNaira, clearCart } = useCart();
 
   const hasRealRates = shippingRates && shippingRates.length > 0;
-  const isDeliveryAvailable = deliveryEnabled && (!hasRealRates || shippingRates.length > 0);
   const isPickupAvailable = Boolean(pickupEnabled && pickupAddress && pickupAddress.trim());
+  const isDeliveryAvailable = hasRealRates || deliveryEnabled || !isPickupAvailable;
 
   // Wizard Step: 1 = Delivery details & Customer details (Screen C02), 3 = Review ("One last look"), 4 = Ready to Pay
   const [currentStep, setCurrentStep] = useState<1 | 3 | 4>(1);
@@ -552,6 +553,42 @@ function CheckoutContent({
         />
 
         <main className="w-full max-w-[440px] mx-auto px-4 pt-3 pb-8">
+          {/* Back Navigation Button at Every Checkout Step */}
+          <div className="mb-2">
+            {currentStep === 1 ? (
+              <Link
+                href={`/s/${storeSlug}/cart`}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 py-1 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to cart</span>
+              </Link>
+            ) : currentStep === 3 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 py-1 cursor-pointer transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to details</span>
+              </button>
+            ) : currentStep === 4 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentStep(3);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 py-1 cursor-pointer transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to order review</span>
+              </button>
+            ) : null}
+          </div>
           {/* ============================================================== */}
           {/* SCREEN 4: AWAITING PAYMENT / READY TO PAY */}
           {/* ============================================================== */}
@@ -954,12 +991,7 @@ function CheckoutContent({
                     </div>
                   )}
 
-                  {!isDeliveryAvailable && !isPickupAvailable ? (
-                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
-                      This store is currently configuring delivery options. Please contact the merchant directly via WhatsApp.
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
+                  <div className="space-y-4">
                       {/* 1. CUSTOMER CONTACT DETAILS (Prominent at top of checkout) */}
                       <div className="p-4 rounded-2xl border border-neutral-200 bg-white space-y-3.5 shadow-xs">
                         <div className="flex items-center justify-between">
@@ -1220,7 +1252,6 @@ function CheckoutContent({
                         />
                       </div>
                     </div>
-                  )}
 
                   {/* Summary Card at Bottom of Step 1 */}
                   <div className="p-4 rounded-2xl bg-white border border-neutral-200 space-y-2.5 mt-5">
@@ -1416,6 +1447,15 @@ function CheckoutContent({
                   ? `Review pickup order · ₦${subtotalNaira}`
                   : `Continue to review · ₦${totalFormatted}`}
               </button>
+              <div className="text-center mt-2.5">
+                <Link
+                  href={`/s/${storeSlug}/cart`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-800 transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to bag</span>
+                </Link>
+              </div>
             </div>
           )}
 
@@ -1432,6 +1472,17 @@ function CheckoutContent({
                 className="w-full bg-[#00A859] hover:bg-[#008f4c] disabled:bg-gray-300 text-white font-medium rounded-xl py-3.5 flex items-center justify-center text-center cursor-pointer transition-colors"
               >
                 {isSubmitting ? "Placing order..." : "Place order"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentStep(1);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="w-full mt-2 py-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to edit details</span>
               </button>
               <p className="text-xs text-gray-400 text-center mt-2.5 leading-snug">
                 Next: pay securely on Paystack. Placing the order does not mean payment is complete.

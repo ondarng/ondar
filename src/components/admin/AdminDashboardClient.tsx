@@ -24,6 +24,7 @@ import {
   ChevronUp,
   AlertCircle,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { OndarLogo } from "@/components/OndarLogo";
 
@@ -102,6 +103,27 @@ export function AdminDashboardClient({ initialAuthenticated }: { initialAuthenti
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedMerchantId, setExpandedMerchantId] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [merchantToDelete, setMerchantToDelete] = useState<MerchantItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteMerchant = async () => {
+    if (!merchantToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/merchants/${merchantToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setMerchants((prev) => prev.filter((m) => m.id !== merchantToDelete.id));
+        setMerchantToDelete(null);
+        fetchMerchants();
+      }
+    } catch (err) {
+      console.error("Failed to delete merchant:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -551,6 +573,15 @@ export function AdminDashboardClient({ initialAuthenticated }: { initialAuthenti
                           <span>WhatsApp</span>
                         </a>
                       )}
+
+                      <button
+                        type="button"
+                        onClick={() => setMerchantToDelete(m)}
+                        title="Delete merchant account"
+                        className="h-9 w-9 rounded-xl bg-neutral-800/80 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-neutral-700/60 transition-colors flex items-center justify-center cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
@@ -692,6 +723,59 @@ export function AdminDashboardClient({ initialAuthenticated }: { initialAuthenti
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {merchantToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mx-auto">
+              <Trash2 className="w-6 h-6 stroke-[2]" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="text-base font-bold text-white">
+                Delete Merchant Account?
+              </h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Are you sure you want to permanently delete{" "}
+                <strong className="text-white">
+                  {merchantToDelete.business?.name || merchantToDelete.email}
+                </strong>{" "}
+                ({merchantToDelete.email})?
+              </p>
+              <p className="text-[11px] text-rose-400/90 pt-1">
+                This will delete their storefront, products, and order records. This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setMerchantToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 h-11 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteMerchant}
+                disabled={isDeleting}
+                className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg shadow-rose-950/40"
+              >
+                {isDeleting ? (
+                  <>
+                    <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Yes, Delete Account</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

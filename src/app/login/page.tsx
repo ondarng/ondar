@@ -81,10 +81,10 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(data.redirectTo || "/onboarding");
+      // Full page reload on successful login to ensure fresh server session & cookie state
+      window.location.href = data.redirectTo || "/dashboard";
     } catch {
       setErrorMessage("Unable to connect to the server. Please check your internet connection.");
-    } finally {
       setIsLoading(false);
     }
   };

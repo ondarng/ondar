@@ -17,10 +17,6 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Rate limiting / lock state
-  const [attemptCount, setAttemptCount] = useState(0);
-  const isLocked = attemptCount >= 5;
-
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -49,10 +45,6 @@ export default function LoginPage() {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (isLocked) {
-      return;
-    }
-
     if (!email || !password) {
       setErrorMessage("Please enter both email and password.");
       return;
@@ -70,14 +62,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        const nextAttempts = attemptCount + 1;
-        setAttemptCount(nextAttempts);
-
-        if (nextAttempts >= 5) {
-          setErrorMessage("Too many login attempts. Please wait a little while, then try again.");
-        } else {
-          setErrorMessage(data.error || "Invalid email or password.");
-        }
+        setErrorMessage(data.error || "Incorrect email or password. Please check your details and try again.");
         return;
       }
 
@@ -146,25 +131,21 @@ export default function LoginPage() {
           </p>
         </section>
 
-        {/* Too many login attempts Alert Box */}
-        {isLocked && (
-          <div className="mb-6 p-4 rounded-2xl bg-[#FFFBEB] border border-amber-200/60 flex items-start gap-3.5 shadow-xs animate-in fade-in duration-200">
-            <div className="p-1 text-amber-700 mt-0.5">
-              <AlertTriangle className="w-5 h-5" />
+        {/* Error Alert with helpful Forgot Password link */}
+        {errorMessage && (
+          <div className="mb-4 p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium animate-in fade-in duration-200 flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p>{errorMessage}</p>
+              <div className="mt-1.5 flex items-center gap-3 text-[11px]">
+                <Link
+                  href="/forgot-password"
+                  className="font-bold underline text-red-800 hover:text-red-950"
+                >
+                  Reset your password →
+                </Link>
+              </div>
             </div>
-            <div>
-              <h2 className="text-sm font-bold text-neutral-900">Too many login attempts</h2>
-              <p className="text-xs text-neutral-600 leading-relaxed mt-1 font-normal">
-                We’ve temporarily paused login attempts to protect your account. Please wait a little while, then try again.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Standard Error Alert */}
-        {!isLocked && errorMessage && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium animate-in fade-in duration-200">
-            {errorMessage}
           </div>
         )}
 
@@ -182,10 +163,10 @@ export default function LoginPage() {
               id="email"
               type="email"
               required
-              disabled={isLoading || isGoogleLoading || isLocked}
+              disabled={isLoading || isGoogleLoading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="ada@adasedit.com"
+              placeholder="you@example.com"
               className="w-full px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-xs disabled:opacity-60"
             />
           </div>
@@ -203,7 +184,7 @@ export default function LoginPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 required
-                disabled={isLoading || isGoogleLoading || isLocked}
+                disabled={isLoading || isGoogleLoading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
@@ -234,20 +215,11 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Primary CTA / Disabled Button */}
-          {isLocked ? (
-            <button
-              type="button"
-              disabled
-              className="w-full mt-2 py-4 px-6 rounded-2xl bg-[#E2E8F0] text-neutral-500 font-bold text-base cursor-not-allowed"
-            >
-              Try again later
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={isLoading || isGoogleLoading}
-              className="w-full mt-2 py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          {/* Primary CTA */}
+          <button
+            type="submit"
+            disabled={isLoading || isGoogleLoading}
+            className="w-full mt-2 py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -261,18 +233,10 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-          )}
 
-          {/* Notice when locked */}
-          {isLocked ? (
-            <p className="text-xs text-neutral-500 text-center leading-relaxed font-normal my-1">
-              There’s nothing to verify or pay for. Waiting keeps your account protected.
-            </p>
-          ) : (
             <p className="text-xs text-neutral-500 text-center font-normal mt-1">
               Or use your Google account
             </p>
-          )}
 
           {/* Google Sign-In Button */}
           <button
@@ -288,12 +252,6 @@ export default function LoginPage() {
             )}
             <span>Continue with Google</span>
           </button>
-
-          {isLocked && (
-            <p className="text-xs text-neutral-500 text-center font-normal mt-0.5">
-              For shops connected to a Google account.
-            </p>
-          )}
 
           {/* Security Cookie Note */}
           <div className="flex items-start gap-2.5 mt-2 px-1">

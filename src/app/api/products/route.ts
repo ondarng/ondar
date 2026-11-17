@@ -133,17 +133,25 @@ export async function POST(req: NextRequest) {
       parsedStock = variantsToCreate.reduce((acc, item) => acc + (item.stockOnHand || 0), 0);
     }
 
-    // Combine main photo and any extra images
+    // Combine main photo and any extra images, or use full images array
     const imagesToCreate: { url: string; position: number }[] = [];
-    if (photoUrl) {
-      imagesToCreate.push({ url: photoUrl, position: 0 });
-    }
-    if (Array.isArray(extraImages)) {
-      extraImages.forEach((imgUrl: string, idx: number) => {
-        if (imgUrl && typeof imgUrl === "string") {
-          imagesToCreate.push({ url: imgUrl, position: imagesToCreate.length });
+    if (Array.isArray(body.images) && body.images.length > 0) {
+      body.images.forEach((url: string, idx: number) => {
+        if (url && typeof url === "string" && url.trim()) {
+          imagesToCreate.push({ url: url.trim(), position: idx });
         }
       });
+    } else {
+      if (photoUrl) {
+        imagesToCreate.push({ url: photoUrl, position: 0 });
+      }
+      if (Array.isArray(extraImages)) {
+        extraImages.forEach((imgUrl: string) => {
+          if (imgUrl && typeof imgUrl === "string" && imgUrl.trim()) {
+            imagesToCreate.push({ url: imgUrl.trim(), position: imagesToCreate.length });
+          }
+        });
+      }
     }
 
     const product = await prisma.product.create({

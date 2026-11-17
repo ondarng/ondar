@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { ShippingStateRate } from "@/lib/shipping";
 import { ChooseDeliveryAreaModal, DeliveryAreaOption } from "./ChooseDeliveryAreaModal";
 import { InteractivePickupMap } from "./InteractivePickupMap";
@@ -1531,9 +1532,9 @@ function CheckoutContent({
                   <button
                     type="button"
                     onClick={handleContinueToWhatsapp}
-                    className="w-full bg-[#00A859] hover:bg-[#008f4c] text-white font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors shadow-xs"
+                    className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors shadow-xs"
                   >
-                    <MessageCircle className="w-5 h-5 fill-current" />
+                    <WhatsAppIcon className="w-5 h-5 text-white" />
                     <span>Send confirmation on WhatsApp</span>
                   </button>
 
@@ -1575,7 +1576,7 @@ function CheckoutContent({
                     onClick={handleContinueToWhatsapp}
                     className="w-full bg-[#E8F8EF] hover:bg-[#d4f2e1] text-[#00A859] border border-[#A7F3D0] font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors"
                   >
-                    <MessageCircle className="w-5 h-5 fill-current" />
+                    <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
                     <span>Continue to WhatsApp</span>
                   </button>
 
@@ -1617,7 +1618,7 @@ function CheckoutContent({
                     onClick={handleContinueToWhatsapp}
                     className="w-full bg-[#E8F8EF] hover:bg-[#d4f2e1] text-[#00A859] border border-[#A7F3D0] font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 text-center cursor-pointer transition-colors"
                   >
-                    <MessageCircle className="w-5 h-5 fill-current" />
+                    <WhatsAppIcon className="w-5 h-5 text-[#25D366]" />
                     <span>Continue to WhatsApp</span>
                   </button>
 

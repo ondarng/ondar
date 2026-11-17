@@ -3,9 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ShoppingBag, Truck, MessageCircle, Clock } from "lucide-react";
+import { Check, ShoppingBag, Truck, MessageCircle, Clock, Share2 } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { ProductShareModal } from "./ProductShareModal";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 export interface ProductDetailProps {
   businessName: string;
@@ -15,6 +18,8 @@ export interface ProductDetailProps {
   tagline?: string | null;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
   returnPolicy?: string | null;
   previewTemplate?: string;
   product: {
@@ -63,6 +68,7 @@ function ProductContent({
 }: ProductDetailProps) {
   const router = useRouter();
   const { addItem } = useCart();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
   const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
 
@@ -205,13 +211,26 @@ function ProductContent({
             </div>
           )}
 
-          {/* Product Title & Price */}
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-2.5">
-            {product.name}
-          </h1>
-          <p className="text-2xl font-bold text-gray-900 tracking-tight mt-1">
-            ₦{nairaPrice}
-          </p>
+          {/* Product Title, Price & Share */}
+          <div className="flex items-start justify-between gap-3 mt-2.5">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                {product.name}
+              </h1>
+              <p className="text-2xl font-bold text-gray-900 tracking-tight mt-1">
+                ₦{nairaPrice}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer shrink-0 mt-1 active:scale-95 shadow-2xs"
+              aria-label="Share product"
+            >
+              <Share2 className="w-3.5 h-3.5 text-[#00A859]" />
+              <span>Share</span>
+            </button>
+          </div>
 
           {/* Description */}
           {product.description && (
@@ -345,9 +364,9 @@ function ProductContent({
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full h-11 bg-[#00A859] hover:bg-[#008f4c] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                    className="w-full h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
                   >
-                    <MessageCircle className="w-4 h-4 fill-current" />
+                    <WhatsAppIcon className="w-4 h-4 text-white" />
                     <span>Pre-order on WhatsApp</span>
                   </a>
                 ) : (
@@ -377,6 +396,15 @@ function ProductContent({
                 <ShoppingBag className="w-5 h-5 stroke-[2]" />
                 <span>{stockRemaining <= 0 ? "Sold out" : "Add to cart"}</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(true)}
+                className="w-full mt-2.5 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5 text-[#00A859]" />
+                <span>Share product card</span>
+              </button>
             </>
           )}
 
@@ -385,6 +413,29 @@ function ProductContent({
           </p>
         </div>
       </div>
+
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={{
+          name: product.name,
+          slug: product.slug,
+          priceKobo: product.priceKobo,
+          imageUrl: currentImage,
+          category: product.category,
+        }}
+        businessName={businessName}
+        storeSlug={storeSlug}
+      />
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        productName={product.name}
+        priceNaira={nairaPrice}
+        bottomOffsetClass="bottom-24"
+      />
     </div>
   );
 }

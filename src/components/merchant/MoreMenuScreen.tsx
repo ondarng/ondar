@@ -15,7 +15,6 @@ import {
   Headphones,
   HelpCircle,
   KeyRound,
-  Lightbulb,
   Link2,
   LogOut,
   MapPin,
@@ -103,7 +102,9 @@ export function MoreMenuScreen({
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5 stroke-[2]" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+              {pendingBadgeCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+              )}
             </button>
 
             {/* Merchant Avatar Circle */}
@@ -482,27 +483,6 @@ export function MoreMenuScreen({
           </div>
         </div>
 
-        {/* 6. Need help? Banner Card */}
-        <button
-          type="button"
-          onClick={() => setIsHelpModalOpen(true)}
-          className="mt-5 rounded-2xl border border-[#A7F3D0]/60 bg-[#ECFDF5] hover:bg-[#E1F9ED] p-3.5 flex items-center justify-between text-left transition-all cursor-pointer shadow-2xs group"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#00A859]/15 flex items-center justify-center text-[#00A859] flex-shrink-0">
-              <Lightbulb className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-neutral-900 leading-tight">
-                Need help?
-              </p>
-              <p className="text-xs text-neutral-600 font-normal mt-0.5 truncate">
-                Check out our help center for quick answers.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-[#00A859] group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
-        </button>
       </div>
 
       {/* 5-Tab Merchant Bottom Nav with More Active */}

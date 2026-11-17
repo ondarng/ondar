@@ -1,317 +1,475 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { HelpCircle, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
-import { OndarLogo } from "@/components/OndarLogo";
-import { GoogleIcon } from "@/components/GoogleIcon";
-import { supabase } from "@/lib/supabase";
+import {
+  ArrowRight,
+  MessageCircle,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  Building2,
+  ExternalLink,
+  Lock,
+  Check,
+  Link2,
+  Landmark,
+  Package,
+} from "lucide-react";
+import { LiveAppDemo } from "@/components/landing/LiveAppDemo";
 
-export default function SignUpPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+const ONDAR_SUPPORT_WHATSAPP = "2347041402806";
+const WHATSAPP_SUPPORT_URL = `https://wa.me/${ONDAR_SUPPORT_WHATSAPP}?text=${encodeURIComponent(
+  "Hello Ondar team, I sell on social media and I want to set up my shop."
+)}`;
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      if (code) {
-        // Exchange code automatically if Supabase landed on root
-        window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}`;
-        return;
-      }
-      const err = params.get("error");
-      if (err === "oauth_failed") {
-        setErrorMessage("Google authentication failed. Please try again or sign up with email.");
-      } else if (err === "missing_code") {
-        setErrorMessage("Authentication code was missing. Please try again.");
-      } else if (err === "oauth_account_mismatch") {
-        setErrorMessage("An account with this email exists with a different login method.");
-      } else if (err === "oauth_unavailable") {
-        setErrorMessage("OAuth service is temporarily unavailable.");
-      } else if (err) {
-        setErrorMessage(decodeURIComponent(err));
-      }
-    }
-  }, []);
+export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-
-    if (!email || !password) {
-      setErrorMessage("Please enter both email and password.");
-      return;
-    }
-
-    if (!acceptedTerms) {
-      setErrorMessage("Please confirm you are at least 18 years old and agree to the Terms of Service.");
-      return;
-    }
-
-    if (password.length < 8) {
-      setErrorMessage("Password must be at least 8 characters long.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setErrorMessage(data.error || "Failed to create shop. Please try again.");
-        return;
-      }
-
-      router.push(data.redirectTo || "/onboarding");
-    } catch {
-      setErrorMessage("Unable to connect to the server. Please check your internet connection.");
-    } finally {
-      setIsLoading(false);
-    }
+  const toggleFaq = (idx: number) => {
+    setOpenFaq(openFaq === idx ? null : idx);
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    setErrorMessage(null);
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-          queryParams: {
-            prompt: "select_account",
-          },
-        },
-      });
-
-      if (error) {
-        console.error("Supabase OAuth error:", error);
-        setErrorMessage(error.message);
-        setIsGoogleLoading(false);
-        return;
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: unknown) {
-      console.error("Google sign in exception:", err);
-      setErrorMessage("Unable to connect to Google service. Please try again.");
-      setIsGoogleLoading(false);
-    }
-  };
-
+  const faqs = [
+    {
+      q: "Is my money safe?",
+      a: "Yes. Customers pay directly into your own bank account (e.g. your OPay, GTBank, Kuda, or Zenith). Ondar never holds your sales money or delays your payout.",
+    },
+    {
+      q: "What does it cost?",
+      a: "Creating your shop, listing unlimited products, and store hosting are 100% free with no monthly subscription. Ondar charges a tiny 1% software fee on completed sales (capped at ₦1,000 max per order). If you don't make sales, you pay zero.",
+    },
+    {
+      q: "Do I need a website or a custom domain?",
+      a: "No. You get a free fast link (yourname.ondar.ng) immediately upon sign up. It works out-of-the-box on any phone browser without buying domains or hiring developers.",
+    },
+    {
+      q: "What if my customers still want to chat on WhatsApp?",
+      a: "That's completely fine! Every product and order has a direct 1-tap WhatsApp button. When customers place an order, they receive an automated WhatsApp receipt to chat with you directly.",
+    },
+    {
+      q: "What if I only have a personal bank transfer account?",
+      a: "You don't need a corporate CAC account or card payment processor to start. Ondar shows your account number with a 1-tap copy button and lets customers tap 'I have sent payment'. You confirm it on your phone.",
+    },
+  ];
 
   return (
-    <main className="min-h-screen bg-[#FDFDFD] flex flex-col justify-between items-center px-6 py-8 antialiased selection:bg-[#00A859]/20 selection:text-[#00A859]">
-      <div className="w-full max-w-[390px] mx-auto flex flex-col">
-        {/* Top Header */}
-        <header className="flex items-center justify-between pt-2 pb-6">
-          <OndarLogo />
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-neutral-500 hover:text-neutral-900 transition-colors text-sm font-medium py-1 px-2 rounded-lg"
-          >
-            <HelpCircle className="w-4 h-4 text-neutral-500" />
-            <span>Help</span>
-          </button>
-        </header>
+    <div className="min-h-screen bg-[#F8F8F2] text-neutral-900 selection:bg-[#006B3A]/20 selection:text-[#006B3A] antialiased">
+      {/* --------------------------------------------------------------------- */}
+      {/* 1. TOP HEADER (Matching reference) */}
+      {/* --------------------------------------------------------------------- */}
+      <header className="sticky top-0 z-40 bg-[#F8F8F2]/95 backdrop-blur-md">
+        <div className="max-w-md sm:max-w-xl mx-auto px-5 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center text-2xl font-black tracking-tight text-neutral-950 select-none">
+            <span>ondar</span>
+            <span className="w-2 h-2 rounded-full bg-[#008751] inline-block ml-0.5 mb-1" />
+          </Link>
 
-        {/* Hero Copy */}
-        <section className="mt-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#EAB308] inline-block" />
-            <span className="text-[11px] font-extrabold tracking-wider text-[#00A859] uppercase">
-              SELL FASTER, STRESS LESS.
-            </span>
+          <Link
+            href="/login"
+            className="text-xs sm:text-sm font-bold text-neutral-700 hover:text-neutral-950 inline-flex items-center gap-1 transition-colors"
+          >
+            <span>Sign in</span>
+            <span className="text-sm font-semibold">↗</span>
+          </Link>
+        </div>
+      </header>
+
+      <main className="max-w-md sm:max-w-xl mx-auto px-5 pt-4 pb-20 space-y-12 sm:space-y-16">
+        {/* --------------------------------------------------------------------- */}
+        {/* 2. HERO FOLD (Pixel-precise to Reference UI) */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="text-left sm:text-center space-y-4">
+          {/* Eyebrow Tag */}
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#006B3A]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#008751]" />
+            <span>SELL FASTER, STRESS LESS.</span>
           </div>
 
-          <h1 className="text-[34px] leading-[1.12] font-black tracking-tight text-neutral-900">
-            Create your
+          {/* Headline */}
+          <h1 className="text-[34px] sm:text-[46px] font-black tracking-tight text-neutral-950 leading-[1.08]">
+            From &ldquo;Send DM&rdquo;
             <br />
-            Ondar shop
-            <span className="text-[#00A859]">.</span>
+            <span className="text-[#006B3A]">to &ldquo;Order received.&rdquo;</span>
           </h1>
 
-          <p className="mt-3 text-[14px] leading-relaxed text-neutral-500 font-normal">
-            Start with email and password. Your business details, WhatsApp
-            number, and first product come next.
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base text-neutral-600 leading-relaxed max-w-sm sm:max-w-md sm:mx-auto">
+            Turn your WhatsApp chats into a proper online shop. Share one link, take orders, and keep your sales in order &mdash; without the back-and-forth.
           </p>
-        </section>
 
-        {/* Error Alert */}
-        {errorMessage && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium animate-in fade-in duration-200">
-            {errorMessage}
-          </div>
-        )}
-
-        {/* Registration Form */}
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          {/* Email Field */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-bold text-neutral-900 mb-1.5"
+          {/* Yellow CTA Button */}
+          <div className="pt-2 flex flex-col items-stretch sm:items-center">
+            <Link
+              href="/register"
+              className="w-full sm:w-auto sm:px-12 h-13 rounded-2xl bg-[#FFBF00] hover:bg-[#F2B500] text-neutral-950 font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.98]"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              disabled={isLoading || isGoogleLoading}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@business.com"
-              className="w-full px-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm disabled:opacity-60"
-            />
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-bold text-neutral-900 mb-1.5"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                required
-                disabled={isLoading || isGoogleLoading}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                className="w-full px-4 py-3.5 pr-12 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-sm disabled:opacity-60"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 p-1"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5 text-neutral-500" />
-                ) : (
-                  <Eye className="w-5 h-5 text-neutral-500" />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-neutral-400 mt-1.5 font-normal">
-              At least 8 characters.
+              <span>Create your store</span>
+              <span className="text-base font-bold">➔</span>
+            </Link>
+            <p className="text-[11px] sm:text-xs text-neutral-500 mt-2 text-center">
+              No website skills needed. Just your products.
             </p>
           </div>
 
-          {/* Google Sign-In Button */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading || isGoogleLoading}
-            className="w-full mt-2 py-3.5 px-4 rounded-2xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-900 font-bold text-[15px] flex items-center justify-center gap-3 transition-all shadow-sm active:scale-[0.99] disabled:opacity-60 cursor-pointer"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-neutral-500" />
-            ) : (
-              <GoogleIcon className="w-5 h-5" />
-            )}
-            <span>Continue with Google</span>
-          </button>
+          {/* ----------------------------------------------------------------- */}
+          {/* Mockup Store Card & Toast */}
+          {/* ----------------------------------------------------------------- */}
+          <div className="pt-4 sm:pt-6 relative max-w-[340px] sm:max-w-[370px] mx-auto">
+            {/* Mint / soft green backdrop container */}
+            <div className="bg-[#EBF2EC] rounded-[32px] p-2.5 sm:p-3 shadow-xs">
+              {/* White store card */}
+              <div className="bg-white rounded-[24px] p-4 sm:p-5 shadow-xs border border-neutral-100/80">
+                {/* Browser URL pill */}
+                <div className="bg-[#F3F4F0] text-neutral-600 rounded-full py-1.5 px-3 text-[11px] font-medium flex items-center justify-center gap-1.5 max-w-[240px] mx-auto mb-4">
+                  <Lock className="w-3 h-3 text-emerald-800" />
+                  <span>theeverydayedit.ondar.ng</span>
+                </div>
 
-          {/* Age & Terms Checkbox */}
-          <label className="flex items-start gap-2.5 cursor-pointer mt-1 select-none">
-            <input
-              type="checkbox"
-              checked={acceptedTerms}
-              onChange={(e) => setAcceptedTerms(e.target.checked)}
-              disabled={isLoading || isGoogleLoading}
-              className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-[#00A859] focus:ring-[#00A859]/30 focus:ring-offset-0 cursor-pointer accent-[#00A859]"
-            />
-            <span className="text-[12px] leading-snug text-neutral-600">
-              I confirm that I am at least 18 years old and agree to Ondar&apos;s{" "}
-              <Link href="/terms" target="_blank" className="text-[#00A859] font-semibold hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" target="_blank" className="text-[#00A859] font-semibold hover:underline">
-                Privacy Policy
-              </Link>
-              .
+                {/* Store Profile Header */}
+                <div className="flex items-center gap-2.5 text-left">
+                  <div className="w-10 h-10 rounded-full bg-[#E2ECE4] text-[#1D5139] font-black text-xs flex items-center justify-center shrink-0">
+                    ee.
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-neutral-900 leading-tight truncate">
+                      The Everyday Edit
+                    </h4>
+                    <p className="text-[10px] sm:text-[11px] text-neutral-500 truncate">
+                      Easy pieces. Everyday favourites. &bull; Lagos
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2 Products Grid */}
+                <div className="grid grid-cols-2 gap-2.5 mt-3.5 text-left">
+                  {/* Product 1 */}
+                  <div>
+                    <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100">
+                      <img
+                        src="/demo/tote.jpg"
+                        alt="Everyday canvas tote"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-[11px] font-semibold text-neutral-800 mt-1.5 truncate">
+                      Everyday canvas tote
+                    </p>
+                    <p className="text-xs font-black text-neutral-950 mt-0.5">
+                      &#8358;18,500
+                    </p>
+                  </div>
+
+                  {/* Product 2 */}
+                  <div>
+                    <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100">
+                      <img
+                        src="/demo/shirt.jpg"
+                        alt="Linen everyday shirt"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-[11px] font-semibold text-neutral-800 mt-1.5 truncate">
+                      Linen everyday shirt
+                    </p>
+                    <p className="text-xs font-black text-neutral-950 mt-0.5">
+                      &#8358;24,000
+                    </p>
+                  </div>
+                </div>
+
+                {/* Store CTA Button */}
+                <Link
+                  href="/register"
+                  className="mt-4 w-full h-10 rounded-xl bg-[#006B3A] hover:bg-[#00572F] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <span>Shop the collection</span>
+                  <span>➔</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Floating Order Toast Overlay */}
+            <div className="relative -mt-6 sm:-mt-7 mx-auto w-[92%] bg-white/98 backdrop-blur-md rounded-2xl p-3 border border-neutral-100/90 shadow-xl flex items-center gap-3 z-10 text-left">
+              <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                <Check className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-neutral-900">Order received!</span>
+                  <span className="text-[10px] text-neutral-400">Just now</span>
+                </div>
+                <p className="text-[11px] text-neutral-600 truncate">
+                  Everyday canvas tote &bull; &#8358;18,500
+                </p>
+                <p className="text-[10px] font-bold text-amber-600 mt-0.5">
+                  Awaiting payment
+                </p>
+              </div>
+            </div>
+
+            {/* Micro Caption below Mockup */}
+            <p className="text-[10px] sm:text-[11px] text-neutral-400 text-center mt-3">
+              Example shop and order, made to show how Ondar works.
+            </p>
+          </div>
+
+          {/* ----------------------------------------------------------------- */}
+          {/* Value Props Stack (Bottom of Reference Screenshot) */}
+          {/* ----------------------------------------------------------------- */}
+          <div className="border-t border-neutral-200/80 pt-6 mt-8 max-w-[340px] sm:max-w-sm mx-auto space-y-3.5 text-left">
+            <div className="flex items-center gap-3">
+              <Link2 className="w-4 h-4 text-[#006B3A] shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-neutral-900">
+                One shareable shop link
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Landmark className="w-4 h-4 text-[#006B3A] shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-neutral-900">
+                Bank transfer, made clear
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Package className="w-4 h-4 text-[#006B3A] shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-neutral-900">
+                Orders and stock, together
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* --------------------------------------------------------------------- */}
+        {/* 3. SECOND SCROLL: SOUND FAMILIAR? (Matching reference UI) */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="pt-4 sm:pt-8 text-left space-y-4 max-w-[340px] sm:max-w-md mx-auto">
+          {/* Eyebrow */}
+          <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[#006B3A] block">
+            SOUND FAMILIAR?
+          </span>
+
+          {/* Headline */}
+          <h2 className="text-[32px] sm:text-[40px] font-black text-neutral-950 tracking-tight leading-[1.12]">
+            Great products. Too many DMs.
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
+            You didn&rsquo;t start a business to answer the same questions all day. Give every customer a clearer way to buy.
+          </p>
+
+          {/* ----------------------------------------------------------------- */}
+          {/* Card 1: THE DM SHUFFLE */}
+          {/* ----------------------------------------------------------------- */}
+          <div className="bg-[#F3F5F2] rounded-[28px] p-5 sm:p-6 space-y-3 mt-6">
+            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-500 block mb-3.5">
+              THE DM SHUFFLE
             </span>
-          </label>
 
-          {/* Primary CTA Button */}
-          <button
-            type="submit"
-            disabled={isLoading || isGoogleLoading || !acceptedTerms}
-            className="w-full mt-1 py-4 px-6 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-base flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Creating shop...</span>
-              </>
-            ) : (
-              <>
-                <span>Create my shop</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm font-medium text-neutral-700 shadow-2xs">
+              &ldquo;How much? Is it available?&rdquo;
+            </div>
 
-          {/* Terms & Privacy */}
-          <p className="text-[12px] leading-relaxed text-neutral-500 text-center mt-2 px-2">
-            By signing up, you agree to our{" "}
-            <Link
-              href="/terms"
-              className="text-[#00A859] font-semibold hover:underline"
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="text-[#00A859] font-semibold hover:underline"
-            >
-              Privacy Policy
-            </Link>
-            .
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm font-medium text-neutral-700 shadow-2xs">
+              &ldquo;Send your account again.&rdquo;
+            </div>
+
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm font-medium text-neutral-700 shadow-2xs">
+              &ldquo;Have you seen my payment?&rdquo;
+            </div>
+          </div>
+
+          {/* ----------------------------------------------------------------- */}
+          {/* Card 2: THE ONDAR WAY */}
+          {/* ----------------------------------------------------------------- */}
+          <div className="bg-[#EDF7EF] rounded-[28px] p-5 sm:p-6 space-y-4 mt-3.5">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#006B3A] block mb-3.5">
+              THE ONDAR WAY
+            </span>
+
+            <div className="space-y-3.5 text-xs sm:text-sm font-semibold text-neutral-900">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-[#006B3A] shrink-0 stroke-[2.5]" />
+                <span>Prices and stock in your shop</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-[#006B3A] shrink-0 stroke-[2.5]" />
+                <span>Payment details at checkout</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-[#006B3A] shrink-0 stroke-[2.5]" />
+                <span>One clear order record</span>
+              </div>
+            </div>
+
+            {/* Punchline */}
+            <div className="pt-4">
+              <p className="text-xl sm:text-2xl font-black text-[#006B3A] tracking-tight">
+                Less chasing. More selling.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* --------------------------------------------------------------------- */}
+        {/* 4. INTERACTIVE PRODUCT PREVIEW (Tap through the screens) */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="space-y-4 text-center pt-6">
+          <div className="space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#006B3A]">
+              Live Product Simulator
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
+              Tap through the full shopping experience
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">
+              Test how buyers browse, copy bank details, track held stock, and how you confirm orders in 1 tap.
+            </p>
+          </div>
+
+          <LiveAppDemo />
+        </section>
+
+        {/* --------------------------------------------------------------------- */}
+        {/* 5. PRICE (Honest & Upfront) */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-2xs space-y-6">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#006B3A]">
+              Clear Pricing
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-neutral-900 tracking-tight">
+              &#8358;0 to start. Zero monthly fees.
+            </h2>
+            <p className="text-xs text-neutral-600 max-w-md mx-auto">
+              You never pay a subscription fee to keep your shop online.
+            </p>
+          </div>
+
+          <div className="max-w-md mx-auto bg-neutral-50 rounded-2xl p-5 border border-neutral-200/80 space-y-3 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+              <span className="text-neutral-600 font-medium">Store creation & hosting</span>
+              <span className="font-bold text-neutral-900">&#8358;0 Free</span>
+            </div>
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+              <span className="text-neutral-600 font-medium">Monthly maintenance</span>
+              <span className="font-bold text-neutral-900">&#8358;0 Free</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-600 font-medium">Completed order software fee</span>
+              <span className="font-bold text-[#006B3A]">1% (capped at &#8358;1,000 max)</span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-neutral-400 text-center">
+            If you sell an item for &#8358;10,000, Ondar&apos;s software fee is &#8358;100. If you make no sales, you pay nothing.
           </p>
-        </form>
+        </section>
 
-        {/* Divider */}
-        <hr className="border-t border-neutral-100 my-7" />
+        {/* --------------------------------------------------------------------- */}
+        {/* 6. FAQ (Answers the real objections) */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="space-y-4">
+          <div className="text-center space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+              Questions & Answers
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+          </div>
 
-        {/* Footer Login Link */}
-        <footer className="text-center pb-6">
-          <p className="text-[14px] text-neutral-600">
-            Already have a shop?{" "}
-            <Link
-              href="/login"
-              className="text-[#00A859] font-bold hover:underline"
-            >
-              Log in
-            </Link>
+          <div className="space-y-2.5 max-w-2xl mx-auto">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl border border-neutral-200/80 overflow-hidden transition-all"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full p-4.5 text-left text-xs sm:text-sm font-bold text-neutral-900 flex items-center justify-between gap-3 cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-neutral-500 transition-transform duration-200 shrink-0 ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-4.5 pb-4.5 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100 pt-3">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* --------------------------------------------------------------------- */}
+        {/* 7. FINAL PUSH */}
+        {/* --------------------------------------------------------------------- */}
+        <section className="bg-[#006B3A] rounded-3xl p-8 text-center text-white space-y-5 shadow-lg shadow-emerald-950/10">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Ready to stop losing DM sales?
+          </h2>
+          <p className="text-xs sm:text-sm text-emerald-100 max-w-md mx-auto leading-relaxed">
+            Create your store link right now. Free forever, no card required.
           </p>
-        </footer>
-      </div>
-    </main>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-sm mx-auto">
+            <Link
+              href="/register"
+              className="w-full h-12 rounded-xl bg-[#FFBF00] hover:bg-[#F2B500] text-neutral-950 font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
+            >
+              <span>Create your store</span>
+              <span className="font-bold">➔</span>
+            </Link>
+
+            <a
+              href={WHATSAPP_SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-12 rounded-xl bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-emerald-500/30"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Talk to us on WhatsApp</span>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      {/* --------------------------------------------------------------------- */}
+      {/* 8. FOOTER */}
+      {/* --------------------------------------------------------------------- */}
+      <footer className="bg-white py-8 border-t border-neutral-200/80 text-[11px] text-neutral-500">
+        <div className="max-w-md sm:max-w-xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-black text-neutral-900 tracking-tight text-sm">ondar<span className="text-[#008751]">.</span></span>
+            <span>&bull; Ondar Technologies Ltd</span>
+          </div>
+
+          <div className="flex items-center gap-4 font-semibold text-neutral-600">
+            <Link href="/terms" className="hover:text-neutral-900">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-neutral-900">
+              Privacy
+            </Link>
+            <a href={WHATSAPP_SUPPORT_URL} target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900">
+              Support
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

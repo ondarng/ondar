@@ -3,7 +3,8 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, MessageCircle, ShoppingBag, Truck, FileText } from "lucide-react";
+import { ArrowRight, ShoppingBag, Truck, FileText } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { OndarLogo } from "@/components/OndarLogo";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
@@ -192,8 +193,8 @@ function CartContent({
                 rel="noopener noreferrer"
                 className="w-full py-3.5 rounded-2xl border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer mt-2"
               >
-                <MessageCircle className="w-4 h-4 text-[#00A859]" />
-                <span>Contact {businessName}</span>
+                <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
+                <span>Contact {businessName} on WhatsApp</span>
               </a>
             </div>
           )}

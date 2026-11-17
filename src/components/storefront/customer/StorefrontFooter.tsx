@@ -2,14 +2,19 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MapPin, Phone, MessageCircle, X, ShieldCheck, FileText } from "lucide-react";
+import { MapPin, Phone, X, ShieldCheck, FileText } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface StorefrontFooterProps {
   businessName: string;
   storeSlug?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
   city?: string;
   state?: string;
   address?: string;
@@ -21,6 +26,9 @@ export function StorefrontFooter({
   storeSlug,
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
   city = "Lagos",
   state = "Nigeria",
   returnPolicy,
@@ -60,6 +68,17 @@ export function StorefrontFooter({
           >
             Contact seller
           </button>
+        </div>
+
+        {/* Social Links In Footer */}
+        <div className="flex justify-center mt-3.5">
+          <StorefrontSocialLinks
+            instagram={instagram}
+            tiktok={tiktok}
+            twitter={twitter}
+            whatsappNumber={whatsappNumber || phoneNumber}
+            variant="compact"
+          />
         </div>
 
         <p className="text-xs text-neutral-400 mt-4 flex items-center justify-center gap-1">
@@ -158,9 +177,9 @@ export function StorefrontFooter({
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-2xs"
+                  className="w-full h-12 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-2xs transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <WhatsAppIcon className="w-4 h-4 text-white" />
                   <span>Chat on WhatsApp</span>
                 </a>
               )}
@@ -174,6 +193,16 @@ export function StorefrontFooter({
                   <span>Call {phoneNumber}</span>
                 </a>
               )}
+
+              {/* Social Channels inside Contact Modal */}
+              <div className="pt-1">
+                <StorefrontSocialLinks
+                  instagram={instagram}
+                  tiktok={tiktok}
+                  whatsappNumber={null}
+                  variant="pills"
+                />
+              </div>
             </div>
 
             <button

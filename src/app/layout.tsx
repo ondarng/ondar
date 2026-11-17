@@ -14,8 +14,13 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://ondar.ng"),
   title: "Ondar — Sell Faster, Stress Less",
   description: "The simplest way for a solo Nigerian merchant to get paid and keep track.",
+  icons: {
+    icon: "/ondar-icon.png",
+    apple: "/ondar-icon.png",
+  },
 };
 
 export default function RootLayout({

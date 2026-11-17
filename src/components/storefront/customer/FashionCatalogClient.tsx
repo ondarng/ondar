@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, MessageCircle, Search, ShoppingBag, X, FileText, ChevronRight } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
 
 interface FashionCatalogProps {
@@ -16,6 +18,9 @@ interface FashionCatalogProps {
   state?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
   returnPolicy?: string | null;
   products: CatalogProduct[];
   previewTemplate?: string;
@@ -38,6 +43,9 @@ function FashionCatalogContent({
   state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
   returnPolicy,
   products,
   previewTemplate,
@@ -118,7 +126,7 @@ function FashionCatalogContent({
 
       <div className="max-w-[440px] mx-auto px-4">
         {/* 2. BRAND SERIF HEADER */}
-        <header className="sticky top-0 z-30 bg-[#FDFDFD]/95 backdrop-blur-md py-4 flex items-center justify-between border-b border-neutral-100 mb-4">
+        <header className="sticky top-0 z-30 bg-[#FDFDFD]/95 backdrop-blur-md py-4 flex items-center justify-between border-b border-neutral-100 mb-3">
           <Link
             href={storeUrl}
             className="font-serif font-black text-2xl tracking-[0.25em] text-neutral-900 uppercase"
@@ -138,6 +146,20 @@ function FashionCatalogContent({
             )}
           </Link>
         </header>
+
+        {/* Social Links under Header */}
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100">
+          <p className="text-xs text-neutral-500 font-normal">
+            {city}, {state}
+          </p>
+          <StorefrontSocialLinks
+            instagram={instagram}
+            tiktok={tiktok}
+            twitter={twitter}
+            whatsappNumber={whatsappNumber || phoneNumber}
+            variant="compact"
+          />
+        </div>
 
         {/* Editorial Highlight Banner (if banner/logo uploaded) */}
         {logoUrl && (
@@ -337,18 +359,16 @@ function FashionCatalogContent({
             Pickup available in {city}, {state}. Delivery options and exact rates computed at checkout.
             <Link href={`/s/${storeSlug}/policies`} className="ml-1 text-[#00A859] font-bold underline">Read store policies →</Link>
           </p>
-          {cleanWhatsapp && (
-            <a
-              href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-                `Hello ${businessName}, I am browsing your store on Ondar and have a question.`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-3 text-xs font-bold text-neutral-900 underline underline-offset-4 hover:text-neutral-600 transition-colors"
-            >
-              Chat on WhatsApp
-            </a>
-          )}
+
+          <div className="mt-4">
+            <StorefrontSocialLinks
+              instagram={instagram}
+              tiktok={tiktok}
+              twitter={twitter}
+              whatsappNumber={whatsappNumber || phoneNumber}
+              variant="pills"
+            />
+          </div>
         </section>
 
         {/* 7. MINIMAL FOOTER */}
@@ -358,6 +378,13 @@ function FashionCatalogContent({
           </p>
         </footer>
       </div>
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        bottomOffsetClass="bottom-6"
+      />
     </main>
   );
 }

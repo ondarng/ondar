@@ -13,6 +13,9 @@ vi.mock("@/lib/prisma", () => ({
     product: {
       findMany: vi.fn(),
     },
+    businessProfile: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -26,6 +29,12 @@ describe("PRD NOT-02: Notifications API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getCurrentMerchant as any).mockResolvedValue(merchant);
+    (prisma.businessProfile.findUnique as any).mockResolvedValue({
+      businessName: "Test Store",
+      whatsappNumber: "+2348012345678",
+      city: "Lagos",
+      state: "Lagos",
+    });
   });
 
   it("derives live alerts for transfer orders, flagged orders, and low stock", async () => {

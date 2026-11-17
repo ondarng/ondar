@@ -2,9 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap, FileText, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, Check, Cpu, ShieldCheck, ShoppingBag, Zap, FileText, Clock, MessageCircle, Share2 } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { ProductShareModal } from "./ProductShareModal";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
 export function ElectronicsProductClient(props: ProductDetailProps) {
@@ -27,6 +30,7 @@ function ElectronicsProductContent({
   product,
 }: ProductDetailProps) {
   const { addItem, totalCount } = useCart();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
   const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
@@ -143,14 +147,26 @@ function ElectronicsProductContent({
             <span className="text-xs text-slate-500 font-mono">{city}, {state}</span>
           </div>
 
-          <h1 className="text-xl font-black text-white tracking-tight">
-            {product.name}
-          </h1>
-
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black font-mono text-[#38BDF8] tracking-tight">
-              ₦{currentPriceNaira.toLocaleString("en-NG")}
-            </span>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-black text-white tracking-tight">
+                {product.name}
+              </h1>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-black font-mono text-[#38BDF8] tracking-tight">
+                  ₦{currentPriceNaira.toLocaleString("en-NG")}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer shrink-0 active:scale-95 shadow-2xs mt-1"
+              aria-label="Share gadget"
+            >
+              <Share2 className="w-3.5 h-3.5 text-sky-400" />
+              <span className="text-slate-200">Share</span>
+            </button>
           </div>
 
           {product.isPreorder && product.preorderNote && (
@@ -237,9 +253,9 @@ function ElectronicsProductContent({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 rounded-xl bg-[#00A859] hover:bg-[#008f4c] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md uppercase tracking-wider"
+                  className="w-full py-3.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md uppercase tracking-wider"
                 >
-                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <WhatsAppIcon className="w-4 h-4 text-white" />
                   <span>Pre-order on WhatsApp</span>
                 </a>
               ) : (
@@ -317,6 +333,29 @@ function ElectronicsProductContent({
           Powered by <span className="font-bold text-slate-400">Ondar</span>
         </footer>
       </div>
+
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={{
+          name: product.name,
+          slug: product.slug,
+          priceKobo: product.priceKobo,
+          imageUrl: product.images[0]?.url,
+          category: product.category,
+        }}
+        businessName={businessName}
+        storeSlug={storeSlug}
+      />
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        productName={product.name}
+        priceNaira={currentPriceNaira}
+        bottomOffsetClass="bottom-6"
+      />
     </main>
   );
 }

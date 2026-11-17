@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
 
     const alerts: MerchantAlert[] = [];
 
-    // Consolidated concurrent query: 1 for orders (bank transfer, flag, to fulfil) and 1 for low-stock products
-    const [relevantOrders, products] = await Promise.all([
+    // Consolidated concurrent query: 1 for orders (bank transfer, flag, to fulfil), 1 for low-stock products, and business profile
+    const [relevantOrders, products, businessProfile] = await Promise.all([
       prisma.order.findMany({
         where: {
           merchantId: merchant.id,
@@ -43,7 +43,28 @@ export async function GET(req: NextRequest) {
         },
         take: 20,
       }),
+      prisma.businessProfile.findUnique({
+        where: { merchantId: merchant.id },
+        select: { businessName: true, whatsappNumber: true, city: true, state: true },
+      }),
     ]);
+
+    // Profile-incomplete alert: bug the merchant until key fields are filled
+    const profileMissingFields: string[] = [];
+    if (!businessProfile?.businessName) profileMissingFields.push("business name");
+    if (!businessProfile?.whatsappNumber) profileMissingFields.push("WhatsApp number");
+    if (!businessProfile?.city) profileMissingFields.push("city");
+    if (profileMissingFields.length > 0) {
+      alerts.push({
+        id: "profile_incomplete",
+        type: "system",
+        title: "Complete your business profile",
+        description: `Missing: ${profileMissingFields.join(", ")}. Customers see your profile — fill it in to build trust.`,
+        timestamp: new Date().toISOString(),
+        link: "/settings/profile",
+        severity: "warning",
+      });
+    }
 
     for (const o of relevantOrders) {
       if (o.paymentRoute === "BANK_TRANSFER" && o.paymentStatus === "AWAITING_PAYMENT" && o.paymentSentAt) {

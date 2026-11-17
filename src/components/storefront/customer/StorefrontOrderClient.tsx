@@ -21,6 +21,7 @@ import {
   FileText,
   ShieldCheck,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { CartProvider } from "@/context/StorefrontCartContext";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { StorefrontFooter } from "./StorefrontFooter";
@@ -85,6 +86,7 @@ interface StorefrontOrderClientProps {
   phoneNumber?: string;
   pickupAddress?: string;
   pickupInstructions?: string;
+  logoUrl?: string | null;
   initialOrder: OrderDetails;
   referenceFromUrl?: string;
 }
@@ -106,6 +108,7 @@ function OrderContent({
   phoneNumber,
   pickupAddress,
   pickupInstructions,
+  logoUrl,
   initialOrder,
   referenceFromUrl,
 }: StorefrontOrderClientProps) {
@@ -305,6 +308,19 @@ function OrderContent({
               <p className="text-[13px] font-semibold text-[#005c31]">
                 Verifying your payment with Paystack...
               </p>
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* MERCHANT LOGO + STATUS CARD */}
+          {/* ============================================================== */}
+          {logoUrl && (
+            <div className="flex justify-center pt-1">
+              <img
+                src={logoUrl}
+                alt={`${businessName} logo`}
+                className="w-16 h-16 rounded-2xl object-cover border border-neutral-100 shadow-xs"
+              />
             </div>
           )}
 
@@ -790,9 +806,9 @@ function OrderContent({
               href={whatsappChatUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full h-12 bg-[#00A859] hover:bg-[#008f4c] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs"
+              className="w-full h-12 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs"
             >
-              <MessageCircle className="w-4 h-4 fill-current" />
+              <WhatsAppIcon className="w-4 h-4 text-white" />
               <span>Contact Store on WhatsApp</span>
             </a>
 

@@ -25,6 +25,22 @@ function parseDatabaseConfig(connectionUrl: string) {
 }
 
 function createPrismaClient() {
+  if (!process.env.DATABASE_URL) {
+    try {
+      // Fallback for Next.js SSR / worker threads
+      const fs = require("fs");
+      const path = require("path");
+      const dotenv = require("dotenv");
+      const localEnv = path.resolve(process.cwd(), ".env.local");
+      if (fs.existsSync(localEnv)) {
+        dotenv.config({ path: localEnv });
+      }
+      dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+    } catch {
+      // Ignored
+    }
+  }
+
   const connectionUrl =
     process.env.DATABASE_URL ||
     "postgresql://postgres:postgres@127.0.0.1:5432/ondar_build_placeholder";
@@ -40,15 +56,17 @@ function createPrismaClient() {
       password: dbConfig.password,
       database: dbConfig.database,
       ssl: { rejectUnauthorized: false },
-      min: 1,
+      min: 0, // PgBouncer / Supabase Pooler drops idle sockets; do not force idle connections
       max: 10,
-      idleTimeoutMillis: 120000,
-      connectionTimeoutMillis: 45000,
+      idleTimeoutMillis: 15000, // Discard idle sockets after 15s before PgBouncer severs them
+      connectionTimeoutMillis: 15000,
       keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
     });
 
   pool.on("error", (err) => {
-    console.warn("Postgres pool idle client warning:", err.message);
+    // When PgBouncer closes an idle connection, swallow the idle warning so pool creates a fresh socket
+    console.warn("Postgres pool client notice (auto-reconnecting):", err.message);
   });
 
   if (!globalForPrisma.pool) {
@@ -57,10 +75,52 @@ function createPrismaClient() {
 
   const adapter = new PrismaPg(pool);
 
-  return new PrismaClient({
+  const baseClient = new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
+
+  // Resilient retry extension for transient PgBouncer pooler connection drops
+  const resilientClient = baseClient.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          let lastError: unknown;
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              return await query(args);
+            } catch (err: unknown) {
+              lastError = err;
+              const errObj = err as { code?: string; message?: string };
+              const isConnectionError =
+                errObj?.code === "P1001" ||
+                errObj?.code === "P1002" ||
+                errObj?.code === "P1008" ||
+                errObj?.code === "P1017" ||
+                errObj?.message?.includes("Can't reach database server") ||
+                errObj?.message?.includes("Connection lost") ||
+                errObj?.message?.includes("Connection terminated") ||
+                errObj?.message?.includes("ECONNRESET") ||
+                errObj?.message?.includes("ETIMEDOUT") ||
+                errObj?.message?.includes("timeout");
+
+              if (isConnectionError && attempt < 3) {
+                console.warn(
+                  `[Prisma] Connection retry ${attempt}/3 for ${model}.${operation} in ${attempt * 300}ms...`
+                );
+                await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+                continue;
+              }
+              throw err;
+            }
+          }
+          throw lastError;
+        },
+      },
+    },
+  });
+
+  return resilientClient as unknown as PrismaClient;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

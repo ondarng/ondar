@@ -116,6 +116,7 @@ export default async function PublicOrderPage({ params, searchParams }: Props) {
       phoneNumber={profile.phoneNumber || undefined}
       pickupAddress={pickupAddress || undefined}
       pickupInstructions={pickupInstructions || undefined}
+      logoUrl={profile.logoUrl}
       initialOrder={orderDetails}
       referenceFromUrl={reference || trxref}
     />

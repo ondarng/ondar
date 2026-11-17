@@ -2,9 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, ShieldCheck, ShoppingBag, FileText, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, ShoppingBag, FileText, Clock, MessageCircle, Share2 } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { ProductShareModal } from "./ProductShareModal";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
 export function FashionProductClient(props: ProductDetailProps) {
@@ -27,6 +30,7 @@ function FashionProductContent({
   product,
 }: ProductDetailProps) {
   const { addItem, totalCount } = useCart();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
   const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
@@ -154,19 +158,31 @@ function FashionProductContent({
             </p>
           )}
 
-          <h1 className="font-serif font-black text-2xl text-neutral-900 tracking-tight">
-            {product.name}
-          </h1>
-
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-bold text-neutral-900">
-              ₦{currentPriceNaira.toLocaleString("en-NG")}
-            </span>
-            {isLowStock && (
-              <span className="text-xs font-bold text-[#B45309]">
-                Only {stockRemaining} remaining
-              </span>
-            )}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="font-serif font-black text-2xl text-neutral-900 tracking-tight">
+                {product.name}
+              </h1>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-lg font-bold text-neutral-900">
+                  ₦{currentPriceNaira.toLocaleString("en-NG")}
+                </span>
+                {isLowStock && (
+                  <span className="text-xs font-bold text-[#B45309]">
+                    Only {stockRemaining} remaining
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer shrink-0 active:scale-95 shadow-2xs mt-1"
+              aria-label="Share product"
+            >
+              <Share2 className="w-3.5 h-3.5 text-[#00A859]" />
+              <span>Share</span>
+            </button>
           </div>
 
           {product.isPreorder && product.preorderNote && (
@@ -247,9 +263,9 @@ function FashionProductContent({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-4 bg-black hover:bg-neutral-800 text-white text-xs font-black tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                  className="w-full py-4 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-black tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
                 >
-                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <WhatsAppIcon className="w-4 h-4 text-white" />
                   <span>PRE-ORDER ON WHATSAPP</span>
                 </a>
               ) : (
@@ -323,6 +339,29 @@ function FashionProductContent({
           Powered by <span className="font-bold text-neutral-600">Ondar</span>
         </footer>
       </div>
+
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={{
+          name: product.name,
+          slug: product.slug,
+          priceKobo: product.priceKobo,
+          imageUrl: product.images[0]?.url,
+          category: product.category,
+        }}
+        businessName={businessName}
+        storeSlug={storeSlug}
+      />
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        productName={product.name}
+        priceNaira={currentPriceNaira}
+        bottomOffsetClass="bottom-6"
+      />
     </main>
   );
 }

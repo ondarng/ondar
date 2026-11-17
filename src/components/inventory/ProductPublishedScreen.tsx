@@ -26,7 +26,7 @@ export function ProductPublishedScreen({
   const [copied, setCopied] = useState(false);
 
   const photoUrl = product.images[0]?.url;
-  const productPath = `ondar.shop/${storeSlug}/${product.slug}`;
+  const productPath = `${storeSlug}.ondar.ng/p/${product.slug}`;
   const fullProductUrl = `${storefrontUrl}/p/${product.slug}`;
 
   const handleCopyLink = async () => {

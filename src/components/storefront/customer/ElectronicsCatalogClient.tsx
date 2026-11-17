@@ -12,6 +12,8 @@ import {
   FileText,
 } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
 
 interface ProductVariant {
@@ -50,6 +52,9 @@ interface ElectronicsCatalogClientProps {
   state?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
   returnPolicy?: string | null;
   products: ElectronicsProduct[];
   previewTemplate?: string;
@@ -71,6 +76,9 @@ function ElectronicsCatalogContent({
   state = "Lagos",
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
   returnPolicy,
   products,
   previewTemplate,
@@ -148,7 +156,7 @@ function ElectronicsCatalogContent({
         </div>
 
         {/* Search */}
-        <div className="max-w-[430px] mx-auto px-4 pb-3">
+        <div className="max-w-[430px] mx-auto px-4 pb-2">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -159,6 +167,20 @@ function ElectronicsCatalogContent({
               className="w-full h-10 pl-10 pr-4 bg-slate-900 border border-slate-800 rounded-xl text-[12px] text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#00A859] transition-all"
             />
           </div>
+        </div>
+
+        {/* Social & status bar */}
+        <div className="max-w-[430px] mx-auto px-4 pb-3 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400 font-medium">
+            {filteredProducts.length} {filteredProducts.length === 1 ? "device" : "devices"}
+          </span>
+          <StorefrontSocialLinks
+            instagram={instagram}
+            tiktok={tiktok}
+            twitter={twitter}
+            whatsappNumber={whatsappNumber || phoneNumber}
+            variant="compact"
+          />
         </div>
       </header>
 
@@ -308,22 +330,24 @@ function ElectronicsCatalogContent({
       <footer className="w-full max-w-[430px] mx-auto px-4 py-6 border-t border-slate-800/80 text-center text-[11px] text-slate-500 space-y-2">
         <p>Pickup available in {city}, {state}. Delivery calculated at checkout.</p>
         <p className="pt-1"><Link href={`/s/${storeSlug}/policies`} className="text-sky-400 hover:text-sky-300 font-semibold underline inline-flex items-center gap-1"><FileText className="w-3 h-3" /><span>Store Policies & Warranty Terms →</span></Link></p>
-        {cleanWhatsapp && (
-          <p>
-            <a
-              href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-                `Hello ${businessName}, I am browsing your store on Ondar and have a question.`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sky-400 hover:text-sky-300 underline font-semibold"
-            >
-              Chat on WhatsApp
-            </a>
-          </p>
-        )}
+        <div className="pt-2 flex justify-center">
+          <StorefrontSocialLinks
+            instagram={instagram}
+            tiktok={tiktok}
+            twitter={twitter}
+            whatsappNumber={whatsappNumber || phoneNumber}
+            variant="pills"
+          />
+        </div>
         <p className="text-[10px] text-slate-600 pt-2">Powered by <span className="font-bold text-slate-400">Ondar</span></p>
       </footer>
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        bottomOffsetClass="bottom-6"
+      />
     </div>
   );
 }

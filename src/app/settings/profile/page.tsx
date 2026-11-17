@@ -15,8 +15,29 @@ import {
   ChevronDown,
   CheckCircle2,
   Palette,
+  Sparkles,
 } from "lucide-react";
 import { StorefrontCanvasModal } from "@/components/storefront/StorefrontCanvasModal";
+import { XIcon } from "@/components/icons/XIcon";
+
+const POLICY_PRESETS = [
+  {
+    label: "Standard 7-Day Returns",
+    text: "Returns accepted within 7 days of delivery. Items must be unused, unwashed, and in their original packaging with tags attached. Message us on WhatsApp to arrange a return. Return delivery is paid by the customer unless the item arrived faulty or incorrect.",
+  },
+  {
+    label: "Exchanges Only",
+    text: "No monetary refunds. We gladly offer size exchanges or store credit within 5 days of delivery. Items must be unworn and in original condition. Contact us on WhatsApp with your order number to arrange an exchange.",
+  },
+  {
+    label: "Made-to-Order / Custom",
+    text: "All custom and made-to-order pieces are tailored specifically for you and cannot be returned or refunded once production begins. If you notice any fit issues upon receipt, please message us on WhatsApp within 48 hours for complimentary alterations.",
+  },
+  {
+    label: "Final Sale",
+    text: "All sales are final due to hygiene and clearance considerations. Please verify all product details and sizing carefully before purchasing. Feel free to chat with us on WhatsApp if you have any questions before ordering.",
+  },
+];
 
 export default function BusinessProfileSettingsPage() {
   const router = useRouter();
@@ -29,31 +50,28 @@ export default function BusinessProfileSettingsPage() {
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState(false);
 
   // Profile Form States
-  const [businessName, setBusinessName] = useState("Ada's Edit");
-  const [slug, setSlug] = useState("adas-edit");
+  const [businessName, setBusinessName] = useState("");
+  const [slug, setSlug] = useState("");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [description, setDescription] = useState(
-    "Everyday bags, thoughtfully picked for work, weekends and everything in between."
-  );
+  const [description, setDescription] = useState("");
 
   // Customer Contact
-  const [whatsappNumber, setWhatsappNumber] = useState("+234 803 456 7890");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [secondaryPhone, setSecondaryPhone] = useState("");
-  const [publicEmail, setPublicEmail] = useState("ada@adasedit.com");
+  const [publicEmail, setPublicEmail] = useState("");
 
   // Social Links
-  const [instagram, setInstagram] = useState("instagram.com/adas.edit");
+  const [instagram, setInstagram] = useState("");
   const [tiktok, setTiktok] = useState("");
+  const [twitter, setTwitter] = useState("");
 
   // Business Location
-  const [city, setCity] = useState("Ikeja");
+  const [city, setCity] = useState("");
   const [selectedState, setSelectedState] = useState("Lagos");
-  const [address, setAddress] = useState("14 Allen Avenue, Ikeja, Lagos");
+  const [address, setAddress] = useState("");
 
   // Return policy
-  const [returnPolicy, setReturnPolicy] = useState(
-    "Returns accepted within 7 days of delivery. Items must be unused and in their original condition. Message us on WhatsApp to arrange a return. Return delivery is paid by the customer unless the item is faulty."
-  );
+  const [returnPolicy, setReturnPolicy] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
@@ -63,19 +81,21 @@ export default function BusinessProfileSettingsPage() {
           const data = await res.json();
           if (data.profile) {
             const p = data.profile;
-            if (p.businessName) setBusinessName(p.businessName);
-            if (p.slug) setSlug(p.slug);
-            if (p.logoUrl) setLogoPreview(p.logoUrl);
-            if (p.description) setDescription(p.description);
-            if (p.whatsappNumber) setWhatsappNumber(p.whatsappNumber);
-            if (p.secondaryPhone) setSecondaryPhone(p.secondaryPhone);
-            if (p.publicEmail) setPublicEmail(p.publicEmail);
-            if (p.instagram) setInstagram(p.instagram);
-            if (p.tiktok) setTiktok(p.tiktok);
-            if (p.city) setCity(p.city);
+            // Always set DB values so form reflects real saved state (empty string is valid)
+            setBusinessName(p.businessName ?? "");
+            setSlug(p.slug ?? "");
+            setLogoPreview(p.logoUrl ?? null);
+            setDescription(p.description ?? "");
+            setWhatsappNumber(p.whatsappNumber ?? "");
+            setSecondaryPhone(p.secondaryPhone ?? "");
+            setPublicEmail(p.publicEmail ?? "");
+            setInstagram(p.instagram ?? "");
+            setTiktok(p.tiktok ?? "");
+            setTwitter(p.twitter ?? "");
+            setCity(p.city ?? "");
             if (p.state) setSelectedState(p.state);
-            if (p.address) setAddress(p.address);
-            if (p.returnPolicy) setReturnPolicy(p.returnPolicy);
+            setAddress(p.address ?? "");
+            setReturnPolicy(p.returnPolicy ?? "");
           }
         }
       } catch (err) {
@@ -121,6 +141,7 @@ export default function BusinessProfileSettingsPage() {
           publicEmail,
           instagram,
           tiktok,
+          twitter,
           city,
           state: selectedState,
           address,
@@ -172,7 +193,7 @@ export default function BusinessProfileSettingsPage() {
             Business profile<span className="text-[#00A859]">.</span>
           </h1>
           <p className="text-[13px] leading-relaxed text-neutral-500 font-normal">
-            Make {businessName || "Ada's Edit"} feel like you. These details are optional after launch and won’t hold up your sales.
+            Make your store feel like you. These details are optional after launch and won’t hold up your sales.
           </p>
         </div>
 
@@ -375,6 +396,26 @@ export default function BusinessProfileSettingsPage() {
               />
             </div>
 
+            {/* X (formerly Twitter) */}
+            <div className="mb-4">
+              <label htmlFor="twitterInput" className="block text-xs font-bold text-neutral-900 mb-1.5 flex items-center gap-1.5">
+                <span>X (formerly Twitter)</span>
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-4 text-neutral-700 pointer-events-none">
+                  <XIcon className="w-3.5 h-3.5" />
+                </span>
+                <input
+                  id="twitterInput"
+                  type="text"
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
+                  placeholder="x.com/adas_edit or @adas_edit"
+                  className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[15px] placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
             {/* TikTok */}
             <div>
               <label htmlFor="tiktokInput" className="block text-xs font-bold text-neutral-900 mb-1.5">
@@ -480,19 +521,47 @@ export default function BusinessProfileSettingsPage() {
             </Link>
           </div>
 
-          {/* SECTION 6: Returns */}
+          {/* SECTION 6: Returns & Store Policy */}
           <div className="mb-8">
-            <h2 className="text-base font-bold text-neutral-900 mb-2">Returns</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-bold text-neutral-900">Returns & Policy</h2>
+              <span className="text-[11px] text-neutral-400 font-normal">Shown on checkout & footer</span>
+            </div>
+
+            {/* Policy Presets */}
+            <div className="mb-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#00A859]" />
+                <span className="text-[11px] font-bold text-neutral-700">Quick presets (click to apply)</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {POLICY_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setReturnPolicy(preset.text)}
+                    className="px-2.5 py-1 rounded-lg bg-neutral-50 hover:bg-[#E8F8EF] border border-neutral-200 hover:border-[#00A859]/50 text-neutral-700 hover:text-[#00A859] text-[11px] font-semibold transition-colors cursor-pointer"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label htmlFor="returnPolicyInput" className="block text-xs font-bold text-neutral-900 mb-1.5">
-              Return policy <span className="text-neutral-400 font-normal">(optional)</span>
+              Store return policy
             </label>
             <textarea
               id="returnPolicyInput"
               rows={4}
               value={returnPolicy}
               onChange={(e) => setReturnPolicy(e.target.value)}
+              placeholder="Explain how returns, exchanges, or refunds are handled..."
               className="w-full p-3.5 rounded-2xl border border-neutral-200 bg-white text-neutral-900 text-[13px] leading-relaxed placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00A859]/20 focus:border-[#00A859] transition-all shadow-xs resize-none"
             />
+            <p className="text-[11px] text-neutral-400 mt-1 font-normal">
+              Customers will see this policy during checkout and on your storefront.
+            </p>
           </div>
 
           {/* Save Changes Primary CTA */}

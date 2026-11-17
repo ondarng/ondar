@@ -8,6 +8,7 @@ import { MerchantBottomNav } from "@/components/merchant/MerchantBottomNav";
 import { NotificationsModal } from "@/components/merchant/NotificationsModal";
 import { StoreLiveIllustration } from "@/components/StoreLiveIllustration";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { AddProductFlow } from "@/components/inventory/AddProductFlow";
 import {
   Bell,
   ChevronDown,
@@ -345,6 +346,19 @@ export function DashboardClient({
   };
 
   const totalPendingBadgeCount = metrics.pendingOrdersCount + metrics.newOrdersTodayCount;
+
+  if (isAddProductOpen) {
+    return (
+      <AddProductFlow
+        storeSlug={slug}
+        onBack={() => setIsAddProductOpen(false)}
+        onSuccess={() => {
+          setIsAddProductOpen(false);
+          router.refresh();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] antialiased selection:bg-[#00A859]/20 selection:text-[#00A859] relative pb-28">
@@ -795,27 +809,33 @@ export function DashboardClient({
             </div>
 
             {/* Card 2: New orders */}
-            <div className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs flex flex-col justify-between">
+            <Link
+              href="/orders"
+              className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 transition-colors flex flex-col justify-between group"
+            >
               <div className="flex items-center justify-between mb-2">
-                <div className="w-6 h-6 rounded-lg bg-[#ECFDF5] text-[#00A859] flex items-center justify-center">
+                <div className="w-6 h-6 rounded-lg bg-[#ECFDF5] text-[#00A859] flex items-center justify-center group-hover:scale-105 transition-transform">
                   <ShoppingBag className="w-3.5 h-3.5" />
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
               <div>
                 <p className="text-[10px] text-neutral-500 font-medium leading-tight">New orders</p>
                 <p className="text-sm font-black text-neutral-900 mt-0.5">
                   {metrics.newOrdersTodayCount}
                 </p>
-                <p className="text-[10px] text-neutral-400 mt-0.5">View orders</p>
+                <p className="text-[10px] text-[#00A859] font-bold mt-0.5">View orders</p>
               </div>
-            </div>
+            </Link>
 
             {/* Card 3: Low stock */}
-            <div className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs flex flex-col justify-between">
+            <Link
+              href="/inventory"
+              className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 transition-colors flex flex-col justify-between group"
+            >
               <div className="flex items-center justify-between mb-2">
                 <div
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform ${
                     metrics.lowStockCount > 0
                       ? "bg-[#FEF3C7] text-amber-600"
                       : "bg-[#ECFDF5] text-[#00A859]"
@@ -823,7 +843,7 @@ export function DashboardClient({
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
               <div>
                 <p className="text-[10px] text-neutral-500 font-medium leading-tight">Low-stock items</p>
@@ -834,7 +854,7 @@ export function DashboardClient({
                   {metrics.lowStockCount > 0 ? "Needs restock" : "Stock healthy"}
                 </p>
               </div>
-            </div>
+            </Link>
           </div>
         </section>
 
@@ -976,7 +996,7 @@ export function DashboardClient({
 
             {/* Action 2: View orders */}
             <Link
-              href="/dashboard?tab=orders"
+              href="/orders"
               className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -993,7 +1013,24 @@ export function DashboardClient({
               <ChevronRight className="w-4 h-4 text-neutral-400" />
             </Link>
 
-            {/* Action 3: Inventory */}
+            {/* Action 3: Record sale */}
+            <Link
+              href="/orders/record"
+              className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] text-[#00A859] flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-neutral-900">Record sale</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">Offline & DM sales</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-neutral-400" />
+            </Link>
+
+            {/* Action 4: Inventory */}
             <Link
               href="/inventory"
               className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
@@ -1012,11 +1049,11 @@ export function DashboardClient({
               <ChevronRight className="w-4 h-4 text-neutral-400" />
             </Link>
 
-            {/* Action 4: Share store link */}
+            {/* Action 5: Share store link */}
             <button
               type="button"
               onClick={handleShare}
-              className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group cursor-pointer"
+              className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group cursor-pointer col-span-2 sm:col-span-1"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] text-[#00A859] flex items-center justify-center group-hover:scale-105 transition-transform">

@@ -95,6 +95,7 @@ model BusinessProfile {
   instagram      String?
   templateId     String   @default("default") // "default" | "electronics" | "boutique"
   tiktok         String?
+  twitter        String?
   deliveryCoverage String? @default("Lagos - Ikeja, Yaba and Lekki")
   deliveryEnabled  Boolean @default(true)
   pickupEnabled    Boolean @default(false)

@@ -65,7 +65,8 @@ export function ProductDetailsScreen({
   const isLowStock = available <= threshold && available > 0;
   const isOutOfStock = available <= 0;
 
-  const photoUrl = product.images[0]?.url;
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const activePhotoUrl = product.images[selectedImageIndex]?.url || product.images[0]?.url;
   const productStoreUrl = `${storefrontUrl}/p/${product.slug}`;
 
   // Sub-screens
@@ -178,17 +179,48 @@ export function ProductDetailsScreen({
           </button>
         </div>
 
-        {/* Product Hero Image */}
-        <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 mb-4 shadow-xs">
-          {photoUrl ? (
-            <img
-              src={photoUrl}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-[#E8F8EF] flex items-center justify-center text-[#00A859] font-bold text-4xl">
-              👕
+        {/* Product Hero Image & Gallery */}
+        <div className="mb-4">
+          <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 relative shadow-xs">
+            {activePhotoUrl ? (
+              <img
+                src={activePhotoUrl}
+                alt={product.name}
+                className="w-full h-full object-cover transition-opacity duration-200"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#E8F8EF] flex items-center justify-center text-[#00A859] font-bold text-4xl">
+                👕
+              </div>
+            )}
+            {product.images && product.images.length > 1 && (
+              <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 text-white text-[11px] font-bold backdrop-blur-xs">
+                {selectedImageIndex + 1} / {product.images.length}
+              </span>
+            )}
+          </div>
+
+          {/* Thumbnail row if multiple images */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex items-center gap-2 mt-2 overflow-x-auto pb-1 scrollbar-none">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                    selectedImageIndex === idx
+                      ? "border-[#00A859] scale-102 shadow-2xs"
+                      : "border-neutral-200 opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={img.url}
+                    alt={`${product.name} thumb ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -421,7 +453,7 @@ export function ProductDetailsScreen({
             rel="noopener noreferrer"
             className="text-xs font-semibold text-[#00A859] hover:underline break-all block"
           >
-            ondar.shop/{storeSlug}/{product.slug}
+            {storeSlug}.ondar.ng/p/{product.slug}
           </a>
 
           <a

@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { StorefrontFooter } from "./StorefrontFooter";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider } from "@/context/StorefrontCartContext";
 
@@ -48,6 +51,9 @@ interface StorefrontCatalogClientProps {
   state?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
   returnPolicy?: string | null;
   deliveryCoverage?: string | null;
   products: CatalogProduct[];
@@ -63,6 +69,9 @@ export function StorefrontCatalogClient({
   state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
   returnPolicy,
   products,
   previewTemplate,
@@ -167,7 +176,7 @@ export function StorefrontCatalogClient({
                   </div>
                 )}
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-neutral-900 tracking-tight truncate">
                     {businessName}
                   </h2>
@@ -177,6 +186,15 @@ export function StorefrontCatalogClient({
                   <p className="text-xs text-neutral-400 mt-1 font-normal">
                     {city}, {state}
                   </p>
+
+                  {/* Storefront Social Links */}
+                  <StorefrontSocialLinks
+                    instagram={instagram}
+                    tiktok={tiktok}
+                    twitter={twitter}
+                    whatsappNumber={whatsappNumber || phoneNumber}
+                    className="mt-2.5"
+                  />
                 </div>
               </div>
             </div>
@@ -419,7 +437,7 @@ export function StorefrontCatalogClient({
                     rel="noopener noreferrer"
                     className="w-full h-12 rounded-2xl border border-neutral-200 hover:bg-neutral-50 bg-white text-neutral-900 font-bold text-xs flex items-center justify-center gap-2 shadow-2xs transition-colors"
                   >
-                    <MessageCircle className="w-4 h-4 text-[#00A859]" />
+                    <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
                     <span>Chat with us on WhatsApp</span>
                   </a>
                   <p className="text-xs text-neutral-400 text-center mt-2 font-normal">
@@ -436,11 +454,20 @@ export function StorefrontCatalogClient({
             storeSlug={storeSlug}
             whatsappNumber={whatsappNumber}
             phoneNumber={phoneNumber}
+            instagram={instagram}
+            tiktok={tiktok}
             city={city}
             state={state}
             returnPolicy={returnPolicy || undefined}
           />
         </div>
+
+        <StorefrontFloatingWhatsapp
+          whatsappNumber={whatsappNumber}
+          phoneNumber={phoneNumber}
+          businessName={businessName}
+          bottomOffsetClass="bottom-6"
+        />
       </div>
     </CartProvider>
   );

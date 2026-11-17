@@ -138,8 +138,22 @@ export async function PATCH(
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      // Photo update if provided
-      if (body.photoUrl) {
+      // Photo update if provided (supports full array of images or single photoUrl)
+      if (Array.isArray(body.images)) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        const validImages = body.images
+          .filter((url: unknown) => typeof url === "string" && (url as string).trim().length > 0)
+          .map((url: string, index: number) => ({
+            productId: id,
+            url: url.trim(),
+            position: index,
+          }));
+        if (validImages.length > 0) {
+          await tx.productImage.createMany({
+            data: validImages,
+          });
+        }
+      } else if (body.photoUrl) {
         await tx.productImage.deleteMany({ where: { productId: id } });
         await tx.productImage.create({
           data: {

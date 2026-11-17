@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ImagePlus,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   OptionalDetailsScreen,
@@ -45,7 +46,8 @@ export function AddProductFlow({
   const [nameError, setNameError] = useState<string | null>(null);
   const [priceNaira, setPriceNaira] = useState("");
   const [priceError, setPriceError] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const photoUrl = images[0] || null;
   const [trackStock, setTrackStock] = useState(true);
   const [startingStock, setStartingStock] = useState("");
 
@@ -74,17 +76,43 @@ export function AddProductFlow({
   }, [name]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB");
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setError(null);
+    const remainingSlots = 8 - images.length;
+    if (remainingSlots <= 0) {
+      setError("Maximum of 8 photos allowed per product.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setPhotoUrl(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    const filesToLoad = Array.from(files).slice(0, remainingSlots);
+    for (const file of filesToLoad) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Each image size must be less than 5MB");
+        continue;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setImages((prev) => (prev.length < 8 ? [...prev, result] : prev));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = "";
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const makeCoverImage = (index: number) => {
+    if (index === 0) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const [selected] = copy.splice(index, 1);
+      return [selected, ...copy];
+    });
   };
 
   const handleSubmit = async (targetStatus: "ACTIVE" | "DRAFT") => {
@@ -132,13 +160,14 @@ export function AddProductFlow({
           priceNaira: isNaN(parsedPrice) ? "0" : parsedPrice.toString(),
           stockQuantity: trackStock ? startingStock : "0",
           trackStock,
-          photoUrl,
+          photoUrl: images[0] || null,
+          images,
           description: optionalData.description,
           costPriceNaira: optionalData.costPriceNaira || null,
           category: optionalData.category || null,
           sku: optionalData.sku || null,
           lowStockThreshold: optionalData.lowStockThreshold || null,
-          extraImages: optionalData.extraImages,
+          extraImages: images.slice(1),
           status: targetStatus,
           variants: variantItems,
         }),
@@ -277,52 +306,70 @@ export function AddProductFlow({
           </div>
 
           {/* ============================================================== */}
-          {/* 2. PHOTOS */}
+          {/* 2. PHOTOS (UP TO 8) */}
           {/* ============================================================== */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-bold text-neutral-900">
-                Photos
+                Photos {images.length > 0 && <span className="text-xs text-neutral-400 font-normal">({images.length}/8)</span>}
               </label>
-              <span className="text-xs text-neutral-400 font-normal">Optional</span>
+              <span className="text-xs text-neutral-400 font-normal">Optional · up to 8</span>
             </div>
 
-            <div className="flex items-start gap-3">
-              {/* If photo exists, show thumbnail with 'Main photo · Edit' */}
-              {photoUrl && (
-                <div className="flex flex-col items-center">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 relative group shadow-xs">
+            <div className="flex items-start gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+              {/* Photo thumbnails */}
+              {images.map((img, idx) => (
+                <div key={idx} className="flex flex-col items-center flex-shrink-0 group relative">
+                  <div className="w-22 h-22 rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 relative shadow-2xs">
                     <img
-                      src={photoUrl}
-                      alt="Product preview"
+                      src={img}
+                      alt={`Product photo ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
+                    {/* Delete X Button */}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer"
+                      title="Remove photo"
+                    >
+                      <X className="w-3 h-3 stroke-[2.5]" />
+                    </button>
+                    {/* Cover badge on index 0 */}
+                    {idx === 0 && (
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-[#00A859] text-white text-[9px] font-black uppercase tracking-wider shadow-xs">
+                        Cover
+                      </span>
+                    )}
                   </div>
-                  <label className="text-xs text-neutral-600 font-medium mt-1.5 cursor-pointer hover:text-neutral-900 transition-colors">
-                    Main photo · Edit
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
-                  </label>
+                  {idx > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => makeCoverImage(idx)}
+                      className="text-[10px] text-neutral-500 hover:text-[#00A859] font-semibold mt-1 transition-colors cursor-pointer"
+                    >
+                      Make cover
+                    </button>
+                  )}
                 </div>
-              )}
+              ))}
 
-              {/* Add photos card */}
-              <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-[#00A859]/30 bg-[#F0FAF5] hover:bg-[#E8F8EF] flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs">
-                <ImagePlus className="w-6 h-6 text-[#00A859]" />
-                <span className="text-[12px] font-bold text-[#00A859]">
-                  Add photos
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
+              {/* Add photos card if less than 8 */}
+              {images.length < 8 && (
+                <label className="w-22 h-22 rounded-2xl border-2 border-dashed border-[#00A859]/30 bg-[#F0FAF5] hover:bg-[#E8F8EF] flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs flex-shrink-0">
+                  <ImagePlus className="w-5 h-5 text-[#00A859]" />
+                  <span className="text-[11px] font-bold text-[#00A859]">
+                    {images.length === 0 ? "Add photos" : "Add more"}
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           </div>
 
@@ -491,7 +538,7 @@ export function AddProductFlow({
               Your link is created automatically
             </p>
             <p className="text-[13px] text-neutral-500 break-all mt-0.5">
-              ondar.shop/{storeSlug}/{productSlug}
+              {storeSlug}.ondar.ng/p/{productSlug}
             </p>
           </div>
         </div>

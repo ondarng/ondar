@@ -2,9 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed, FileText, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, ShieldCheck, UtensilsCrossed, FileText, Clock, MessageCircle, Share2 } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { ProductShareModal } from "./ProductShareModal";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { ProductDetailProps } from "./StorefrontProductClient";
 
 export function FoodProductClient(props: ProductDetailProps) {
@@ -27,6 +30,7 @@ function FoodProductContent({
   product,
 }: ProductDetailProps) {
   const { addItem, totalCount } = useCart();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const storeUrl = previewTemplate ? `/s/${storeSlug}?previewTemplate=${previewTemplate}` : `/s/${storeSlug}`;
   const cartUrl = previewTemplate ? `/s/${storeSlug}/cart?previewTemplate=${previewTemplate}` : `/s/${storeSlug}/cart`;
@@ -155,13 +159,25 @@ function FoodProductContent({
             </span>
           )}
 
-          <h1 className="font-serif font-black text-2xl text-neutral-900 tracking-tight">
-            {product.name}
-          </h1>
-
-          <p className="text-base font-bold text-neutral-900 pt-0.5">
-            ₦{unitPriceNaira.toLocaleString("en-NG")}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="font-serif font-black text-2xl text-neutral-900 tracking-tight">
+                {product.name}
+              </h1>
+              <p className="text-base font-bold text-neutral-900 pt-0.5">
+                ₦{unitPriceNaira.toLocaleString("en-NG")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-[#BA3C1D] border border-orange-200/60 flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer shrink-0 active:scale-95 shadow-2xs mt-1"
+              aria-label="Share dish"
+            >
+              <Share2 className="w-3.5 h-3.5 text-[#BA3C1D]" />
+              <span>Share</span>
+            </button>
+          </div>
 
           {product.isPreorder && product.preorderNote && (
             <p className="text-xs text-indigo-950 bg-indigo-50 border border-indigo-200 rounded-xl p-3 font-medium">
@@ -246,9 +262,9 @@ function FoodProductContent({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3.5 rounded-2xl bg-[#00A859] hover:bg-[#008f4c] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                className="w-full py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
               >
-                <MessageCircle className="w-4 h-4 fill-current" />
+                <WhatsAppIcon className="w-4 h-4 text-white" />
                 <span>Pre-order on WhatsApp</span>
               </a>
             ) : (
@@ -351,6 +367,29 @@ function FoodProductContent({
           Powered by <span className="font-bold text-neutral-600">Ondar</span>
         </footer>
       </div>
+
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={{
+          name: product.name,
+          slug: product.slug,
+          priceKobo: product.priceKobo,
+          imageUrl: product.images[0]?.url,
+          category: product.category,
+        }}
+        businessName={businessName}
+        storeSlug={storeSlug}
+      />
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        productName={product.name}
+        priceNaira={unitPriceNaira}
+        bottomOffsetClass="bottom-6"
+      />
     </main>
   );
 }

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Check, Plus, ShoppingBag, UtensilsCrossed, FileText, ChevronRight, MessageCircle } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
 import { CartProvider, useCart } from "@/context/StorefrontCartContext";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { StorefrontFloatingWhatsapp } from "../StorefrontFloatingWhatsapp";
 import type { CatalogProduct } from "./StorefrontCatalogClient";
 
 interface FoodCatalogProps {
@@ -16,6 +18,9 @@ interface FoodCatalogProps {
   state?: string;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
   returnPolicy?: string | null;
   products: CatalogProduct[];
   previewTemplate?: string;
@@ -38,6 +43,9 @@ function FoodCatalogContent({
   state = "Nigeria",
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
   returnPolicy,
   products,
   previewTemplate,
@@ -160,6 +168,16 @@ function FoodCatalogContent({
                 {description}
               </p>
             )}
+
+            <div className="mt-3">
+              <StorefrontSocialLinks
+                instagram={instagram}
+                tiktok={tiktok}
+                twitter={twitter}
+                whatsappNumber={whatsappNumber || phoneNumber}
+                variant="pills"
+              />
+            </div>
           </div>
         </section>
 
@@ -343,6 +361,13 @@ function FoodCatalogContent({
           )}
         </Link>
       </div>
+
+      <StorefrontFloatingWhatsapp
+        whatsappNumber={whatsappNumber}
+        phoneNumber={phoneNumber}
+        businessName={businessName}
+        bottomOffsetClass="bottom-20"
+      />
     </main>
   );
 }

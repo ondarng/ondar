@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ChevronUp,
   Image as ImageIcon,
+  ImagePlus,
   Info,
   Italic,
   Layers,
@@ -18,6 +19,7 @@ import {
   Plus,
   PlusCircle,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { availableStock, formatNairaFromKobo } from "@/lib/inventory";
 import type { InventoryProduct } from "@/app/inventory/InventoryClient";
@@ -73,9 +75,12 @@ export function EditProductScreen({
   const [costInput, setCostInput] = useState(initialCostNaira);
   const [sku, setSku] = useState(product.sku || "");
   const [category, setCategory] = useState(product.category || "");
-  const [photoUrl, setPhotoUrl] = useState<string | null>(
-    product.images[0]?.url || null
+  const initialImages = useMemo(
+    () => (product.images && product.images.length > 0 ? product.images.map((img) => img.url) : []),
+    [product.images]
   );
+  const [images, setImages] = useState<string[]>(initialImages);
+  const photoUrl = images[0] || null;
 
   // Variant items from product.variants
   const initialVariantItems: VariantItem[] = useMemo(() => {
@@ -169,13 +174,15 @@ export function EditProductScreen({
         }))
       );
 
+    const imagesChanged = JSON.stringify(images) !== JSON.stringify(initialImages);
+
     return (
       name !== product.name ||
       priceInput !== initialPriceNaira ||
       costInput !== initialCostNaira ||
       sku !== (product.sku || "") ||
       category !== (product.category || "") ||
-      photoUrl !== (product.images[0]?.url || null) ||
+      imagesChanged ||
       description !== ((product as any).description || "") ||
       lowStockThreshold !== (product.lowStockThreshold?.toString() || "") ||
       variantsChanged
@@ -186,7 +193,8 @@ export function EditProductScreen({
     costInput,
     sku,
     category,
-    photoUrl,
+    images,
+    initialImages,
     description,
     lowStockThreshold,
     variantItems,
@@ -217,13 +225,43 @@ export function EditProductScreen({
   const available = availableStock(onHand, reserved);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setPhotoUrl(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setSaveError(null);
+    const remainingSlots = 8 - images.length;
+    if (remainingSlots <= 0) {
+      setSaveError("Maximum of 8 photos allowed per product.");
+      return;
+    }
+    const filesToLoad = Array.from(files).slice(0, remainingSlots);
+    for (const file of filesToLoad) {
+      if (file.size > 5 * 1024 * 1024) {
+        setSaveError("Each image size must be less than 5MB");
+        continue;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setImages((prev) => (prev.length < 8 ? [...prev, result] : prev));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = "";
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const makeCoverImage = (index: number) => {
+    if (index === 0) return;
+    setImages((prev) => {
+      const copy = [...prev];
+      const [selected] = copy.splice(index, 1);
+      return [selected, ...copy];
+    });
   };
 
   const applyFormat = (type: "bold" | "italic" | "list") => {
@@ -273,7 +311,8 @@ export function EditProductScreen({
           category: category.trim() || null,
           description: description.trim() || null,
           lowStockThreshold: lowStockThreshold.trim() ? lowStockThreshold.trim() : null,
-          photoUrl: photoUrl || undefined,
+          photoUrl: images[0] || undefined,
+          images,
           variants: variantItems,
         }),
       });
@@ -433,32 +472,69 @@ export function EditProductScreen({
             />
           </div>
 
-          {/* 2. Photo Row */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 flex items-center justify-center flex-shrink-0">
-              {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <ImageIcon className="w-6 h-6 text-neutral-400" />
-              )}
-            </div>
-            <div>
-              <label className="text-sm font-bold text-[#00A859] hover:underline cursor-pointer block">
-                Edit photos
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
+          {/* 2. Photo Gallery (Up to 8) */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-bold text-neutral-900">
+                Photos {images.length > 0 && <span className="text-xs text-neutral-400 font-normal">({images.length}/8)</span>}
               </label>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Main image + extra photos
-              </p>
+              <span className="text-xs text-neutral-400 font-normal">Optional · up to 8</span>
+            </div>
+
+            <div className="flex items-start gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+              {/* Photo thumbnails */}
+              {images.map((img, idx) => (
+                <div key={idx} className="flex flex-col items-center flex-shrink-0 group relative">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 relative shadow-2xs">
+                    <img
+                      src={img}
+                      alt={`Product photo ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Delete X Button */}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer"
+                      title="Remove photo"
+                    >
+                      <X className="w-3 h-3 stroke-[2.5]" />
+                    </button>
+                    {/* Cover badge on index 0 */}
+                    {idx === 0 && (
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-[#00A859] text-white text-[9px] font-black uppercase tracking-wider shadow-xs">
+                        Cover
+                      </span>
+                    )}
+                  </div>
+                  {idx > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => makeCoverImage(idx)}
+                      className="text-[10px] text-neutral-500 hover:text-[#00A859] font-semibold mt-1 transition-colors cursor-pointer"
+                    >
+                      Make cover
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {/* Add photos card if less than 8 */}
+              {images.length < 8 && (
+                <label className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#00A859]/30 bg-[#F0FAF5] hover:bg-[#E8F8EF] flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs flex-shrink-0">
+                  <ImagePlus className="w-5 h-5 text-[#00A859]" />
+                  <span className="text-[10px] font-bold text-[#00A859]">
+                    {images.length === 0 ? "Add photo" : "Add more"}
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           </div>
 

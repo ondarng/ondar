@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { Eye, X } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { resolveTemplateId, STOREFRONT_TEMPLATES } from "@/lib/storefront-templates";
@@ -10,6 +11,7 @@ import {
 } from "@/components/storefront/customer/StorefrontCatalogClient";
 import { ElectronicsCatalogClient } from "@/components/storefront/customer/ElectronicsCatalogClient";
 import { FashionCatalogClient } from "@/components/storefront/customer/FashionCatalogClient";
+import { LuxeFashionCatalogClient } from "@/components/storefront/customer/LuxeFashionCatalogClient";
 import { FoodCatalogClient } from "@/components/storefront/customer/FoodCatalogClient";
 
 interface Props {
@@ -18,12 +20,48 @@ interface Props {
   }>;
   searchParams: Promise<{
     previewTemplate?: string;
+    classic?: string;
   }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const profile = await prisma.businessProfile.findUnique({
+    where: { slug },
+  });
+
+  if (!profile) {
+    return { title: "Store Not Found — Ondar" };
+  }
+
+  const title = `${profile.businessName} — Order Online`;
+  const description = profile.description || `Browse and order directly from ${profile.businessName}. Direct bank transfer with instant stock reservation.`;
+  const storeUrl = `https://${slug}.ondar.ng`;
+  const imageUrl = profile.logoUrl || "https://ondar.ng/ondar-logo.png";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: storeUrl,
+      siteName: profile.businessName,
+      images: [{ url: imageUrl, alt: profile.businessName }],
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
 }
 
 export default async function PublicStorefrontPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { previewTemplate } = await searchParams;
+  const { previewTemplate, classic } = await searchParams;
 
   const profile = await prisma.businessProfile.findUnique({
     where: { slug },
@@ -109,24 +147,49 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
           state={profile.state}
           whatsappNumber={profile.whatsappNumber}
           phoneNumber={profile.phoneNumber || undefined}
+          instagram={profile.instagram}
+          tiktok={profile.tiktok}
+          twitter={profile.twitter}
           returnPolicy={profile.returnPolicy}
           products={products}
           previewTemplate={previewTemplate}
         />
       ) : templateId === "fashion" ? (
-        <FashionCatalogClient
-          businessName={profile.businessName}
-          storeSlug={slug}
-          description={profile.description}
-          logoUrl={profile.logoUrl}
-          city={profile.city}
-          state={profile.state}
-          whatsappNumber={profile.whatsappNumber}
-          phoneNumber={profile.phoneNumber || undefined}
-          returnPolicy={profile.returnPolicy}
-          products={products}
-          previewTemplate={previewTemplate}
-        />
+        classic === "1" || classic === "true" ? (
+          <FashionCatalogClient
+            businessName={profile.businessName}
+            storeSlug={slug}
+            description={profile.description}
+            logoUrl={profile.logoUrl}
+            city={profile.city}
+            state={profile.state}
+            whatsappNumber={profile.whatsappNumber}
+            phoneNumber={profile.phoneNumber || undefined}
+            instagram={profile.instagram}
+            tiktok={profile.tiktok}
+            twitter={profile.twitter}
+            returnPolicy={profile.returnPolicy}
+            products={products}
+            previewTemplate={previewTemplate}
+          />
+        ) : (
+          <LuxeFashionCatalogClient
+            businessName={profile.businessName}
+            storeSlug={slug}
+            description={profile.description}
+            logoUrl={profile.logoUrl}
+            city={profile.city}
+            state={profile.state}
+            whatsappNumber={profile.whatsappNumber}
+            phoneNumber={profile.phoneNumber || undefined}
+            instagram={profile.instagram}
+            tiktok={profile.tiktok}
+            twitter={profile.twitter}
+            returnPolicy={profile.returnPolicy}
+            products={products}
+            previewTemplate={previewTemplate}
+          />
+        )
       ) : templateId === "electronics" ? (
         <ElectronicsCatalogClient
           businessName={profile.businessName}
@@ -137,6 +200,9 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
           state={profile.state}
           whatsappNumber={profile.whatsappNumber}
           phoneNumber={profile.phoneNumber || undefined}
+          instagram={profile.instagram}
+          tiktok={profile.tiktok}
+          twitter={profile.twitter}
           returnPolicy={profile.returnPolicy}
           products={products}
           previewTemplate={previewTemplate}
@@ -151,6 +217,9 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
           state={profile.state}
           whatsappNumber={profile.whatsappNumber}
           phoneNumber={profile.phoneNumber || undefined}
+          instagram={profile.instagram}
+          tiktok={profile.tiktok}
+          twitter={profile.twitter}
           returnPolicy={profile.returnPolicy}
           deliveryCoverage={profile.deliveryCoverage}
           products={products}

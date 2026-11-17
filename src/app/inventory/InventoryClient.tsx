@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   Check,
   ChevronDown,
+  Eye,
+  EyeOff,
   MoreVertical,
   Plus,
   Search,
@@ -99,6 +101,52 @@ export function InventoryClient({
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [showIntroGuide, setShowIntroGuide] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
+
+  // Eye toggle for Inventory Valuation (persisted in localStorage)
+  const [hideInventoryValue, setHideInventoryValue] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ondar_hide_inventory_value") === "true";
+    }
+    return false;
+  });
+
+  const toggleHideInventoryValue = () => {
+    setHideInventoryValue((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ondar_hide_inventory_value", String(next));
+      }
+      return next;
+    });
+  };
+
+  // Live computed total inventory value across products and variants
+  const { totalInventoryValueKobo, totalUnitsOnHand } = useMemo(() => {
+    let totalKobo = BigInt(0);
+    let totalUnits = 0;
+
+    for (const p of products) {
+      if (p.status === "ARCHIVED") continue;
+      if (p.variants && p.variants.length > 0) {
+        for (const v of p.variants) {
+          const qty = Math.max(0, typeof v.stockOnHand === "number" ? v.stockOnHand : parseInt(v.stockOnHand, 10) || 0);
+          totalUnits += qty;
+          const price = v.priceKobo ? BigInt(v.priceKobo) : BigInt(p.priceKobo || 0);
+          totalKobo += BigInt(qty) * price;
+        }
+      } else {
+        const qty = Math.max(0, p.stockOnHand || 0);
+        totalUnits += qty;
+        const price = BigInt(p.priceKobo || 0);
+        totalKobo += BigInt(qty) * price;
+      }
+    }
+
+    return {
+      totalInventoryValueKobo: totalKobo.toString(),
+      totalUnitsOnHand: totalUnits,
+    };
+  }, [products]);
 
   const storeSlug = useMemo(() => {
     try {
@@ -376,6 +424,37 @@ export function InventoryClient({
               <p className="text-sm text-neutral-400 mb-1">
                 {products.length} product{products.length === 1 ? "" : "s"}
               </p>
+            </div>
+
+            {/* Executive Inventory Valuation Card with Eye Toggle */}
+            <div className="mb-3.5 p-4 rounded-3xl bg-[#F0FAF5] border border-[#A7F3D0] shadow-2xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800">
+                  Total inventory value
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleHideInventoryValue}
+                  className="p-1 rounded-lg text-emerald-700 hover:text-emerald-950 hover:bg-emerald-200/50 transition-colors cursor-pointer"
+                  title={hideInventoryValue ? "Show inventory value" : "Hide inventory value"}
+                  aria-label="Toggle inventory value visibility"
+                >
+                  {hideInventoryValue ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+
+              <div className="flex items-baseline justify-between mt-0.5">
+                <p className="text-[24px] font-black tracking-tight text-neutral-900 leading-none">
+                  {hideInventoryValue ? "••••••••" : formatNairaFromKobo(totalInventoryValueKobo)}
+                </p>
+                <span className="text-[11px] font-bold text-neutral-500">
+                  {totalUnitsOnHand.toLocaleString()} {totalUnitsOnHand === 1 ? "unit" : "units"} on hand
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5 mb-4">

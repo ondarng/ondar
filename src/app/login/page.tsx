@@ -53,23 +53,38 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      // 1. Authenticate with Supabase Auth (battle-tested security & session management)
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setErrorMessage(data.error || "Incorrect email or password. Please check your details and try again.");
+      if (authError) {
+        setErrorMessage(
+          authError.message === "Invalid login credentials"
+            ? "Incorrect email or password. Please check your details and try again."
+            : authError.message
+        );
+        setIsLoading(false);
         return;
       }
 
-      // Full page reload on successful login to ensure fresh server session & cookie state
-      window.location.href = data.redirectTo || "/dashboard";
+      // 2. Synchronize session with Ondar merchant database
+      const syncRes = await fetch("/api/auth/sync-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: authData.user?.email || email.trim().toLowerCase(),
+          supabaseId: authData.user?.id,
+        }),
+      });
+
+      const syncData = await syncRes.json().catch(() => ({}));
+
+      // 3. Navigate straight to destination
+      window.location.href = syncData.redirectTo || "/dashboard";
     } catch {
-      setErrorMessage("Unable to connect to the server. Please check your internet connection.");
+      setErrorMessage("Unable to connect to the authentication service. Please check your connection.");
       setIsLoading(false);
     }
   };

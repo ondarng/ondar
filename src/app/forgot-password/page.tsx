@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { OndarLogo } from "@/components/OndarLogo";
+import { supabase } from "@/lib/supabase";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import {
   HelpCircle,
@@ -38,16 +39,16 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      const cleanEmail = email.trim().toLowerCase();
+      const redirectUrl =
+        typeof window !== "undefined" ? `${window.location.origin}/reset-password` : "";
+
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: redirectUrl,
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.success) {
-        setErrorMessage(data.error || "Unable to request password reset. Please try again.");
+      if (error) {
+        setErrorMessage(error.message);
         return;
       }
 

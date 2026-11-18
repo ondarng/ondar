@@ -76,7 +76,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push(data.redirectTo || "/onboarding");
+      window.location.href = data.redirectTo || "/onboarding";
     } catch {
       setErrorMessage("Unable to connect to the server. Please check your internet connection.");
     } finally {

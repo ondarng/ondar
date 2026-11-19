@@ -201,17 +201,18 @@ export default function PaymentSettingsPage() {
 
       <main className="w-full max-w-[500px] mx-auto px-4 pt-5 space-y-5">
         {/* Banner Explaining BYOK Model */}
-        <div className="bg-[#E8F8EF] border border-[#A7F3D0] rounded-2xl p-4.5 space-y-2">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4.5 space-y-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#00A859] flex-shrink-0" />
-            <h2 className="font-bold text-sm text-neutral-900">
-              Direct Paystack Settlement (BYOK)
+            <ShieldCheck className="w-5 h-5 text-amber-700 flex-shrink-0" />
+            <h2 className="font-bold text-sm text-neutral-900 flex items-center gap-2">
+              <span>Direct Paystack Settlement (BYOK)</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800">
+                Coming Soon
+              </span>
             </h2>
           </div>
           <p className="text-xs text-neutral-600 leading-relaxed">
-            Connect your own Paystack account so payments settle directly into your bank
-            account. Ondar acts as your checkout manager and takes an automatic 1% platform fee
-            via Paystack split.
+            Bring Your Own Keys (BYOK) lets you connect your personal or corporate Paystack account so card payments settle directly into your bank account. This feature is in active beta and will be enabled for your store soon.
           </p>
         </div>
 

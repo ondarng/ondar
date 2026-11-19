@@ -17,7 +17,6 @@ import {
   KeyRound,
   Link2,
   LogOut,
-  MapPin,
   Settings,
   Share2,
   ShieldCheck,
@@ -220,7 +219,7 @@ export function MoreMenuScreen({
                     <p className="text-sm font-bold text-neutral-900 group-hover:text-[#00A859] transition-colors">
                       Storefront Templates
                     </p>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E6F7EF] text-[#00A859]">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 border border-amber-200 text-amber-800">
                       New Tech Theme
                     </span>
                   </div>
@@ -348,11 +347,11 @@ export function MoreMenuScreen({
                       Paystack Online Payments
                     </p>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E6F7EF] text-[#00A859]">
-                      Live BYOK
+                      Coming Soon
                     </span>
                   </div>
                   <p className="text-xs text-neutral-500 mt-0.5 font-normal truncate">
-                    API keys, Ondar 1% subaccount & fee bearer
+                    Custom keys & card checkout (Coming soon)
                   </p>
                 </div>
               </div>
@@ -402,28 +401,7 @@ export function MoreMenuScreen({
                     Shipping & Delivery
                   </p>
                   <p className="text-xs text-neutral-500 mt-0.5 font-normal truncate">
-                    Set up delivery rates and options
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-700 transition-colors flex-shrink-0" />
-            </Link>
-
-            {/* Delivery zones */}
-            <Link
-              href="/settings/shipping"
-              className="w-full text-left p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-[#E8F8EF] flex items-center justify-center text-[#00A859] flex-shrink-0">
-                  <MapPin className="w-5 h-5 stroke-[2]" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-neutral-900 group-hover:text-[#00A859] transition-colors">
-                    Delivery zones
-                  </p>
-                  <p className="text-xs text-neutral-500 mt-0.5 font-normal truncate">
-                    Manage states and areas
+                    Delivery rates, states, and coverage zones
                   </p>
                 </div>
               </div>

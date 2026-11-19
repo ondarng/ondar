@@ -48,7 +48,16 @@ export default function ForgotPasswordPage() {
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        if (
+          error.message?.toLowerCase().includes("recovery email") ||
+          error.message?.toLowerCase().includes("rate limit")
+        ) {
+          setErrorMessage(
+            "Email service rate limit reached. Please message our support on WhatsApp below for instant account verification and password reset."
+          );
+        } else {
+          setErrorMessage(error.message);
+        }
         return;
       }
 

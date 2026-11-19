@@ -13,8 +13,12 @@ function canRunOrderAction(order: {
 }, action: unknown) {
   switch (action) {
     case "CONFIRM_PAYMENT":
-      return order.paymentStatus === "AWAITING_PAYMENT" &&
-        (order.orderStatus === "AWAITING_PAYMENT" || order.orderStatus === "PAYMENT_SENT");
+      // Vendors can confirm payment on AWAITING_PAYMENT, PAYMENT_SENT, or even if an expired order was CANCELLED
+      // (e.g. customer paid after the 2-hour hold expired, vendor still wants to accept and fulfil)
+      return (
+        order.paymentStatus === "AWAITING_PAYMENT" &&
+        ["AWAITING_PAYMENT", "PAYMENT_SENT", "CANCELLED"].includes(order.orderStatus)
+      );
     case "MARK_READY_FOR_PICKUP":
       return order.paymentStatus === "PAID" && order.deliveryType === "pickup" && order.orderStatus === "TO_FULFIL";
     case "MARK_OUT_FOR_DELIVERY":
@@ -186,7 +190,8 @@ export async function PATCH(
     if (action === "CONFIRM_PAYMENT") {
       // Manual bank transfer confirmation by vendor
       await prisma.$transaction(async (tx) => {
-        // 1. Commit stock reduction from reserved
+        // 1. Commit stock reduction
+        const wasCancelled = order.orderStatus === "CANCELLED";
         for (const line of order.lines) {
           const product = await tx.product.findFirst({ where: { id: line.productId, merchantId: merchant.id } });
           if (product) {
@@ -194,12 +199,16 @@ export async function PATCH(
             const beforeReserved = product.stockReserved;
             const beforeAvailable = Math.max(0, beforeOnHand - beforeReserved);
 
+            // If order was previously CANCELLED (e.g. hold expired), stock was already un-reserved,
+            // so we directly deduct from stockOnHand without double-decrementing stockReserved.
             const afterOnHand = Math.max(0, beforeOnHand - line.quantity);
-            const afterReserved = Math.max(0, beforeReserved - line.quantity);
+            const afterReserved = wasCancelled
+              ? beforeReserved
+              : Math.max(0, beforeReserved - line.quantity);
             const afterAvailable = Math.max(0, afterOnHand - afterReserved);
 
             await tx.product.update({
-            where: { id: product.id },
+              where: { id: product.id },
               data: {
                 stockOnHand: afterOnHand,
                 stockReserved: afterReserved,

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { getCustomCheckoutUrl } from "@/lib/urls";
 import {
   X,
   Plus,
@@ -133,7 +134,7 @@ export function CustomCheckoutModal({
 
       const data = await res.json();
       if (res.ok) {
-        const fullLink = `${window.location.origin}${data.checkoutUrl}`;
+        const fullLink = data.fullCheckoutUrl || (data.checkoutUrl && data.checkoutUrl.startsWith("http") ? data.checkoutUrl : getCustomCheckoutUrl(storeSlug, data.token).fullUrl);
         setCreatedUrl(fullLink);
       } else {
         alert(data.error || "Failed to create link");

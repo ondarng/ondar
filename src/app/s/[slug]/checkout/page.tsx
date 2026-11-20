@@ -30,7 +30,8 @@ export default async function PublicCheckoutPage({ params }: Props) {
     where: { merchantId: profile.merchantId },
   });
 
-  const hasPaystack = !!(paymentConfig && paymentConfig.isActive);
+  // BYOK is coming soon - no active card checkout
+  const hasPaystack = false;
 
   const bankDetails =
     payoutAccount && payoutAccount.accountNumber

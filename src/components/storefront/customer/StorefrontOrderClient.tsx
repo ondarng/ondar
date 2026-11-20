@@ -25,6 +25,8 @@ import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { CartProvider } from "@/context/StorefrontCartContext";
 import { StorefrontHeader } from "./StorefrontHeader";
 import { StorefrontFooter } from "./StorefrontFooter";
+import { StorefrontSocialLinks } from "../StorefrontSocialLinks";
+import { getOrderTrackingUrl } from "@/lib/urls";
 import {
   formatToWhatsappNumber,
   formatNigerianDisplayPhone,
@@ -81,9 +83,14 @@ interface StorefrontOrderClientProps {
   businessName: string;
   storeSlug: string;
   city?: string;
+  state?: string;
   tagline?: string | null;
   whatsappNumber?: string;
   phoneNumber?: string;
+  instagram?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
+  returnPolicy?: string | null;
   pickupAddress?: string;
   pickupInstructions?: string;
   logoUrl?: string | null;
@@ -103,9 +110,14 @@ function OrderContent({
   businessName,
   storeSlug,
   city = "Lagos",
+  state = "Nigeria",
   tagline,
   whatsappNumber,
   phoneNumber,
+  instagram,
+  tiktok,
+  twitter,
+  returnPolicy,
   pickupAddress,
   pickupInstructions,
   logoUrl,
@@ -825,7 +837,7 @@ function OrderContent({
                 type="button"
                 onClick={() =>
                   copyToClipboard(
-                    `${typeof window !== "undefined" ? window.location.origin : ""}/s/${storeSlug}/order/${order.publicToken}`,
+                    getOrderTrackingUrl(storeSlug, order.publicToken).fullUrl,
                     "orderLink"
                   )
                 }

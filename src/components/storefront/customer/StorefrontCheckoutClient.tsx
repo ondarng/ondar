@@ -28,6 +28,7 @@ import { ShippingStateRate } from "@/lib/shipping";
 import { ChooseDeliveryAreaModal, DeliveryAreaOption } from "./ChooseDeliveryAreaModal";
 import { InteractivePickupMap } from "./InteractivePickupMap";
 import { getAllStateNames } from "@/lib/nigeriaData";
+import { getOrderTrackingUrl } from "@/lib/urls";
 import {
   formatToWhatsappNumber,
   formatNigerianDisplayPhone,
@@ -909,7 +910,7 @@ function CheckoutContent({
                       type="button"
                       onClick={() =>
                         copyToClipboard(
-                          `${typeof window !== "undefined" ? window.location.origin : ""}/s/${storeSlug}/order/${publicToken}`,
+                          getOrderTrackingUrl(storeSlug, publicToken).fullUrl,
                           "trackingLink"
                         )
                       }

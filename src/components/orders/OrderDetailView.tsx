@@ -26,6 +26,7 @@ import {
   Info,
 } from "lucide-react";
 import { formatToWhatsappNumber, getWhatsappChatUrl } from "@/lib/phone";
+import { getOrderTrackingUrl } from "@/lib/urls";
 
 export interface OrderItemLine {
   id: string;
@@ -139,9 +140,7 @@ export function OrderDetailView({
     return `₦${val.toLocaleString()}`;
   };
 
-  const paymentLink = `${
-    typeof window !== "undefined" ? window.location.origin : ""
-  }/s/${storeSlug}/order/${order.publicToken}`;
+  const paymentLink = getOrderTrackingUrl(storeSlug, order.publicToken).fullUrl;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(paymentLink);

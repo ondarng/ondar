@@ -18,6 +18,7 @@ import {
 import { MerchantBottomNav } from "@/components/merchant/MerchantBottomNav";
 import { OrderFiltersDrawer, OrderFilterState } from "./OrderFiltersDrawer";
 import { OrderDetailView, OrderDetailData } from "./OrderDetailView";
+import { getStoreUrls } from "@/lib/urls";
 
 interface OrdersClientProps {
   storeSlug: string;
@@ -155,7 +156,7 @@ export function OrdersClient({ storeSlug, initialOrders, initialCounts }: Orders
   };
 
   const handleShareShopLink = () => {
-    const storeUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/s/${storeSlug}`;
+    const storeUrl = getStoreUrls(storeSlug).fullStore;
     navigator.clipboard.writeText(storeUrl);
     setCopiedShopLink(true);
     setTimeout(() => setCopiedShopLink(false), 2000);

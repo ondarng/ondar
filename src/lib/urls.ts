@@ -81,6 +81,64 @@ export function getStoreUrls(
 }
 
 /**
+ * Generates custom checkout URLs using subdomain in production ([slug].ondar.ng/checkout?custom=...)
+ * and path prefix in development (localhost:3000/s/[slug]/checkout?custom=...).
+ */
+export function getCustomCheckoutUrl(
+  slug: string,
+  token: string,
+  serverHost?: string,
+  serverProto?: string
+) {
+  const cleanSlug = (slug || "shop").toLowerCase().trim().replace(/[^a-z0-9-]/g, "") || "shop";
+  const urls = getStoreUrls(cleanSlug, undefined, serverHost, serverProto);
+
+  if (!urls.isLocalhost) {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "ondar.ng";
+    return {
+      isLocalhost: false,
+      displayUrl: `${cleanSlug}.${rootDomain}/checkout?custom=${token}`,
+      fullUrl: `https://${cleanSlug}.${rootDomain}/checkout?custom=${token}`,
+    };
+  }
+
+  return {
+    isLocalhost: true,
+    displayUrl: `${urls.displayStore}/checkout?custom=${token}`,
+    fullUrl: `${urls.fullStore}/checkout?custom=${token}`,
+  };
+}
+
+/**
+ * Generates customer order tracking / receipt URLs using subdomain in production ([slug].ondar.ng/order/...)
+ * and path prefix in development (localhost:3000/s/[slug]/order/...).
+ */
+export function getOrderTrackingUrl(
+  slug: string,
+  publicToken: string,
+  serverHost?: string,
+  serverProto?: string
+) {
+  const cleanSlug = (slug || "shop").toLowerCase().trim().replace(/[^a-z0-9-]/g, "") || "shop";
+  const urls = getStoreUrls(cleanSlug, undefined, serverHost, serverProto);
+
+  if (!urls.isLocalhost) {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "ondar.ng";
+    return {
+      isLocalhost: false,
+      displayUrl: `${cleanSlug}.${rootDomain}/order/${publicToken}`,
+      fullUrl: `https://${cleanSlug}.${rootDomain}/order/${publicToken}`,
+    };
+  }
+
+  return {
+    isLocalhost: true,
+    displayUrl: `${urls.displayStore}/order/${publicToken}`,
+    fullUrl: `${urls.fullStore}/order/${publicToken}`,
+  };
+}
+
+/**
  * Accurately determines the request origin across Localhost, Vercel preview, and Production.
  * Prioritizes x-forwarded-host and x-forwarded-proto so redirects and callbacks never send
  * users to internal proxy hosts or localhost when deployed on production or preview environments.

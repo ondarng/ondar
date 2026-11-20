@@ -111,9 +111,14 @@ export default async function PublicOrderPage({ params, searchParams }: Props) {
       businessName={profile.businessName}
       storeSlug={slug}
       city={profile.city}
+      state={profile.state}
       tagline={profile.description}
       whatsappNumber={profile.whatsappNumber}
       phoneNumber={profile.phoneNumber || undefined}
+      instagram={profile.instagram}
+      tiktok={profile.tiktok}
+      twitter={profile.twitter}
+      returnPolicy={profile.returnPolicy}
       pickupAddress={pickupAddress || undefined}
       pickupInstructions={pickupInstructions || undefined}
       logoUrl={profile.logoUrl}

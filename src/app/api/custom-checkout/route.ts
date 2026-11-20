@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentMerchant } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCustomCheckoutUrl } from "@/lib/urls";
 
 export async function POST(req: NextRequest) {
   try {
@@ -93,12 +94,16 @@ export async function POST(req: NextRequest) {
     });
 
     const storeSlug = profile?.slug || "shop";
-    const checkoutUrl = `/s/${storeSlug}/checkout?custom=${link.token}`;
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+    const proto = req.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+    const linkUrls = getCustomCheckoutUrl(storeSlug, link.token, host, proto);
 
     return NextResponse.json({
       success: true,
       token: link.token,
-      checkoutUrl,
+      checkoutUrl: linkUrls.fullUrl,
+      fullCheckoutUrl: linkUrls.fullUrl,
+      displayCheckoutUrl: linkUrls.displayUrl,
       expiresAt: link.expiresAt.toISOString(),
       totalKobo: link.totalKobo.toString(),
     });

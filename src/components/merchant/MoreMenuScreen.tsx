@@ -139,8 +139,7 @@ export function MoreMenuScreen({
                   </div>
 
                   <div className="py-1">
-                    <Link
-                      href="/settings/profile"
+                    <Link prefetch={true} href="/settings/profile"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-50 rounded-xl"
                     >
@@ -179,8 +178,7 @@ export function MoreMenuScreen({
         </header>
 
         {/* 1. Top Business Profile Card */}
-        <Link
-          href="/settings/profile"
+        <Link prefetch={true} href="/settings/profile"
           className="rounded-2xl border border-neutral-200/90 bg-white p-3.5 flex items-center justify-between shadow-2xs hover:border-[#00A859]/50 transition-all group mb-2"
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -206,8 +204,7 @@ export function MoreMenuScreen({
           </p>
           <div className="rounded-2xl border border-neutral-200/90 bg-white divide-y divide-neutral-100 overflow-hidden shadow-2xs">
             {/* Storefront & Website */}
-            <Link
-              href="/settings/templates"
+            <Link prefetch={true} href="/settings/templates"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -232,8 +229,7 @@ export function MoreMenuScreen({
             </Link>
 
             {/* Share store link */}
-            <Link
-              href="/storefront?view=share"
+            <Link prefetch={true} href="/storefront?view=share"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -261,8 +257,7 @@ export function MoreMenuScreen({
           </p>
           <div className="rounded-2xl border border-neutral-200/90 bg-white divide-y divide-neutral-100 overflow-hidden shadow-2xs">
             {/* Customers */}
-            <Link
-              href="/customers"
+            <Link prefetch={true} href="/customers"
               className="w-full text-left p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -282,8 +277,7 @@ export function MoreMenuScreen({
             </Link>
 
             {/* Sales & Analytics */}
-            <Link
-              href="/dashboard"
+            <Link prefetch={true} href="/dashboard"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -333,8 +327,7 @@ export function MoreMenuScreen({
           </p>
           <div className="rounded-2xl border border-neutral-200/90 bg-white divide-y divide-neutral-100 overflow-hidden shadow-2xs">
             {/* Paystack Integration */}
-            <Link
-              href="/settings/payments"
+            <Link prefetch={true} href="/settings/payments"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -359,8 +352,7 @@ export function MoreMenuScreen({
             </Link>
 
             {/* Bank details & Payouts */}
-            <Link
-              href="/settings/payouts"
+            <Link prefetch={true} href="/settings/payouts"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -388,8 +380,7 @@ export function MoreMenuScreen({
           </p>
           <div className="rounded-2xl border border-neutral-200/90 bg-white divide-y divide-neutral-100 overflow-hidden shadow-2xs">
             {/* Shipping & Delivery */}
-            <Link
-              href="/settings/shipping"
+            <Link prefetch={true} href="/settings/shipping"
               className="w-full text-left p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -417,8 +408,7 @@ export function MoreMenuScreen({
           </p>
           <div className="rounded-2xl border border-neutral-200/90 bg-white divide-y divide-neutral-100 overflow-hidden shadow-2xs">
             {/* Business settings */}
-            <Link
-              href="/settings/profile"
+            <Link prefetch={true} href="/settings/profile"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">

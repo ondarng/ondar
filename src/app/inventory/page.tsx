@@ -25,15 +25,23 @@ export default async function InventoryPage() {
   const location = business?.state ? `${business.city ? business.city + ", " : ""}${business.state}` : "Nigeria";
   const initials = businessInitials(businessName);
 
-  // 1. Fetch real products for this merchant
-  const rawProducts = await prisma.product.findMany({
-    where: { merchantId: merchant.id },
-    include: {
-      images: { orderBy: { position: "asc" } },
-      variants: { orderBy: { createdAt: "asc" } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  // Concurrently fetch real products and pending badge count
+  const [rawProducts, pendingCount] = await Promise.all([
+    prisma.product.findMany({
+      where: { merchantId: merchant.id },
+      include: {
+        images: { orderBy: { position: "asc" } },
+        variants: { orderBy: { createdAt: "asc" } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.order.count({
+      where: {
+        merchantId: merchant.id,
+        paymentStatus: "AWAITING_PAYMENT",
+      },
+    }),
+  ]);
 
   const products: InventoryProduct[] = rawProducts.map((p) => ({
     id: p.id,
@@ -56,14 +64,6 @@ export default async function InventoryPage() {
       costKobo: v.costKobo ? v.costKobo.toString() : null,
     })),
   }));
-
-  // 2. Pending orders count for bottom nav badge
-  const pendingCount = await prisma.order.count({
-    where: {
-      merchantId: merchant.id,
-      paymentStatus: "AWAITING_PAYMENT",
-    },
-  });
 
   return (
     <InventoryClient

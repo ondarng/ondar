@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import "./globals.css";
 import { VersionSync } from "@/components/VersionSync";
+import { RouteProgressBar } from "@/components/RouteProgressBar";
 
 const geistSans = localFont({
   src: "./fonts/geist-latin.woff2",
@@ -31,6 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-screen bg-[#FDFDFD] text-neutral-900 antialiased">
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         <VersionSync />
         {children}
       </body>

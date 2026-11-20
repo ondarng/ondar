@@ -411,8 +411,7 @@ export function DashboardClient({
                       <p className="text-[11px] text-neutral-500 truncate">{merchantEmail}</p>
                     </div>
 
-                    <Link
-                      href="/settings/profile"
+                    <Link prefetch={true} href="/settings/profile"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="w-full px-4 py-2.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors"
                     >
@@ -420,8 +419,7 @@ export function DashboardClient({
                       <span>Business Profile</span>
                     </Link>
 
-                    <Link
-                      href="/settings/payouts/reauth/password"
+                    <Link prefetch={true} href="/settings/payouts/reauth/password"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="w-full px-4 py-2.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors"
                     >
@@ -429,8 +427,7 @@ export function DashboardClient({
                       <span>Payout Settings</span>
                     </Link>
 
-                    <Link
-                      href="/settings/payments"
+                    <Link prefetch={true} href="/settings/payments"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="w-full px-4 py-2.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5 transition-colors"
                     >
@@ -809,8 +806,7 @@ export function DashboardClient({
             </div>
 
             {/* Card 2: New orders */}
-            <Link
-              href="/orders"
+            <Link prefetch={true} href="/orders"
               className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 transition-colors flex flex-col justify-between group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -829,8 +825,7 @@ export function DashboardClient({
             </Link>
 
             {/* Card 3: Low stock */}
-            <Link
-              href="/inventory"
+            <Link prefetch={true} href="/inventory"
               className="p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 transition-colors flex flex-col justify-between group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -995,8 +990,7 @@ export function DashboardClient({
             </button>
 
             {/* Action 2: View orders */}
-            <Link
-              href="/orders"
+            <Link prefetch={true} href="/orders"
               className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -1014,8 +1008,7 @@ export function DashboardClient({
             </Link>
 
             {/* Action 3: Record sale */}
-            <Link
-              href="/orders/record"
+            <Link prefetch={true} href="/orders/record"
               className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -1031,8 +1024,7 @@ export function DashboardClient({
             </Link>
 
             {/* Action 4: Inventory */}
-            <Link
-              href="/inventory"
+            <Link prefetch={true} href="/inventory"
               className="p-3.5 rounded-2xl bg-white border border-neutral-200/80 shadow-2xs hover:bg-neutral-50 text-left flex items-center justify-between transition-all group"
             >
               <div className="flex items-center gap-3">

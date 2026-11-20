@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "ondar_session";
@@ -78,7 +79,11 @@ export async function clearSessionCookie() {
   cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
-export async function getCurrentMerchant() {
+/**
+ * Deduplicated per-request merchant resolver.
+ * Multiple layout/page calls within a single render pass share the same database query.
+ */
+export const getCurrentMerchant = cache(async () => {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
@@ -103,4 +108,4 @@ export async function getCurrentMerchant() {
   } catch {
     return null;
   }
-}
+});

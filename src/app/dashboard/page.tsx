@@ -49,18 +49,18 @@ export default async function DashboardPage() {
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-  // 1. Fetch real orders for this merchant
-  const orders = await prisma.order.findMany({
-    where: { merchantId: merchant.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  // 2. Fetch real products for this merchant
-  const products = await prisma.product.findMany({
-    where: { merchantId: merchant.id },
-    include: { images: { orderBy: { position: "asc" } } },
-    orderBy: { createdAt: "desc" },
-  });
+  // Concurrently fetch real orders and products for this merchant
+  const [orders, products] = await Promise.all([
+    prisma.order.findMany({
+      where: { merchantId: merchant.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.product.findMany({
+      where: { merchantId: merchant.id },
+      include: { images: { orderBy: { position: "asc" } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   // 3. Paid orders & revenue calculations
   const paidOrders = orders.filter((o) => o.paymentStatus === "PAID");

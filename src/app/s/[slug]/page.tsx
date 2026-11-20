@@ -1,4 +1,4 @@
-import React from "react";
+import React, { cache } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
@@ -24,11 +24,29 @@ interface Props {
   }>;
 }
 
+const getStoreProfile = cache(async (slug: string) => {
+  return prisma.businessProfile.findUnique({
+    where: { slug },
+    include: {
+      merchant: {
+        include: {
+          products: {
+            where: { status: "ACTIVE" },
+            include: {
+              images: { orderBy: { position: "asc" } },
+              variants: { orderBy: { createdAt: "asc" } },
+            },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+      },
+    },
+  });
+});
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const profile = await prisma.businessProfile.findUnique({
-    where: { slug },
-  });
+  const profile = await getStoreProfile(slug);
 
   if (!profile) {
     return { title: "Store Not Found — Ondar" };
@@ -63,23 +81,7 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
   const { slug } = await params;
   const { previewTemplate, classic } = await searchParams;
 
-  const profile = await prisma.businessProfile.findUnique({
-    where: { slug },
-    include: {
-      merchant: {
-        include: {
-          products: {
-            where: { status: "ACTIVE" },
-            include: {
-              images: { orderBy: { position: "asc" } },
-              variants: { orderBy: { createdAt: "asc" } },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-        },
-      },
-    },
-  });
+  const profile = await getStoreProfile(slug);
 
   if (!profile) {
     notFound();

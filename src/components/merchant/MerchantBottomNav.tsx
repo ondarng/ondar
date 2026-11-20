@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Menu, Package, Settings, ShoppingBag } from "lucide-react";
 
@@ -16,35 +17,50 @@ export function MerchantBottomNav({
   pendingBadgeCount = 0,
   onMore,
 }: MerchantBottomNavProps) {
+  const [optimisticTab, setOptimisticTab] = useState<MerchantTab | null>(null);
+
+  // Synchronize optimistic tab with authoritative route state
+  useEffect(() => {
+    setOptimisticTab(null);
+  }, [active]);
+
+  const currentTab = optimisticTab || active;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80">
       <div className="w-full max-w-[430px] mx-auto flex items-center justify-between px-6 py-2.5">
         <Link
           href="/dashboard"
-          className={`flex flex-col items-center gap-1 transition-colors ${
-            active === "home" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+          prefetch={true}
+          onClick={() => setOptimisticTab("home")}
+          className={`flex flex-col items-center gap-1 transition-colors active:scale-95 ${
+            currentTab === "home" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
           }`}
         >
           <Home className="w-5 h-5" />
-          <span className={`text-[11px] ${active === "home" ? "font-bold" : "font-medium"}`}>Home</span>
+          <span className={`text-[11px] ${currentTab === "home" ? "font-bold" : "font-medium"}`}>Home</span>
         </Link>
 
         <Link
           href="/inventory"
-          className={`flex flex-col items-center gap-1 transition-colors ${
-            active === "products" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+          prefetch={true}
+          onClick={() => setOptimisticTab("products")}
+          className={`flex flex-col items-center gap-1 transition-colors active:scale-95 ${
+            currentTab === "products" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
           }`}
         >
           <Package className="w-5 h-5" />
-          <span className={`text-[11px] ${active === "products" ? "font-bold" : "font-medium"}`}>
+          <span className={`text-[11px] ${currentTab === "products" ? "font-bold" : "font-medium"}`}>
             Products
           </span>
         </Link>
 
         <Link
           href="/orders"
-          className={`flex flex-col items-center gap-1 transition-colors relative ${
-            active === "orders" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+          prefetch={true}
+          onClick={() => setOptimisticTab("orders")}
+          className={`flex flex-col items-center gap-1 transition-colors relative active:scale-95 ${
+            currentTab === "orders" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
           }`}
         >
           <div className="relative">
@@ -55,19 +71,21 @@ export function MerchantBottomNav({
               </span>
             )}
           </div>
-          <span className={`text-[11px] ${active === "orders" ? "font-bold" : "font-medium"}`}>
+          <span className={`text-[11px] ${currentTab === "orders" ? "font-bold" : "font-medium"}`}>
             Orders
           </span>
         </Link>
 
         <Link
           href="/settings/profile"
-          className={`flex flex-col items-center gap-1 transition-colors ${
-            active === "settings" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+          prefetch={true}
+          onClick={() => setOptimisticTab("settings")}
+          className={`flex flex-col items-center gap-1 transition-colors active:scale-95 ${
+            currentTab === "settings" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
           }`}
         >
           <Settings className="w-5 h-5" />
-          <span className={`text-[11px] ${active === "settings" ? "font-bold" : "font-medium"}`}>
+          <span className={`text-[11px] ${currentTab === "settings" ? "font-bold" : "font-medium"}`}>
             Settings
           </span>
         </Link>
@@ -75,23 +93,28 @@ export function MerchantBottomNav({
         {onMore ? (
           <button
             type="button"
-            onClick={onMore}
-            className={`flex flex-col items-center gap-1 transition-colors cursor-pointer ${
-              active === "more" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+            onClick={() => {
+              setOptimisticTab("more");
+              onMore();
+            }}
+            className={`flex flex-col items-center gap-1 transition-colors cursor-pointer active:scale-95 ${
+              currentTab === "more" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
             }`}
           >
             <Menu className="w-5 h-5" />
-            <span className={`text-[11px] ${active === "more" ? "font-bold" : "font-medium"}`}>More</span>
+            <span className={`text-[11px] ${currentTab === "more" ? "font-bold" : "font-medium"}`}>More</span>
           </button>
         ) : (
           <Link
             href="/more"
-            className={`flex flex-col items-center gap-1 transition-colors cursor-pointer ${
-              active === "more" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
+            prefetch={true}
+            onClick={() => setOptimisticTab("more")}
+            className={`flex flex-col items-center gap-1 transition-colors cursor-pointer active:scale-95 ${
+              currentTab === "more" ? "text-[#00A859]" : "text-neutral-500 hover:text-neutral-900"
             }`}
           >
             <Menu className="w-5 h-5" />
-            <span className={`text-[11px] ${active === "more" ? "font-bold" : "font-medium"}`}>More</span>
+            <span className={`text-[11px] ${currentTab === "more" ? "font-bold" : "font-medium"}`}>More</span>
           </Link>
         )}
       </div>

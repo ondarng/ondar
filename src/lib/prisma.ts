@@ -56,12 +56,12 @@ function createPrismaClient() {
       password: dbConfig.password,
       database: dbConfig.database,
       ssl: { rejectUnauthorized: false },
-      min: 0, // PgBouncer / Supabase Pooler drops idle sockets; do not force idle connections
+      min: 1, // Keep at least 1 warm socket alive so merchant clicks never stall on 1.8s cold handshakes
       max: 10,
-      idleTimeoutMillis: 15000, // Discard idle sockets after 15s before PgBouncer severs them
-      connectionTimeoutMillis: 15000,
+      idleTimeoutMillis: 120000, // Keep idle sockets warm for 2 minutes across page transitions
+      connectionTimeoutMillis: 10000,
       keepAlive: true,
-      keepAliveInitialDelayMillis: 10000,
+      keepAliveInitialDelayMillis: 5000,
     });
 
   pool.on("error", (err) => {
@@ -105,10 +105,11 @@ function createPrismaClient() {
                 errObj?.message?.includes("timeout");
 
               if (isConnectionError && attempt < 3) {
+                const backoffMs = attempt === 1 ? 50 : 150;
                 console.warn(
-                  `[Prisma] Connection retry ${attempt}/3 for ${model}.${operation} in ${attempt * 300}ms...`
+                  `[Prisma] Connection retry ${attempt}/3 for ${model}.${operation} in ${backoffMs}ms...`
                 );
-                await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+                await new Promise((resolve) => setTimeout(resolve, backoffMs));
                 continue;
               }
               throw err;

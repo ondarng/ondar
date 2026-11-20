@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -21,14 +21,18 @@ import { OrderDetailView, OrderDetailData } from "./OrderDetailView";
 
 interface OrdersClientProps {
   storeSlug: string;
+  initialOrders?: OrderDetailData[];
+  initialCounts?: { total: number; needsAttention: number };
 }
 
-export function OrdersClient({ storeSlug }: OrdersClientProps) {
+export function OrdersClient({ storeSlug, initialOrders, initialCounts }: OrdersClientProps) {
   const [activeTab, setActiveTab] = useState<"all" | "needs_attention">("all");
   const [search, setSearch] = useState("");
-  const [orders, setOrders] = useState<OrderDetailData[]>([]);
-  const [counts, setCounts] = useState({ total: 0, needsAttention: 0 });
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<OrderDetailData[]>(initialOrders || []);
+  const [counts, setCounts] = useState(initialCounts || { total: 0, needsAttention: 0 });
+  const [loading, setLoading] = useState(!initialOrders);
+  const isFirstMount = useRef(Boolean(initialOrders));
+  const isSearchFirstMount = useRef(true);
   const [hasNetworkError, setHasNetworkError] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetailData | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -108,10 +112,18 @@ export function OrdersClient({ storeSlug }: OrdersClientProps) {
   };
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     loadOrders();
   }, [activeTab, filters]);
 
   useEffect(() => {
+    if (isSearchFirstMount.current) {
+      isSearchFirstMount.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       loadOrders();
     }, 300);

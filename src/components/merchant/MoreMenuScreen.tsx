@@ -277,7 +277,7 @@ export function MoreMenuScreen({
             </Link>
 
             {/* Sales & Analytics */}
-            <Link prefetch={true} href="/dashboard"
+            <Link prefetch={true} href="/analytics"
               className="p-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">

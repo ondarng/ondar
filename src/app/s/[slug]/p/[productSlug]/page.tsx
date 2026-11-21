@@ -10,6 +10,7 @@ import { FashionProductClient } from "@/components/storefront/customer/FashionPr
 import { LuxeFashionProductClient } from "@/components/storefront/customer/LuxeFashionProductClient";
 import { FoodProductClient } from "@/components/storefront/customer/FoodProductClient";
 import { ElectronicsProductClient } from "@/components/storefront/customer/ElectronicsProductClient";
+import { StorefrontBeacon } from "@/components/storefront/StorefrontBeacon";
 
 interface Props {
   params: Promise<{
@@ -160,6 +161,7 @@ export default async function PublicProductPage({ params, searchParams }: Props)
 
   return (
     <>
+      <StorefrontBeacon slug={slug} />
       {previewBanner}
       {templateId === "food" ? (
         <FoodProductClient

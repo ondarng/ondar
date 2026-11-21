@@ -73,6 +73,7 @@ model Merchant {
   customCheckoutLinks CustomCheckoutLink[]
   shippingRates   ShippingRate[]
   orderCounter    OrderCounter?
+  storeVisits     StoreVisit[]
 }
 
 model BusinessProfile {
@@ -394,4 +395,20 @@ model ShippingRate {
 
   @@index([merchantId])
   @@index([parentId])
+}
+
+
+model StoreVisit {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  visitorId  String
+  path       String
+  referrer   String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([merchantId, createdAt])
+  @@index([merchantId, referrer])
+  @@index([merchantId, visitorId])
 }

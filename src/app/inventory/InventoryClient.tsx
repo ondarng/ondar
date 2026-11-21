@@ -20,6 +20,8 @@ import { InventoryIntroScreen } from "@/components/inventory/InventoryIntroScree
 import { AddProductFlow } from "@/components/inventory/AddProductFlow";
 import { ProductDetailsScreen } from "@/components/inventory/ProductDetailsScreen";
 import { CustomCheckoutModal } from "@/components/inventory/CustomCheckoutModal";
+import { BulkUploadModal } from "@/components/inventory/BulkUploadModal";
+import { FileSpreadsheet } from "lucide-react";
 import { Link2 } from "lucide-react";
 import {
   availableStock,
@@ -84,6 +86,7 @@ export function InventoryClient({
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isCustomCheckoutOpen, setIsCustomCheckoutOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [draftSearch, setDraftSearch] = useState("");
   const [statuses, setStatuses] = useState<ProductStatusValue[]>([]);
   const [draftStatuses, setDraftStatuses] = useState<ProductStatusValue[]>([]);
@@ -487,20 +490,29 @@ export function InventoryClient({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mb-5">
+            <div className="grid grid-cols-3 gap-2 mb-5">
               <button
                 type="button"
                 onClick={handleInitiateAddProduct}
-                className="h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+                className="h-12 rounded-2xl bg-[#00A859] hover:bg-[#00964E] text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer shadow-sm transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add product
+                Add
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBulkUploadOpen(true)}
+                className="h-12 rounded-2xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                Bulk CSV
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsCustomCheckoutOpen(true)}
-                className="h-12 rounded-2xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 font-bold text-sm flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="h-12 rounded-2xl bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-800 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
               >
                 <Link2 className="w-4 h-4 text-[#00A859]" />
                 Custom link
@@ -817,6 +829,26 @@ export function InventoryClient({
           </div>
         </div>
       )}
+    
+      <BulkUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onSuccess={(created) => {
+          setProducts((prev) => [
+            ...created.map((c: any) => ({
+              ...c,
+              sku: c.sku ?? null,
+              category: c.category ?? null,
+              trackStock: c.trackStock ?? true,
+              stockReserved: c.stockReserved ?? 0,
+              lowStockThreshold: c.lowStockThreshold ?? null,
+              images: c.images ?? [],
+            })),
+            ...prev,
+          ]);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { ElectronicsCatalogClient } from "@/components/storefront/customer/Elect
 import { FashionCatalogClient } from "@/components/storefront/customer/FashionCatalogClient";
 import { LuxeFashionCatalogClient } from "@/components/storefront/customer/LuxeFashionCatalogClient";
 import { FoodCatalogClient } from "@/components/storefront/customer/FoodCatalogClient";
+import { StorefrontBeacon } from "@/components/storefront/StorefrontBeacon";
 
 interface Props {
   params: Promise<{
@@ -138,6 +139,7 @@ export default async function PublicStorefrontPage({ params, searchParams }: Pro
 
   return (
     <>
+      <StorefrontBeacon slug={slug} />
       {previewBanner}
       {templateId === "food" ? (
         <FoodCatalogClient

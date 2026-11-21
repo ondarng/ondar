@@ -16,50 +16,67 @@ export default async function CustomersPage() {
 
   const businessName = profile?.businessName || "My Store";
 
-  const dbCustomers = await prisma.customer.findMany({
-    where: { merchantId: merchant.id },
-    orderBy: [{ totalSpentKobo: "desc" }, { updatedAt: "desc" }],
-  });
+  let customers: CustomerItem[] = [];
 
-  const customers: CustomerItem[] = await Promise.all(
-    dbCustomers.map(async (c) => {
-      const recentOrders = await prisma.order.findMany({
-        where: {
-          merchantId: merchant.id,
-          customerPhone: c.phone,
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: {
-          id: true,
-          orderNumber: true,
-          orderStatus: true,
-          paymentStatus: true,
-          totalKobo: true,
-          createdAt: true,
-          deliveryType: true,
-          deliveryArea: true,
-          deliveryState: true,
-        },
-      });
+  try {
+    const dbCustomers = await prisma.customer.findMany({
+      where: { merchantId: merchant.id },
+      orderBy: [{ totalSpentKobo: "desc" }, { updatedAt: "desc" }],
+    });
 
-      return {
-        id: c.id,
-        name: c.name,
-        phone: c.phone,
-        email: c.email,
-        totalOrders: c.totalOrders,
-        totalSpentKobo: c.totalSpentKobo.toString(),
-        isRepeat: c.totalOrders >= 2,
-        lastOrderAt: recentOrders[0]?.createdAt.toISOString() || c.updatedAt.toISOString(),
-        recentOrders: recentOrders.map((o) => ({
-          ...o,
-          totalKobo: o.totalKobo.toString(),
-          createdAt: o.createdAt.toISOString(),
-        })),
-      };
-    })
-  );
+    customers = await Promise.all(
+      (dbCustomers || []).map(async (c) => {
+        let recentOrders: any[] = [];
+        try {
+          recentOrders = await prisma.order.findMany({
+            where: {
+              merchantId: merchant.id,
+              customerPhone: c.phone,
+            },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              id: true,
+              orderNumber: true,
+              orderStatus: true,
+              paymentStatus: true,
+              totalKobo: true,
+              createdAt: true,
+              deliveryType: true,
+              deliveryArea: true,
+              deliveryState: true,
+            },
+          });
+        } catch {
+          // Fallback to empty recent orders
+        }
+
+        const lastOrderTime = recentOrders[0]?.createdAt
+          ? new Date(recentOrders[0].createdAt).toISOString()
+          : c.updatedAt
+          ? new Date(c.updatedAt).toISOString()
+          : new Date().toISOString();
+
+        return {
+          id: c.id,
+          name: c.name || "Customer",
+          phone: c.phone,
+          email: c.email || null,
+          totalOrders: c.totalOrders || 0,
+          totalSpentKobo: c.totalSpentKobo ? c.totalSpentKobo.toString() : "0",
+          isRepeat: (c.totalOrders || 0) >= 2,
+          lastOrderAt: lastOrderTime,
+          recentOrders: (recentOrders || []).map((o) => ({
+            ...o,
+            totalKobo: o.totalKobo ? o.totalKobo.toString() : "0",
+            createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
+          })),
+        };
+      })
+    );
+  } catch (error) {
+    console.error("Customers query notice:", error);
+  }
 
   return (
     <CustomersClient

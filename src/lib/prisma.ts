@@ -13,17 +13,6 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
-function parseDatabaseConfig(connectionUrl: string) {
-  const url = new URL(connectionUrl);
-  return {
-    host: url.hostname,
-    port: url.port ? parseInt(url.port, 10) : 5432,
-    user: decodeURIComponent(url.username),
-    password: decodeURIComponent(url.password),
-    database: url.pathname.replace(/^\//, "") || "postgres",
-  };
-}
-
 function createPrismaClient() {
   if (!process.env.DATABASE_URL) {
     try {
@@ -45,16 +34,10 @@ function createPrismaClient() {
     process.env.DATABASE_URL ||
     "postgresql://postgres:postgres@127.0.0.1:5432/ondar_build_placeholder";
 
-  const dbConfig = parseDatabaseConfig(connectionUrl);
-
   const pool =
     globalForPrisma.pool ??
     new Pool({
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      password: dbConfig.password,
-      database: dbConfig.database,
+      connectionString: connectionUrl,
       ssl: { rejectUnauthorized: false },
       min: 0, // Serverless-safe: avoid stale idle sockets after PgBouncer server drops
       max: 10,

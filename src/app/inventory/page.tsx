@@ -25,40 +25,49 @@ export default async function InventoryPage() {
   const location = business?.state ? `${business.city ? business.city + ", " : ""}${business.state}` : "Nigeria";
   const initials = businessInitials(businessName);
 
-  // Concurrently fetch real products and pending badge count
-  const [rawProducts, pendingCount] = await Promise.all([
-    prisma.product.findMany({
-      where: { merchantId: merchant.id },
-      include: {
-        images: { orderBy: { position: "asc" } },
-        variants: { orderBy: { createdAt: "asc" } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.order.count({
-      where: {
-        merchantId: merchant.id,
-        paymentStatus: "AWAITING_PAYMENT",
-      },
-    }),
-  ]);
+  // Concurrently fetch real products and pending badge count with fallback resilience
+  let rawProducts: any[] = [];
+  let pendingCount = 0;
 
-  const products: InventoryProduct[] = rawProducts.map((p) => ({
+  try {
+    const results = await Promise.all([
+      prisma.product.findMany({
+        where: { merchantId: merchant.id },
+        include: {
+          images: { orderBy: { position: "asc" } },
+          variants: { orderBy: { createdAt: "asc" } },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.order.count({
+        where: {
+          merchantId: merchant.id,
+          paymentStatus: "AWAITING_PAYMENT",
+        },
+      }),
+    ]);
+    rawProducts = results[0] || [];
+    pendingCount = results[1] || 0;
+  } catch (error) {
+    console.error("Inventory database fetch notice:", error);
+  }
+
+  const products: InventoryProduct[] = (rawProducts || []).map((p) => ({
     id: p.id,
-    name: p.name,
+    name: p.name || "Product",
     slug: p.slug,
-    sku: p.sku,
-    category: p.category,
-    priceKobo: p.priceKobo.toString(),
+    sku: p.sku || null,
+    category: p.category || null,
+    priceKobo: p.priceKobo ? p.priceKobo.toString() : "0",
     costKobo: p.costKobo ? p.costKobo.toString() : null,
     status: p.status,
-    trackStock: p.trackStock,
-    isOutOfStockManual: p.isOutOfStockManual,
-    stockOnHand: p.stockOnHand,
-    stockReserved: p.stockReserved,
-    lowStockThreshold: p.lowStockThreshold,
-    images: p.images.map((img) => ({ url: img.url })),
-    variants: p.variants.map((v) => ({
+    trackStock: p.trackStock ?? true,
+    isOutOfStockManual: p.isOutOfStockManual ?? false,
+    stockOnHand: p.stockOnHand ?? 0,
+    stockReserved: p.stockReserved ?? 0,
+    lowStockThreshold: p.lowStockThreshold || null,
+    images: (p.images || []).map((img: any) => ({ url: img.url })),
+    variants: (p.variants || []).map((v: any) => ({
       ...v,
       priceKobo: v.priceKobo ? v.priceKobo.toString() : null,
       costKobo: v.costKobo ? v.costKobo.toString() : null,

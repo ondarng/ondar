@@ -145,8 +145,10 @@ export function getOrderTrackingUrl(
  */
 export function getRequestOrigin(req: Request | { headers: Headers; url?: string }): string {
   const headers = req.headers instanceof Headers ? req.headers : new Headers(req.headers as any);
-  const forwardedHost = headers.get("x-forwarded-host");
-  const forwardedProto = headers.get("x-forwarded-proto") || "https";
+  const rawForwardedHost = headers.get("x-forwarded-host");
+  const forwardedHost = rawForwardedHost ? rawForwardedHost.split(",")[0].trim() : null;
+  const rawProto = headers.get("x-forwarded-proto");
+  const forwardedProto = rawProto ? rawProto.split(",")[0].trim() : "https";
   if (forwardedHost) {
     return `${forwardedProto}://${forwardedHost}`;
   }

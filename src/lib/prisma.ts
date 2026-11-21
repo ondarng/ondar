@@ -56,12 +56,12 @@ function createPrismaClient() {
       password: dbConfig.password,
       database: dbConfig.database,
       ssl: { rejectUnauthorized: false },
-      min: 1, // Keep at least 1 warm socket alive so merchant clicks never stall on 1.8s cold handshakes
+      min: 0, // Serverless-safe: avoid stale idle sockets after PgBouncer server drops
       max: 10,
-      idleTimeoutMillis: 120000, // Keep idle sockets warm for 2 minutes across page transitions
-      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 20000, // 20s allowance for cross-region TLS handshakes
       keepAlive: true,
-      keepAliveInitialDelayMillis: 5000,
+      keepAliveInitialDelayMillis: 2000,
     });
 
   pool.on("error", (err) => {

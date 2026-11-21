@@ -66,10 +66,12 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error || !data?.user || !data.user.email) {
-      console.error("OAuth code exchange error:", error, data?.user);
-      const redirectUrl = new URL(errorBase);
-      redirectUrl.searchParams.set("error", error?.message || "oauth_failed");
-      return NextResponse.redirect(redirectUrl);
+      console.warn("Server OAuth code exchange notice, attempting client-side PKCE fallback:", error?.message);
+      // Fallback to client-side exchange using local browser storage verifier
+      const fallbackUrl = new URL(errorBase);
+      fallbackUrl.searchParams.set("code", code);
+      fallbackUrl.searchParams.set("client_exchange", "1");
+      return NextResponse.redirect(fallbackUrl);
     }
 
     const email = data.user.email.toLowerCase().trim();

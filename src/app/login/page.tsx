@@ -18,14 +18,84 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   React.useEffect(() => {
+    let isSubscribed = true;
+
+    async function handleSessionSync(user: { email?: string | null; id: string }) {
+      if (!user.email) return;
+      try {
+        setIsGoogleLoading(true);
+        const syncRes = await fetch("/api/auth/sync-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            supabaseId: user.id,
+          }),
+        });
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          window.location.href = syncData.redirectTo || "/dashboard";
+          return;
+        }
+      } catch (err) {
+        console.error("Session sync error:", err);
+      } finally {
+        if (isSubscribed) setIsGoogleLoading(false);
+      }
+    }
+
+    // 1. Check if Supabase already holds an active session in local storage / cookies
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isSubscribed) return;
+      if (session?.user?.email) {
+        handleSessionSync(session.user);
+      }
+    });
+
+    // 2. Listen for auth state changes (e.g. OAuth hash fragment parsed by browser)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isSubscribed) return;
+      if (session?.user?.email && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        handleSessionSync(session.user);
+      }
+    });
+
+    // 3. Handle query params & code exchange
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
+      const clientExchange = params.get("client_exchange");
+
       if (code) {
-        // Exchange code automatically if Supabase landed on /login
-        window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}&next=/dashboard`;
-        return;
+        setIsGoogleLoading(true);
+        // Attempt client-side PKCE exchange directly with local storage verifier
+        supabase.auth.exchangeCodeForSession(code).then(async ({ data, error }) => {
+          if (!isSubscribed) return;
+          if (data?.session?.user?.email) {
+            await handleSessionSync(data.session.user);
+          } else if (!clientExchange) {
+            // If client exchange wasn't forced and didn't find session, try server route
+            window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}&next=/dashboard`;
+          } else {
+            setIsGoogleLoading(false);
+            setErrorMessage(error?.message || "Google sign-in could not be completed. Please try again.");
+          }
+        }).catch(() => {
+          if (!isSubscribed) return;
+          if (!clientExchange) {
+            window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}&next=/dashboard`;
+          } else {
+            setIsGoogleLoading(false);
+            setErrorMessage("Google sign-in could not be completed. Please try again.");
+          }
+        });
+
+        return () => {
+          isSubscribed = false;
+          subscription.unsubscribe();
+        };
       }
+
       const err = params.get("error");
       if (err === "oauth_failed") {
         setErrorMessage("Google authentication failed. Please try again or log in with email.");
@@ -39,6 +109,11 @@ export default function LoginPage() {
         setErrorMessage(decodeURIComponent(err));
       }
     }
+
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

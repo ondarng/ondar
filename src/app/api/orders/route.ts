@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     triggerLazyHoldRelease();
 
     const body = await req.json();
-    const { storeSlug, customerName, customerPhone, customerEmail, customerNote, deliveryType, deliveryState, deliveryArea, deliveryAddress, deliveryInstructions, paymentRoute, items } = body;
+    const { storeSlug, customerName, customerPhone, customerEmail, customerNote, deliveryType, deliveryState, deliveryArea, deliveryAddress, deliveryInstructions, paymentRoute, items, customCheckoutToken } = body;
     if (typeof storeSlug !== "string" || typeof customerName !== "string" || !customerName.trim() || typeof customerPhone !== "string" || !customerPhone.trim() || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "A store, customer name, phone number, and at least one item are required." }, { status: 400 });
     }
@@ -32,6 +32,21 @@ export async function POST(req: NextRequest) {
     }
     if (!profile.merchant.payoutAccount?.isVerified) {
       return NextResponse.json({ error: "This store cannot accept orders yet. Payout account is not verified." }, { status: 400 });
+    }
+
+    let customLink: any = null;
+    if (customCheckoutToken && typeof customCheckoutToken === "string") {
+      customLink = await prisma.customCheckoutLink.findFirst({
+        where: {
+          token: customCheckoutToken,
+          merchantId: profile.merchantId,
+          status: "ACTIVE",
+          expiresAt: { gt: new Date() },
+        },
+      });
+      if (!customLink) {
+        return NextResponse.json({ error: "This custom checkout link has expired or has already been used." }, { status: 400 });
+      }
     }
 
     const requested = new Map<string, { productId: string; variantId?: string; quantity: number }>();
@@ -104,9 +119,22 @@ export async function POST(req: NextRequest) {
         if (!product) throw new Error("One or more products are unavailable.");
         const variant = selection.variantId ? product.variants.find((entry) => entry.id === selection.variantId) : undefined;
         if (selection.variantId && !variant) throw new Error("Selected product variant is unavailable.");
-        if (product.trackStock && product.stockOnHand - product.stockReserved < selection.quantity) throw new Error(`${product.name} does not have enough stock.`);
-        if (product.trackStock) await tx.product.update({ where: { id: product.id }, data: { stockReserved: { increment: selection.quantity } } });
-        const priceKobo = variant?.priceKobo ?? product.priceKobo;
+
+        // If this order is from an active custom link, stock was ALREADY reserved when link was created!
+        if (!customLink) {
+          if (product.trackStock && product.stockOnHand - product.stockReserved < selection.quantity) throw new Error(`${product.name} does not have enough stock.`);
+          if (product.trackStock) await tx.product.update({ where: { id: product.id }, data: { stockReserved: { increment: selection.quantity } } });
+        }
+
+        // Determine price: check if custom link specified an agreed price
+        let priceKobo = variant?.priceKobo ?? product.priceKobo;
+        if (customLink && Array.isArray(customLink.items)) {
+          const agreedItem = (customLink.items as any[]).find((it: any) => it.productId === product.id);
+          if (agreedItem && agreedItem.agreedPriceKobo) {
+            priceKobo = BigInt(agreedItem.agreedPriceKobo);
+          }
+        }
+
         const lineTotal = priceKobo * BigInt(selection.quantity);
         subtotalKobo += lineTotal;
         lines.push({ productId: product.id, name: variant ? `${product.name} — ${variant.title}` : product.name, priceKobo, quantity: selection.quantity, lineTotal });
@@ -120,6 +148,7 @@ export async function POST(req: NextRequest) {
           orderStatus: "AWAITING_PAYMENT",
           paymentStatus: "AWAITING_PAYMENT",
           paymentRoute: paymentRoute === "PAYSTACK" ? "PAYSTACK" : "BANK_TRANSFER",
+          source: customLink ? "CUSTOM_CHECKOUT" : "STOREFRONT",
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerEmail: typeof customerEmail === "string" ? customerEmail.trim() || null : null,
@@ -138,11 +167,20 @@ export async function POST(req: NextRequest) {
           lines: { create: lines }
         }
       });
+      if (customLink) {
+        await tx.customCheckoutLink.update({
+          where: { id: customLink.id },
+          data: {
+            status: "USED",
+            orderId: created.id,
+          },
+        });
+      }
       for (const line of lines) {
         const product = await tx.product.findUniqueOrThrow({ where: { id: line.productId } });
-        if (product.trackStock) await tx.stockAudit.create({ data: { productId: product.id, changeQty: line.quantity, beforeAvailable: product.stockOnHand - product.stockReserved + line.quantity, afterAvailable: product.stockOnHand - product.stockReserved, beforeOnHand: product.stockOnHand, afterOnHand: product.stockOnHand, beforeReserved: product.stockReserved - line.quantity, afterReserved: product.stockReserved, reason: "RESERVE_HOLD", referenceId: created.id, note: "Checkout stock hold.", actor: "checkout" } });
+        if (product.trackStock) await tx.stockAudit.create({ data: { productId: product.id, changeQty: line.quantity, beforeAvailable: product.stockOnHand - product.stockReserved + line.quantity, afterAvailable: product.stockOnHand - product.stockReserved, beforeOnHand: product.stockOnHand, afterOnHand: product.stockOnHand, beforeReserved: product.stockReserved - line.quantity, afterReserved: product.stockReserved, reason: "RESERVE_HOLD", referenceId: created.id, note: customLink ? "Custom checkout order placed." : "Checkout stock hold.", actor: "checkout" } });
       }
-      await tx.orderEvent.create({ data: { orderId: created.id, toStatus: "AWAITING_PAYMENT", actor: "customer", note: "Order created and stock reserved." } });
+      await tx.orderEvent.create({ data: { orderId: created.id, toStatus: "AWAITING_PAYMENT", actor: "customer", note: customLink ? "Custom offer order created." : "Order created and stock reserved." } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     return NextResponse.json({

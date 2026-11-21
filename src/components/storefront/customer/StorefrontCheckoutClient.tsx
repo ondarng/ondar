@@ -37,6 +37,25 @@ import {
 } from "@/lib/phone";
 import { computePaystackProcessingFeeKobo } from "@/lib/fees";
 
+export interface CustomCheckoutItem {
+  productId: string;
+  name: string;
+  priceKobo: number;
+  priceNaira: number;
+  quantity: number;
+  imageUrl?: string;
+  slug?: string;
+}
+
+export interface CustomCheckoutData {
+  token: string;
+  note: string | null;
+  status: "ACTIVE" | "EXPIRED" | "USED" | "NOT_FOUND";
+  expiresAt: string;
+  totalKobo: string;
+  items: CustomCheckoutItem[];
+}
+
 interface StorefrontCheckoutProps {
   businessName: string;
   storeSlug: string;
@@ -56,6 +75,7 @@ interface StorefrontCheckoutProps {
   } | null;
   hasPaystack?: boolean;
   feeBearer?: "MERCHANT" | "CUSTOMER";
+  customCheckout?: CustomCheckoutData | null;
 }
 
 export function StorefrontCheckoutClient(props: StorefrontCheckoutProps) {
@@ -94,9 +114,31 @@ function CheckoutContent({
   initialBankDetails,
   hasPaystack = false,
   feeBearer = "MERCHANT",
+  customCheckout,
 }: StorefrontCheckoutProps) {
   const router = useRouter();
-  const { items, totalCount, subtotalNaira, clearCart } = useCart();
+  const { items: cartItems, totalCount: cartTotalCount, subtotalNaira: cartSubtotalNaira, clearCart } = useCart();
+
+  const isCustomDeal = Boolean(customCheckout?.status === "ACTIVE" && customCheckout.items.length > 0);
+
+  const items = useMemo(() => {
+    if (isCustomDeal && customCheckout?.items) {
+      return customCheckout.items.map((it, idx) => ({
+        id: `${it.productId}-${idx}`,
+        productId: it.productId,
+        productName: it.name,
+        productSlug: it.slug || "product",
+        imageUrl: it.imageUrl || "/sample-product.png",
+        priceKobo: it.priceKobo,
+        variantTitle: "Negotiated Deal",
+        quantity: it.quantity,
+        availableStock: it.quantity,
+      }));
+    }
+    return cartItems;
+  }, [isCustomDeal, customCheckout, cartItems]);
+
+  const totalCount = useMemo(() => items.reduce((acc, it) => acc + it.quantity, 0), [items]);
 
   const hasRealRates = shippingRates && shippingRates.length > 0;
   const isPickupAvailable = Boolean(pickupEnabled && pickupAddress && pickupAddress.trim());
@@ -304,6 +346,7 @@ function CheckoutContent({
   const subtotalKobo = useMemo(() => {
     return items.reduce((acc, it) => acc + it.priceKobo * it.quantity, 0);
   }, [items]);
+  const subtotalNaira = (subtotalKobo / 100).toLocaleString("en-NG");
 
   // Paystack processing fee gross-up if customer pays (PAY-04 / 4.5)
   // Only applies when paying with Paystack and vendor chose "CUSTOMER"
@@ -417,6 +460,7 @@ function CheckoutContent({
           processingFeeKobo,
           paymentRoute: activePaymentMethod === "paystack" ? "PAYSTACK" : "BANK_TRANSFER",
           customerNote: orderNote.trim() || undefined,
+          customCheckoutToken: isCustomDeal ? customCheckout?.token : undefined,
           items: items.map((it) => ({
             productId: it.productId,
             name: it.productName,
@@ -936,6 +980,45 @@ function CheckoutContent({
                 If you leave now, use this order link to return. You won&apos;t need to create another order.
               </p>
             </div>
+          ) : customCheckout?.status === "EXPIRED" ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 text-center my-6 space-y-3">
+              <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h2 className="text-base font-bold text-neutral-900">This offer has expired</h2>
+              <p className="text-xs text-neutral-600 max-w-[280px] mx-auto leading-relaxed">
+                Custom checkout links are held for 24 hours. The reserved items have been returned to inventory.
+              </p>
+              {whatsappNumber && (
+                <a
+                  href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                    `Hi ${businessName}, my custom checkout link has expired. Could you generate a new link for me?`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white font-bold text-xs shadow-xs"
+                >
+                  <WhatsAppIcon className="w-4 h-4 fill-white" />
+                  <span>Message on WhatsApp</span>
+                </a>
+              )}
+            </div>
+          ) : customCheckout?.status === "USED" ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center my-6 space-y-3">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 text-[#00A859] flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h2 className="text-base font-bold text-neutral-900">Order Already Placed</h2>
+              <p className="text-xs text-neutral-600 max-w-[280px] mx-auto leading-relaxed">
+                This custom checkout offer has already been completed.
+              </p>
+              <Link
+                href={`/s/${storeSlug}`}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00A859] text-white font-bold text-xs"
+              >
+                <span>Visit Storefront</span>
+              </Link>
+            </div>
           ) : (
             <>
               {/* Stepper Progress Pill (C02) */}
@@ -958,6 +1041,24 @@ function CheckoutContent({
                       {businessName} · {totalCount} {totalCount === 1 ? "item" : "items"}
                     </p>
                   </div>
+
+                  {/* Special Negotiated Offer Banner */}
+                  {isCustomDeal && (
+                    <div className="bg-[#E8F8EF] border border-[#A7F3D0] rounded-2xl p-3.5 space-y-1.5 shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse" />
+                        <p className="text-xs font-bold text-emerald-950">Exclusive Negotiated Offer</p>
+                      </div>
+                      <p className="text-[11px] text-emerald-800 leading-snug">
+                        Stock is reserved for you. Complete checkout to confirm.
+                      </p>
+                      {customCheckout?.note && (
+                        <p className="text-[11px] font-medium text-emerald-900 bg-white/80 px-2.5 py-1 rounded-lg border border-emerald-200 mt-1">
+                          Seller Note: &ldquo;{customCheckout.note}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Delivery vs Pickup Toggle */}
                   {isDeliveryAvailable && isPickupAvailable ? (

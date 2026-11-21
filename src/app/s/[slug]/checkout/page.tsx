@@ -8,10 +8,16 @@ interface Props {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<{
+    custom?: string;
+    token?: string;
+  }>;
 }
 
-export default async function PublicCheckoutPage({ params }: Props) {
+export default async function PublicCheckoutPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { custom, token } = await searchParams;
+  const customToken = custom || token;
 
   const profile = await prisma.businessProfile.findUnique({
     where: { slug },
@@ -85,6 +91,91 @@ export default async function PublicCheckoutPage({ params }: Props) {
 
   const stateRates = Array.from(stateRateMap.values());
 
+  let customCheckoutData: {
+    token: string;
+    note: string | null;
+    status: "ACTIVE" | "EXPIRED" | "USED" | "NOT_FOUND";
+    expiresAt: string;
+    totalKobo: string;
+    items: Array<{
+      productId: string;
+      name: string;
+      priceKobo: number;
+      priceNaira: number;
+      quantity: number;
+      imageUrl?: string;
+      slug?: string;
+    }>;
+  } | null = null;
+
+  if (customToken) {
+    try {
+      const link = await prisma.customCheckoutLink.findUnique({
+        where: { token: customToken },
+      });
+
+      if (!link || link.merchantId !== profile.merchantId) {
+        customCheckoutData = {
+          token: customToken,
+          note: null,
+          status: "NOT_FOUND",
+          expiresAt: new Date().toISOString(),
+          totalKobo: "0",
+          items: [],
+        };
+      } else if (link.status !== "ACTIVE" || link.expiresAt <= new Date()) {
+        customCheckoutData = {
+          token: link.token,
+          note: link.note,
+          status: link.status === "USED" ? "USED" : "EXPIRED",
+          expiresAt: link.expiresAt.toISOString(),
+          totalKobo: link.totalKobo.toString(),
+          items: [],
+        };
+      } else {
+        // Active custom checkout link!
+        const rawItems = (Array.isArray(link.items) ? link.items : []) as Array<{
+          productId: string;
+          name?: string;
+          agreedPriceKobo?: string | number;
+          quantity?: number;
+        }>;
+
+        const productIds = rawItems.map((it) => it.productId).filter(Boolean);
+        const dbProducts = await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          include: { images: { orderBy: { position: "asc" }, take: 1 } },
+        });
+        const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+        const resolvedItems = rawItems.map((it) => {
+          const prod = productMap.get(it.productId);
+          const priceKoboNum = Number(it.agreedPriceKobo ?? prod?.priceKobo ?? 0);
+          return {
+            productId: it.productId,
+            name: it.name || prod?.name || "Product",
+            priceKobo: priceKoboNum,
+            priceNaira: Math.round(priceKoboNum / 100),
+            quantity: Number(it.quantity) || 1,
+            imageUrl: prod?.images[0]?.url || undefined,
+            slug: prod?.slug || undefined,
+          };
+        });
+
+        customCheckoutData = {
+          token: link.token,
+          note: link.note,
+          status: "ACTIVE",
+          expiresAt: link.expiresAt.toISOString(),
+          totalKobo: link.totalKobo.toString(),
+          items: resolvedItems,
+        };
+      }
+    } catch (err) {
+      console.error("Error fetching custom checkout link:", err);
+    }
+  }
+
   return (
     <StorefrontCheckoutClient
       businessName={profile.businessName}
@@ -101,6 +192,7 @@ export default async function PublicCheckoutPage({ params }: Props) {
       initialBankDetails={bankDetails}
       hasPaystack={hasPaystack}
       feeBearer={paymentConfig?.feeBearer === "CUSTOMER" ? "CUSTOMER" : "MERCHANT"}
+      customCheckout={customCheckoutData}
     />
   );
 }
